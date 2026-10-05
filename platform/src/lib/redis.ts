@@ -43,6 +43,30 @@ class ResilientRedis {
     return val !== undefined ? (val as T) : null
   }
 
+  // Batched GET: one round trip for many keys instead of one HTTP request per
+  // key to Upstash. Same per-key semantics as get() (memory fallback for keys
+  // Upstash doesn't have, or when Upstash is unreachable).
+  async mget<T = any>(keys: string[]): Promise<(T | null)[]> {
+    if (keys.length === 0) return []
+    let remote: (T | null)[] | null = null
+    if (upstashClient) {
+      try {
+        remote = await upstashClient.mget<(T | null)[]>(...keys)
+      } catch (err) {
+        console.warn(`Upstash mget failed for ${keys.length} keys, falling back to memory:`, err)
+      }
+    }
+    return keys.map((key, i) => {
+      const val = remote?.[i]
+      if (val !== null && val !== undefined) {
+        globalStore.set(key, val)
+        return val
+      }
+      const mem = globalStore.get(key)
+      return mem !== undefined ? (mem as T) : null
+    })
+  }
+
   async set(key: string, value: any, options?: any): Promise<any> {
     globalStore.set(key, value)
     if (upstashClient) {

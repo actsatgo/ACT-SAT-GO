@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 import DOMPurify from 'dompurify';
 import 'katex/dist/katex.min.css';
 import renderMathInElement from 'katex/contrib/auto-render';
@@ -17,7 +17,7 @@ const KATEX_DELIMITERS = [
   { left: '\\(', right: '\\)', display: false },
 ];
 
-export function RichContentRenderer({
+function RichContentRendererImpl({
   content,
   className = '',
   allowImages = true,
@@ -93,3 +93,8 @@ export function RichContentRenderer({
     />
   );
 }
+
+// Memoised: all props are primitives, and the test interface re-renders every
+// second (countdown + per-question timer). Without memo every question, option
+// and passage renderer was re-rendered on each tick.
+export const RichContentRenderer = memo(RichContentRendererImpl);

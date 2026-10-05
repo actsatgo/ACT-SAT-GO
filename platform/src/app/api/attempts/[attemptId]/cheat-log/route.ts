@@ -18,22 +18,24 @@ export async function POST(
       return NextResponse.json({ error: 'eventType is required' }, { status: 400 })
     }
 
-    // Fetch the test attempt to get studentId and testId
-    const attempt = await prisma.testAttempt.findUnique({
-      where: { id: attemptId }
-    })
+    // Fetch the test attempt (for studentId/testId) and count existing
+    // violations of this type in parallel — they're independent lookups.
+    const [attempt, count] = await Promise.all([
+      prisma.testAttempt.findUnique({
+        where: { id: attemptId },
+        select: { studentId: true, testId: true },
+      }),
+      prisma.cheatingLog.count({
+        where: {
+          attemptId,
+          eventType
+        }
+      }),
+    ])
 
     if (!attempt) {
       return NextResponse.json({ error: 'Test attempt not found' }, { status: 404 })
     }
-
-    // Count existing violations of this type for this attempt
-    const count = await prisma.cheatingLog.count({
-      where: {
-        attemptId,
-        eventType
-      }
-    })
 
     const violationCount = count + 1
     const timestamp = new Date().toISOString()

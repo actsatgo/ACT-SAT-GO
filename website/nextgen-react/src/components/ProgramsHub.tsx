@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { IconTarget, IconOpenBookSquare, IconRocket } from './Icons';
-import img1 from '../../images/1.png';
-import img2 from '../../images/2.jpg.png';
-import img3 from '../../images/3.png';
+import img1 from '../assets/img/1.webp';
+import img2 from '../assets/img/2.webp';
+import img3 from '../assets/img/3.webp';
 
 function HubBadgeCapIcon() {
   return (

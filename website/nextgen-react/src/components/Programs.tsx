@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import programsImg from '../assets/programs.png';
+import programsImg from '../assets/img/programs.webp';
 
 type Category = 'test' | 'school' | 'future';
 

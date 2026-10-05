@@ -323,7 +323,7 @@ export function TestInterfacePage() {
       setRestoreError(null);
       try {
         const [attemptRes, autosaveRes] = await Promise.all([
-          api.getAttempt(attemptIdFromQuery),
+          api.getAttemptFresh(attemptIdFromQuery),
           api.getAutosaveState(attemptIdFromQuery),
         ]);
         const rawAttempt = attemptRes.attempt as any;

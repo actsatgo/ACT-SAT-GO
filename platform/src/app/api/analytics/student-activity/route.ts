@@ -42,16 +42,22 @@ export async function GET(request: NextRequest) {
     // Session log entries live in Redis per (tutor, student) pair — a student can
     // have had more than one tutor over time, so take the latest across all of them.
     const lastSession = new Map<string, string>()
-    await Promise.all(assignments.map(async ({ tutorId, studentId }) => {
-      const raw = await redis.get<string>(`classProgress:${tutorId}:${studentId}`)
-      if (!raw) return
-      const entries: ClassProgressEntry[] = typeof raw === 'string' ? JSON.parse(raw) : (raw as unknown as ClassProgressEntry[])
-      const dates = entries.map((e) => e.classDate).filter((d): d is string => !!d)
-      if (dates.length === 0) return
-      const latest = dates.reduce((a, b) => (a > b ? a : b))
-      const existing = lastSession.get(studentId)
-      if (!existing || latest > existing) lastSession.set(studentId, latest)
-    }))
+    // Batched MGETs (100 keys each) instead of one Upstash HTTP call per pair.
+    const MGET_CHUNK = 100
+    for (let i = 0; i < assignments.length; i += MGET_CHUNK) {
+      const chunk = assignments.slice(i, i + MGET_CHUNK)
+      const raws = await redis.mget<string>(chunk.map(({ tutorId, studentId }) => `classProgress:${tutorId}:${studentId}`))
+      chunk.forEach(({ studentId }, idx) => {
+        const raw = raws[idx]
+        if (!raw) return
+        const entries: ClassProgressEntry[] = typeof raw === 'string' ? JSON.parse(raw) : (raw as unknown as ClassProgressEntry[])
+        const dates = entries.map((e) => e.classDate).filter((d): d is string => !!d)
+        if (dates.length === 0) return
+        const latest = dates.reduce((a, b) => (a > b ? a : b))
+        const existing = lastSession.get(studentId)
+        if (!existing || latest > existing) lastSession.set(studentId, latest)
+      })
+    }
 
     const studentIds = new Set([...lastMock.keys(), ...lastHw.keys(), ...lastSession.keys()])
     const activity = [...studentIds].map((studentId) => ({

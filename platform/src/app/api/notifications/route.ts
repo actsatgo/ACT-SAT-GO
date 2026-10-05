@@ -31,9 +31,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ notifications: [] })
     }
 
-    const rawItems = await Promise.all(
-      ids.map((id) => redis.get<string>(`notif:${id}`)),
-    )
+    // One MGET instead of up to 50 separate Upstash REST calls per poll.
+    const rawItems = await redis.mget<string>(ids.map((id) => `notif:${id}`))
 
     const notifications: Notification[] = rawItems
       .filter((item): item is string => item !== null)

@@ -9,7 +9,7 @@ import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { StatCard } from '../../components/common/Card';
 import { Modal } from '../../components/common/Modal';
-import { api, type DbUser } from '../../lib/api';
+import { api, invalidateApiCache, type DbUser } from '../../lib/api';
 import { isHW, isEnglish, isMath, isWriting, isReading } from '../../lib/testCategorize';
 import { toLines } from '../../lib/sessionLog';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -493,7 +493,7 @@ export function StudentDetailPage() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
-              onClick={fetchAssigned}
+              onClick={() => { invalidateApiCache(`/api/students/${id}/assigned-tests`); fetchAssigned(); }}
               className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
               title="Refresh assignments"
             >

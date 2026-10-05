@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { Brand } from '../components/Brand';
+import { Footer } from '../components/Footer';
 import { QUERY_API_BASE } from '../config';
-import { trackLead } from '../lib/metaPixel';
+import { trackLead, leadSource, trackContactClick } from '../lib/analytics';
+import { SITE, PRIMARY_CTA } from '../site';
+import { HowItWorks } from '../components/HowItWorks';
+import { WHATSAPP_HREF } from '../components/WhatsAppButton';
 
 const EXAM_OPTIONS = ['General', 'SAT', 'ACT', 'AP Prep', 'K-12 Tutoring'];
 
@@ -36,12 +39,13 @@ export function EnquiryPage() {
           ...formData,
           phone: `${phoneCountryCode} ${phoneLocalNumber}`.trim(),
           type: 'Consultation',
+          source: leadSource('Website · Consultation page'),
         }),
       });
 
       if (response.ok) {
         setSubmitStatus('success');
-        trackLead();
+        trackLead('consultation_page', { exam: formData.exam });
       } else {
         setSubmitStatus('error');
       }
@@ -58,23 +62,35 @@ export function EnquiryPage() {
       <main>
         <section className="hero section-dark" style={{ paddingBottom: '60px' }}>
           <span className="orb orb-gold" aria-hidden="true" />
-          <div className="shell" style={{ maxWidth: '560px', margin: '0 auto', textAlign: 'center' }}>
-            <h1 style={{ marginBottom: '12px' }}>Book Your <span>Free Consultation</span></h1>
-            <p className="hero-text" style={{ marginBottom: '32px' }}>
-              Tell us about your goals and one of our academic counselors will design a customized learning roadmap for you.
+          <div className="shell" style={{ maxWidth: SITE.bookingUrl ? '860px' : '560px', margin: '0 auto', textAlign: 'center' }}>
+            <h1 style={{ marginBottom: '12px' }}>Book a <span>Free Diagnostic Lesson</span></h1>
+            <p className="hero-text" style={{ marginBottom: '20px' }}>
+              Your child gets a baseline score; you get a clear plan for the target score and test date. No payment, no obligation.
             </p>
+            <p className="hero-text" style={{ marginBottom: '32px', fontSize: '15px' }}>
+              Prefer to talk first? Call <a href={SITE.phoneHref} onClick={() => trackContactClick('phone')} style={{ color: 'var(--gold)', fontWeight: 800 }}>{SITE.phoneDisplay}</a>
+              {' '}or <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" onClick={() => trackContactClick('whatsapp')} style={{ color: 'var(--gold)', fontWeight: 800 }}>text us on WhatsApp</a>.
+            </p>
+
+            {SITE.bookingUrl && (
+              <div style={{ marginBottom: '32px' }}>
+                <h2 style={{ fontSize: '22px', marginBottom: '12px' }}>Pick a time for your free call</h2>
+                <iframe className="booking-embed" src={SITE.bookingUrl} title="Book a free diagnostic lesson" loading="lazy" />
+                <p className="hero-text" style={{ fontSize: '14px', marginTop: '16px' }}>Can&rsquo;t find a time that works? Send the form below and we&rsquo;ll call you.</p>
+              </div>
+            )}
 
             <div className="c-modal" style={{ margin: '0 auto', textAlign: 'left', transform: 'none' }}>
               {submitStatus === 'success' ? (
                 <div className="c-success-state">
                   <div className="c-success-icon">✓</div>
-                  <h4>Consultation Booked!</h4>
-                  <p>Thank you for reaching out. An expert academic counselor from ACT SAT GO will contact you shortly.</p>
+                  <h4>Request received!</h4>
+                  <p>Thank you. An academic advisor from ACT SAT GO will contact you shortly to schedule your free diagnostic lesson.</p>
                 </div>
               ) : (
                 <form onSubmit={handleFormSubmit}>
                   <div className="c-form-group">
-                    <label htmlFor="enq-name">Full Name</label>
+                    <label htmlFor="enq-name">Parent or student name</label>
                     <input
                       id="enq-name"
                       type="text"
@@ -150,11 +166,11 @@ export function EnquiryPage() {
                   </div>
 
                   <div className="c-form-group">
-                    <label htmlFor="enq-message">Tell us about your learning goals</label>
+                    <label htmlFor="enq-message">Target score and test date (optional)</label>
                     <textarea
                       id="enq-message"
                       className="c-input c-textarea"
-                      placeholder="e.g. Target SAT score is 1500+, looking for 1-on-1 tutoring..."
+                      placeholder="e.g. Aiming for 1450+ on the March SAT, currently around 1250"
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     />
@@ -162,54 +178,23 @@ export function EnquiryPage() {
 
                   {submitStatus === 'error' && (
                     <p style={{ color: '#ef4444', fontSize: '13px', margin: '8px 0', fontWeight: 600 }}>
-                      ✕ Unable to submit form. Please check if the query server is running.
+                      ✕ Sorry, something went wrong. Please try again, or text us on WhatsApp.
                     </p>
                   )}
 
                   <button type="submit" className="c-submit-btn" disabled={submitStatus === 'submitting'}>
-                    {submitStatus === 'submitting' ? 'Submitting...' : 'Book Free Consultation'}
+                    {submitStatus === 'submitting' ? 'Submitting...' : PRIMARY_CTA}
                   </button>
                 </form>
               )}
             </div>
           </div>
         </section>
+
+        <HowItWorks showCta={false} />
       </main>
 
-      <footer className="footer">
-        <div className="footer-top shell">
-          <div className="footer-brand-col">
-            <Brand />
-            <p className="footer-desc">
-              ACT SAT GO offers expert guidance and resources to help students excel in their ACT | SAT | AP | and other academic courses. Join our community and unlock your potential with tailored learning strategies and comprehensive support.
-            </p>
-          </div>
-
-          <div className="footer-col">
-            <h4 className="footer-heading">Programs</h4>
-            <ul className="footer-links">
-              <li><a href="/sat">SAT</a></li>
-              <li><a href="/act">ACT</a></li>
-              <li><a href="/ap">AP</a></li>
-              <li><a href="/k-12-tutoring">K-12 Tutoring</a></li>
-              <li><a href="/future-programs">Future Programs</a></li>
-            </ul>
-          </div>
-
-          <div className="footer-col">
-            <h4 className="footer-heading">Company</h4>
-            <ul className="footer-links">
-              <li><a href="/about-us">About Us</a></li>
-              <li><a href="/">Home</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="footer-bottom shell">
-          <p>&copy; {new Date().getFullYear()} ACT SAT GO. All rights reserved.</p>
-          <p>Designed for students who aim higher.</p>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

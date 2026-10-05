@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
@@ -10,84 +11,73 @@ export async function GET(
   const { attemptId } = await params
 
   try {
-    const attempt = await prisma.testAttempt.findUnique({
+    // The question tree for a section is identical whether it is reached via
+    // test.sections or via sectionAttempts[].section, so load it once (through
+    // test.sections) and attach it to each section attempt below. Previously the
+    // whole tree (sections → questions → question → topic/children/parent) was
+    // fetched twice, doubling the number of sequential DB round trips.
+    const sectionInclude = {
+      questions: {
+        orderBy: { orderIndex: 'asc' },
+        include: {
+          question: {
+            include: {
+              childQuestions: {
+                orderBy: { createdAt: 'asc' },
+                include: { topic: { include: { parent: true } } },
+              },
+              parentQuestion: {
+                include: { topic: { include: { parent: true } } }
+              },
+              topic: { include: { parent: true } },
+            },
+          },
+        },
+      },
+    } satisfies Prisma.TestSectionInclude
+
+    const attemptRow = await prisma.testAttempt.findUnique({
       where: { id: attemptId },
       include: {
         test: {
           include: {
             sections: {
               orderBy: { orderIndex: 'asc' },
-              include: {
-                questions: {
-                  orderBy: { orderIndex: 'asc' },
-                  include: {
-                    question: {
-                      include: {
-                        childQuestions: {
-                          orderBy: { createdAt: 'asc' },
-                          include: { topic: { include: { parent: true } } },
-                        },
-                        parentQuestion: {
-                          include: { topic: { include: { parent: true } } }
-                        },
-                        topic: { include: { parent: true } },
-                      },
-                    },
-                  },
-                },
-              },
+              include: sectionInclude,
             },
           },
         },
         sectionAttempts: {
           orderBy: { section: { orderIndex: 'asc' } },
-          include: {
-            section: {
-              include: {
-                questions: {
-                  orderBy: { orderIndex: 'asc' },
-                  include: {
-                    question: {
-                      include: {
-                        childQuestions: {
-                          orderBy: { createdAt: 'asc' },
-                          include: { topic: { include: { parent: true } } },
-                        },
-                        parentQuestion: {
-                          include: { topic: { include: { parent: true } } }
-                        },
-                        topic: { include: { parent: true } },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
         },
         answers: { include: { question: true } },
         cheatingLogs: { orderBy: { createdAt: 'asc' } },
       },
     })
-    if (!attempt) return NextResponse.json({ error: 'Attempt not found' }, { status: 404 })
-    
-    // Log the data structure for debugging
-    console.log(`[BACKEND] Attempt ${attemptId}:`);
-    console.log(`  - Sections: ${attempt.test?.sections?.length || 0}`);
-    console.log(`  - Total Answers: ${attempt.answers.length}`);
-    if (attempt.sectionAttempts.length > 0) {
-      const sa = attempt.sectionAttempts[0];
-      console.log(`  - First Section: "${sa.section.name}"`);
-      console.log(`  - First Section Questions: ${sa.section.questions?.length || 0}`);
-      if (sa.section.questions && sa.section.questions.length > 0) {
-        const firstQ = sa.section.questions[0];
-        console.log(`    - First Question Type: ${firstQ.question.type}`);
-        console.log(`    - First Question ID: ${firstQ.question.id}`);
-        console.log(`    - Has correctAnswer: ${!!firstQ.question.correctAnswer}`);
-      }
+    if (!attemptRow) return NextResponse.json({ error: 'Attempt not found' }, { status: 404 })
+
+    type SectionWithQuestions = (typeof attemptRow.test.sections)[number]
+    const sectionsById = new Map<string, SectionWithQuestions>(
+      attemptRow.test.sections.map((sec) => [sec.id, sec])
+    )
+    // Defensive: a section attempt pointing at a section outside this test's
+    // section list (shouldn't happen) is still resolved, as before.
+    const strayIds = [...new Set(attemptRow.sectionAttempts.map((sa) => sa.sectionId))]
+      .filter((id) => !sectionsById.has(id))
+    if (strayIds.length > 0) {
+      const stray = await prisma.testSection.findMany({
+        where: { id: { in: strayIds } },
+        include: sectionInclude,
+      })
+      for (const sec of stray) sectionsById.set(sec.id, sec)
     }
-    console.log(`  - Sample Answer IDs:`, attempt.answers.slice(0, 3).map(a => a.questionId));
-    
+    const attempt = {
+      ...attemptRow,
+      sectionAttempts: attemptRow.sectionAttempts
+        .filter((sa) => sectionsById.has(sa.sectionId))
+        .map((sa) => ({ ...sa, section: sectionsById.get(sa.sectionId)! })),
+    }
+
     // Backfill any section missing its own SectionAttempt row (not just when
     // the whole array is empty) — otherwise that module silently disappears
     // from the response instead of showing a real (possibly zero) score.

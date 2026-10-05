@@ -11,7 +11,84 @@ function corsHeaders(request?: NextRequest): Record<string, string> {
     'Access-Control-Allow-Origin': origin,
     'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-user-id, x-user-email',
+    // Let browsers cache the CORS preflight. Every SPA request carries an
+    // Authorization header, so without this nearly every API call costs an
+    // extra OPTIONS round trip (browsers default to caching it for ~5s).
+    // Chrome caps this at 2h, Firefox at 24h.
+    'Access-Control-Max-Age': '7200',
   }
+}
+
+// ── Token verification cache ────────────────────────────────────────────────
+// `supabase.auth.getUser(token)` is a network round trip to Supabase Auth on
+// every API request. Cache successful verifications briefly, keyed by the raw
+// token, and never past the token's own `exp`. A revoked session is therefore
+// honoured within TOKEN_CACHE_TTL_MS; soft-deleted users are still rejected
+// immediately by the DB lookup in getCurrentUser().
+const TOKEN_CACHE_TTL_MS = 60_000
+const TOKEN_CACHE_MAX = 5_000
+type VerifiedUser = { id: string; email: string | undefined }
+const tokenCache = new Map<string, { user: VerifiedUser; expiresAt: number }>()
+
+function jwtExpMs(token: string): number | null {
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return null
+    const json = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8')) as { exp?: number }
+    return typeof json.exp === 'number' ? json.exp * 1000 : null
+  } catch {
+    return null
+  }
+}
+
+function getCachedUser(token: string): VerifiedUser | null {
+  const hit = tokenCache.get(token)
+  if (!hit) return null
+  if (hit.expiresAt <= Date.now()) {
+    tokenCache.delete(token)
+    return null
+  }
+  return hit.user
+}
+
+function cacheUser(token: string, user: VerifiedUser) {
+  const now = Date.now()
+  const exp = jwtExpMs(token)
+  const expiresAt = Math.min(now + TOKEN_CACHE_TTL_MS, exp ?? now + TOKEN_CACHE_TTL_MS)
+  if (expiresAt <= now) return
+  if (tokenCache.size >= TOKEN_CACHE_MAX) {
+    // Drop expired entries first, then the oldest (Map preserves insertion order).
+    for (const [k, v] of tokenCache) if (v.expiresAt <= now) tokenCache.delete(k)
+    while (tokenCache.size >= TOKEN_CACHE_MAX) {
+      const oldest = tokenCache.keys().next().value
+      if (oldest === undefined) break
+      tokenCache.delete(oldest)
+    }
+  }
+  tokenCache.set(token, { user, expiresAt })
+}
+
+// One stateless client for token verification, instead of one per request.
+let authClient: ReturnType<typeof createClient> | null = null
+function getAuthClient() {
+  if (!authClient) {
+    authClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      { auth: { autoRefreshToken: false, persistSession: false } }
+    )
+  }
+  return authClient
+}
+
+async function verifyToken(token: string): Promise<VerifiedUser | null> {
+  const cached = getCachedUser(token)
+  if (cached) return cached
+  const { data, error } = await getAuthClient().auth.getUser(token)
+  if (error || !data.user) return null
+  const user = { id: data.user.id, email: data.user.email }
+  cacheUser(token, user)
+  return user
 }
 
 function isPublicApiRoute(pathname: string, method: string): boolean {
@@ -55,14 +132,9 @@ export async function proxy(request: NextRequest) {
       return res
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    )
-    const { data, error } = await supabase.auth.getUser(token)
+    const verified = await verifyToken(token)
 
-    if (error || !data.user) {
+    if (!verified) {
       if (!isPublic) {
         return NextResponse.json(
           { error: 'Invalid or expired session' },
@@ -79,8 +151,8 @@ export async function proxy(request: NextRequest) {
     const fwdHeaders = new Headers(request.headers)
     fwdHeaders.delete('x-user-id')
     fwdHeaders.delete('x-user-email')
-    fwdHeaders.set('x-user-id', data.user.id)
-    if (data.user.email) fwdHeaders.set('x-user-email', data.user.email)
+    fwdHeaders.set('x-user-id', verified.id)
+    if (verified.email) fwdHeaders.set('x-user-email', verified.email)
 
     const res = NextResponse.next({ request: { headers: fwdHeaders } })
     for (const [k, v] of Object.entries(corsHeaders(request))) res.headers.set(k, v)

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Brand } from './Brand';
 import { APP_LOGIN_URL } from '../config';
-import { WHATSAPP_HREF, CALL_HREF } from './WhatsAppButton';
+import { WHATSAPP_HREF } from './WhatsAppButton';
+import { SITE } from '../site';
 
 const PROGRAM_LINKS: { to?: string; href?: string; label: string }[] = [
   { to: '/sat', label: 'SAT' },
@@ -44,7 +45,7 @@ function ContactDropdown({ onNavigate }: { onNavigate?: () => void }) {
           WhatsApp Us
         </a>
         <a
-          href={CALL_HREF}
+          href={SITE.phoneHref}
           role="menuitem"
           onClick={() => { setOpen(false); onNavigate?.(); }}
         >
@@ -118,7 +119,7 @@ export function Header() {
           <Link to="/resources" onClick={close}>Resources</Link>
 
           <Link to="/free-test" onClick={close} className="nav-highlight-link">
-            Free Demo Test
+            Free Practice Test
           </Link>
 
           <Link to="/careers" onClick={close}>Career</Link>
@@ -128,7 +129,7 @@ export function Header() {
           {/* Mobile-only actions inside the drawer */}
           <div className="nav-links-mobile-actions">
             <Link to="/free-test" onClick={close} className="btn btn-secondary" style={{ marginBottom: '8px', textAlign: 'center' }}>
-              ✨ Take the Free Demo Test
+              Take a Free Practice Test
             </Link>
             <ContactDropdown onNavigate={close} />
             {/* Social icons strip in mobile drawer */}
@@ -158,9 +159,9 @@ export function Header() {
         </div>
         <div className="nav-actions">
           <Link to="/free-test" className="btn btn-secondary nav-btn-free-test" style={{ marginRight: '8px' }}>
-            ✨ Free Demo Test
+            Free Practice Test
           </Link>
-          <ContactDropdown onNavigate={close} />
+          <Link to="/consultation" className="btn btn-primary nav-btn-book">Book Free Lesson</Link>
         </div>
       </nav>
     </header>

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { User, Role } from '../types';
 import { supabase } from '../lib/supabase';
-import { api, type DbUser } from '../lib/api';
+import { api, clearApiCache, type DbUser } from '../lib/api';
 
 // Maps a database user row to the in-app User shape.
 export function dbUserToAuthUser(u: DbUser): User {
@@ -42,12 +42,18 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       bootstrapping: true,
 
-      setSession: (user, dbId) => set({ user, dbId, isAuthenticated: true }),
+      setSession: (user, dbId) => {
+        // A different account may be signing in on this tab — never serve it
+        // the previous account's cached API responses.
+        if (get().dbId !== dbId) clearApiCache();
+        set({ user, dbId, isAuthenticated: true });
+      },
 
       logout: () => {
         // Clear local state immediately; revoke the Supabase session in the
         // background (callers navigate away synchronously).
         set({ user: null, dbId: null, isAuthenticated: false });
+        clearApiCache();
         supabase.auth.signOut().catch(() => {});
       },
 
@@ -65,6 +71,7 @@ export const useAuthStore = create<AuthState>()(
           authListenerAttached = true;
           supabase.auth.onAuthStateChange((event, session) => {
             if (event === 'SIGNED_OUT' || !session) {
+              clearApiCache();
               set({ user: null, dbId: null, isAuthenticated: false });
             }
             // Keep isAuthenticated in sync when the token is silently refreshed
