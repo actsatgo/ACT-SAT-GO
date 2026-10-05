@@ -136,31 +136,51 @@ export async function POST(
       const completedCount = attempt.sectionAttempts.filter((sa) => sa.completedAt !== null).length
 
       if (completedCount >= allSections.length) {
-        const answers = await prisma.attemptAnswer.findMany({
-          where: { attemptId },
-          include: {
-            question: {
-              include: { 
-                testQuestions: { where: { testId: attempt.testId } },
-                parentQuestion: {
-                  include: { testQuestions: { where: { testId: attempt.testId } } }
-                }
+        // Scoring only needs the answer key + marks and the test's structure,
+        // so select just those columns (not every question body) and load
+        // both independent queries in parallel.
+        const [answers, testQuestions] = await Promise.all([
+          prisma.attemptAnswer.findMany({
+            where: { attemptId },
+            select: {
+              questionId: true,
+              answerGiven: true,
+              question: {
+                select: {
+                  correctAnswer: true,
+                  testQuestions: {
+                    where: { testId: attempt.testId },
+                    select: { marksPositive: true, marksNegative: true },
+                  },
+                  parentQuestion: {
+                    select: {
+                      testQuestions: {
+                        where: { testId: attempt.testId },
+                        select: { marksPositive: true, marksNegative: true },
+                      },
+                    },
+                  },
+                },
               },
             },
-          },
-        })
-
-        // Fetch all TestQuestions for this test to build the structure
-        const testQuestions = await prisma.testQuestion.findMany({
-          where: { testId: attempt.testId },
-          include: {
-            question: {
-              include: {
-                childQuestions: true
-              }
-            }
-          }
-        })
+          }),
+          // Fetch all TestQuestions for this test to build the structure
+          prisma.testQuestion.findMany({
+            where: { testId: attempt.testId },
+            select: {
+              sectionId: true,
+              question: {
+                select: {
+                  id: true,
+                  type: true,
+                  content: true,
+                  parentQuestionId: true,
+                  childQuestions: { select: { id: true } },
+                },
+              },
+            },
+          }),
+        ])
 
         // Group and flatten questions by section to know which are answerable
         const sectionQuestionsMap = new Map<string, string[]>() // sectionId -> questionIds

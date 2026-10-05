@@ -9,7 +9,66 @@ async function authHeaders(): Promise<Record<string, string>> {
   return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
+// ── Short-lived GET cache ────────────────────────────────────────────────────
+// Several pages load the same read-mostly data (assigned tests, a student's
+// attempts, full attempt payloads for analytics, test definitions…), so moving
+// between Dashboard → My Tests → Analytics → Mistakes refetched identical,
+// expensive payloads every time — and a page that mounts two consumers fired
+// duplicate requests in parallel. cachedGet() dedupes in-flight requests and
+// reuses a response for a short TTL.
+//
+// Safety rules:
+//  - Any non-GET request through this client (or an upload/delete) clears the
+//    whole cache, so the app never shows its own writes stale.
+//  - The raw response text is cached and re-parsed for every caller, so callers
+//    can never mutate each other's objects.
+//  - Failed requests are never cached.
+type CacheEntry = { text: Promise<string>; expiresAt: number }
+const getCache = new Map<string, CacheEntry>()
+const GET_CACHE_MAX = 200
+
+export function clearApiCache() {
+  getCache.clear()
+}
+
+/** Drop cached GETs whose path starts with `prefix` (for explicit "Refresh" buttons). */
+export function invalidateApiCache(prefix: string) {
+  for (const key of [...getCache.keys()]) if (key.startsWith(prefix)) getCache.delete(key)
+}
+
+async function cachedGet<T>(path: string, ttlMs: number): Promise<T> {
+  const now = Date.now()
+  const hit = getCache.get(path)
+  if (hit && hit.expiresAt > now) {
+    return JSON.parse(await hit.text) as T
+  }
+  if (getCache.size >= GET_CACHE_MAX) {
+    for (const [k, v] of getCache) if (v.expiresAt <= now) getCache.delete(k)
+    if (getCache.size >= GET_CACHE_MAX) getCache.delete(getCache.keys().next().value as string)
+  }
+  const text = requestText(path)
+  const entry: CacheEntry = { text, expiresAt: now + ttlMs }
+  getCache.set(path, entry)
+  try {
+    return JSON.parse(await text) as T
+  } catch (err) {
+    // Don't keep failures around (only evict if a newer entry hasn't replaced it).
+    if (getCache.get(path) === entry) getCache.delete(path)
+    throw err
+  }
+}
+
+const SHORT_TTL = 30_000
+const LONG_TTL = 5 * 60_000
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  return JSON.parse(await requestText(path, options)) as T
+}
+
+async function requestText(path: string, options?: RequestInit): Promise<string> {
+  const method = (options?.method ?? 'GET').toUpperCase()
+  if (method !== 'GET' && method !== 'HEAD') clearApiCache()
+
   const buildHeaders = (token: string | null): Record<string, string> => ({
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -33,7 +92,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     e.status = res.status
     throw e
   }
-  return res.json()
+  return res.text()
 }
 
 export interface DbUser {
@@ -244,8 +303,9 @@ export const api = {
     const qs = new URLSearchParams()
     if (params?.tutorId) qs.set('tutorId', params.tutorId)
     if (params?.studentId) qs.set('studentId', params.studentId)
-    return request<{ assignments: Array<{ id: string; tutorId: string; studentId: string; tutor: DbUser; student: DbUser }> }>(
-      `/api/tutor-assignments${qs.toString() ? '?' + qs.toString() : ''}`
+    return cachedGet<{ assignments: Array<{ id: string; tutorId: string; studentId: string; tutor: DbUser; student: DbUser }> }>(
+      `/api/tutor-assignments${qs.toString() ? '?' + qs.toString() : ''}`,
+      SHORT_TTL,
     )
   },
   createTutorAssignment: (tutorId: string, studentId: string) =>
@@ -285,7 +345,7 @@ export const api = {
   },
   getAvailableTests: (studentId: string) =>
     request<{ tests: unknown[] }>(`/api/tests/available?studentId=${studentId}`),
-  getTest: (testId: string) => request<{ test: unknown }>(`/api/tests/${testId}`),
+  getTest: (testId: string) => cachedGet<{ test: unknown }>(`/api/tests/${testId}`, SHORT_TTL),
   createTest: (body: Record<string, unknown>) =>
     request<{ test: { id: string } }>('/api/tests', { method: 'POST', body: JSON.stringify(body) }),
   updateTest: (testId: string, body: Record<string, unknown>) =>
@@ -313,11 +373,13 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ testId, studentId }),
     }),
-  getAttempt: (attemptId: string) => request<{ attempt: unknown }>(`/api/attempts/${attemptId}`),
+  getAttempt: (attemptId: string) => cachedGet<{ attempt: unknown }>(`/api/attempts/${attemptId}`, SHORT_TTL),
+  /** Always hits the network — for resuming an in-progress attempt, where stale data is never acceptable. */
+  getAttemptFresh: (attemptId: string) => request<{ attempt: unknown }>(`/api/attempts/${attemptId}`),
   getStudentAttempts: (studentId: string) =>
-    request<{ attempts: unknown[] }>(`/api/students/${studentId}/attempts`),
+    cachedGet<{ attempts: unknown[] }>(`/api/students/${studentId}/attempts`, SHORT_TTL),
   getAssignedTests: (studentId: string) =>
-    request<{ assignedTests: unknown[] }>(`/api/students/${studentId}/assigned-tests`),
+    cachedGet<{ assignedTests: unknown[] }>(`/api/students/${studentId}/assigned-tests`, SHORT_TTL),
 
   // Test engine
   startSection: (attemptId: string, sectionId: string) =>
@@ -523,6 +585,7 @@ export const api = {
 
   // Image Upload & Delete Support
   uploadImage: async (file: File, context = 'questions') => {
+    clearApiCache()
     const formData = new FormData()
     formData.append('file', file)
     formData.append('context', context)
@@ -555,8 +618,9 @@ export const api = {
 
   // Class Progress / Attendance (per-student session log a tutor keeps)
   getClassProgress: (tutorId: string, studentId: string) =>
-    request<{ entries: ClassProgressEntry[] }>(
-      `/api/class-progress?tutorId=${tutorId}&studentId=${studentId}`
+    cachedGet<{ entries: ClassProgressEntry[] }>(
+      `/api/class-progress?tutorId=${tutorId}&studentId=${studentId}`,
+      SHORT_TTL,
     ),
   addClassProgress: (tutorId: string, studentId: string, body: ClassProgressInput) =>
     request<{ entry: ClassProgressEntry }>('/api/class-progress', {
@@ -575,7 +639,7 @@ export const api = {
 
   // Platform-wide settings (e.g. the "Next SAT Date" shown in admin/tutor sidebars,
   // and the full official test-date calendar shown in the super admin console)
-  getSettings: () => request<{ nextSatDate: string | null; satTestDates: string[] }>('/api/settings'),
+  getSettings: () => cachedGet<{ nextSatDate: string | null; satTestDates: string[] }>('/api/settings', LONG_TTL),
   updateSettings: (body: { nextSatDate?: string | null; satTestDates?: string[] }) =>
     request<{ nextSatDate?: string | null; satTestDates?: string[] }>('/api/settings', {
       method: 'PUT',
@@ -589,7 +653,7 @@ export const api = {
 
   // Shared Domain → Subdomain → Skill taxonomy overrides — visible to every admin/
   // super-admin, not just whoever added them (previously stored per-browser).
-  getTaxonomy: () => request<{ subdomainsByDomain: Record<string, string[]>; skillsMap: Record<string, string[]> }>('/api/taxonomy'),
+  getTaxonomy: () => cachedGet<{ subdomainsByDomain: Record<string, string[]>; skillsMap: Record<string, string[]> }>('/api/taxonomy', LONG_TTL),
   updateTaxonomy: (body: { subdomainsByDomain?: Record<string, string[]>; skillsMap?: Record<string, string[]> }) =>
     request<{ subdomainsByDomain?: Record<string, string[]>; skillsMap?: Record<string, string[]> }>('/api/taxonomy', {
       method: 'PUT',
@@ -597,6 +661,7 @@ export const api = {
     }),
 
   deleteImage: async (path: string) => {
+    clearApiCache()
     const res = await fetch(`${BASE}/api/images/delete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },

@@ -485,7 +485,7 @@ interface RawAttempt extends DbAttempt {
  * The list endpoint already embeds sectionAttempts + answers + questions, so we
  * score from that directly (one reliable request). We then enrich each attempt
  * with a full /attempts/:id fetch to expand passages and pull topic tags —
- * sequentially and best-effort, so a slow/failed enrich never blanks the data.
+ * a few at a time and best-effort, so a slow/failed enrich never blanks the data.
  */
 export async function loadStudentAnalytics(
   studentId: string
@@ -510,16 +510,25 @@ export async function loadStudentAnalytics(
   }
 
   // 2) Enrich with the full attempt (passages expanded + topic tags) when it loads.
-  for (const a of submitted) {
-    try {
-      const f = await api.getAttempt(a.id);
-      const attempt = (f as { attempt: DbAttempt }).attempt;
-      const recs = recordsFromAttempt(attempt);
-      if (recs.length) records.set(a.id, recs);
-    } catch {
-      // keep the baseline records for this attempt
+  // A few at a time rather than strictly one-by-one: with N attempts the old
+  // sequential loop took N full round trips before the page could render.
+  // Bounded so a student with many attempts doesn't flood the API.
+  const ENRICH_CONCURRENCY = 4;
+  let next = 0;
+  const worker = async () => {
+    while (next < submitted.length) {
+      const a = submitted[next++];
+      try {
+        const f = await api.getAttempt(a.id);
+        const attempt = (f as { attempt: DbAttempt }).attempt;
+        const recs = recordsFromAttempt(attempt);
+        if (recs.length) records.set(a.id, recs);
+      } catch {
+        // keep the baseline records for this attempt
+      }
     }
-  }
+  };
+  await Promise.all(Array.from({ length: Math.min(ENRICH_CONCURRENCY, submitted.length) }, worker));
 
   return { attempts, records };
 }

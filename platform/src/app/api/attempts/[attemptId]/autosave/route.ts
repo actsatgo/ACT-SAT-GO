@@ -17,24 +17,29 @@ export async function POST(
       attemptState?: unknown
     }
 
+    // The state blob and the per-question answer are separate Redis keys, so
+    // write them concurrently instead of paying two sequential round trips.
+    const writes: Promise<unknown>[] = []
+
     if (attemptState) {
-      await redis.set(`state:${attemptId}`, JSON.stringify({ ...attemptState, updatedAt: Date.now() }), {
+      writes.push(redis.set(`state:${attemptId}`, JSON.stringify({ ...attemptState, updatedAt: Date.now() }), {
         ex: 60 * 60 * 4,
-      })
+      }))
     }
 
     if (questionId) {
       const timeToSave = timeSpentSeconds ?? 0
-      console.log(`[Autosave] Attempt ${attemptId}: Q${questionId} = ${timeToSave}s`)
-      await redis.hset(`answers:${attemptId}`, {
+      writes.push(redis.hset(`answers:${attemptId}`, {
         [questionId]: JSON.stringify({
           answerGiven,
           timeSpentSeconds: timeToSave,
           isFlagged: isFlagged ?? false,
           updatedAt: Date.now(),
         }),
-      })
+      }))
     }
+
+    await Promise.all(writes)
 
     return NextResponse.json({ success: true })
   } catch (error) {

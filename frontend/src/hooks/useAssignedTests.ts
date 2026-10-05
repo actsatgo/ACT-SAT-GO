@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { api } from '../lib/api';
+import { api, invalidateApiCache } from '../lib/api';
 
 export interface AssignedTestData {
   assignmentId: string;
@@ -38,7 +38,7 @@ export function useAssignedTests(studentId?: string): UseAssignedTestsResult {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const refetch = useCallback(async () => {
+  const load = useCallback(async (force: boolean) => {
     if (!studentId) {
       setLoading(false);
       return;
@@ -48,6 +48,8 @@ export function useAssignedTests(studentId?: string): UseAssignedTestsResult {
     setError(null);
 
     try {
+      // Explicit refetches (e.g. the Refresh button) must bypass the short-lived GET cache.
+      if (force) invalidateApiCache(`/api/students/${studentId}/assigned-tests`);
       const response = await api.getAssignedTests(studentId);
       setTests((response.assignedTests ?? []) as AssignedTestData[]);
     } catch (err) {
@@ -59,9 +61,11 @@ export function useAssignedTests(studentId?: string): UseAssignedTestsResult {
     }
   }, [studentId]);
 
+  const refetch = useCallback(() => load(true), [load]);
+
   useEffect(() => {
-    refetch();
-  }, [studentId, refetch]);
+    load(false);
+  }, [studentId, load]);
 
   return { tests, loading, error, refetch };
 }

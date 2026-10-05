@@ -19,8 +19,18 @@ export function DashboardLayout() {
     if (!dbId) return;
     setUserId(dbId);
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30_000);
-    return () => clearInterval(interval);
+    // Don't poll from background tabs; catch up as soon as the tab is visible again.
+    const interval = setInterval(() => {
+      if (!document.hidden) fetchNotifications();
+    }, 30_000);
+    const onVisible = () => {
+      if (!document.hidden) fetchNotifications();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [dbId, setUserId, fetchNotifications]);
 
   return (

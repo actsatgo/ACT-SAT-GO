@@ -85,6 +85,8 @@ model TutorAssignment {
   student User @relation("StudentToTutor", fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([tutorId, studentId])
+
+  @@index([studentId])
 }
 
 model Topic {
@@ -116,6 +118,9 @@ model Question {
   childQuestions   Question[]   @relation("ParentChild")
   testQuestions    TestQuestion[]
   attemptAnswers   AttemptAnswer[]
+
+  @@index([parentQuestionId])
+  @@index([topicId])
 }
 
 model Test {
@@ -160,6 +165,8 @@ model TestPackageItem {
   test       Test        @relation(fields: [testId], references: [id], onDelete: Cascade)
 
   @@unique([packageId, testId])
+
+  @@index([testId])
 }
 
 model TestSection {
@@ -173,6 +180,8 @@ model TestSection {
   test            Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
   questions       TestQuestion[]
   sectionAttempts SectionAttempt[]
+
+  @@index([testId])
 }
 
 model TestQuestion {
@@ -189,6 +198,9 @@ model TestQuestion {
   question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([testId, questionId])
+
+  @@index([sectionId])
+  @@index([questionId])
 }
 
 model TestAttempt {
@@ -205,6 +217,10 @@ model TestAttempt {
   sectionAttempts SectionAttempt[]
   answers         AttemptAnswer[]
   cheatingLogs    CheatingLog[]
+
+  @@index([studentId, startedAt])
+  @@index([testId])
+  @@index([status, completedAt])
 }
 
 model TestAssignment {
@@ -220,6 +236,9 @@ model TestAssignment {
 
   test             Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
   student          User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([testId])
 }
 
 model SectionAttempt {
@@ -233,6 +252,8 @@ model SectionAttempt {
   section TestSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([attemptId, sectionId])
+
+  @@index([sectionId])
 }
 
 model AttemptAnswer {
@@ -249,6 +270,8 @@ model AttemptAnswer {
   question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([attemptId, questionId])
+
+  @@index([questionId])
 }
 
 model CheatingLog {
@@ -259,6 +282,8 @@ model CheatingLog {
   createdAt DateTime @default(now())
 
   attempt TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId, eventType])
 }
 
 model Notification {
@@ -273,4 +298,6 @@ model Notification {
   createdAt DateTime         @default(now())
 
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

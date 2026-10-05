@@ -34,32 +34,36 @@ export async function GET(request: NextRequest) {
   const auth = await requireRole(request, ['ADMIN', 'SUPER_ADMIN'])
   if (auth instanceof NextResponse) return auth
   try {
-    // Last 7 days daily activity
-    const days: { date: string; attempts: number; completions: number }[] = []
-    for (let i = 6; i >= 0; i--) {
+    // Last 7 days daily activity — all 14 counts (and the submitted-attempts
+    // scan below) are independent, so run them concurrently instead of seven
+    // sequential round trips.
+    const dayRanges = Array.from({ length: 7 }, (_, k) => {
+      const i = 6 - k
       const d = new Date()
       d.setDate(d.getDate() - i)
       d.setHours(0, 0, 0, 0)
       const next = new Date(d)
       next.setDate(next.getDate() + 1)
+      return { d, next }
+    })
 
-      const [attempts, completions] = await Promise.all([
+    const [dayCounts, submitted] = await Promise.all([
+      Promise.all(dayRanges.map(({ d, next }) => Promise.all([
         prisma.testAttempt.count({ where: { startedAt: { gte: d, lt: next } } }),
         prisma.testAttempt.count({ where: { completedAt: { gte: d, lt: next }, status: 'SUBMITTED' } }),
-      ])
+      ]))),
+      // Score distribution across all SUBMITTED attempts
+      prisma.testAttempt.findMany({
+        where: { status: 'SUBMITTED', totalScore: { not: null } },
+        include: { test: { select: { category: true, title: true } } },
+      }),
+    ])
 
-      days.push({
-        date: d.toLocaleDateString('en-US', { weekday: 'short' }),
-        attempts,
-        completions,
-      })
-    }
-
-    // Score distribution across all SUBMITTED attempts
-    const submitted = await prisma.testAttempt.findMany({
-      where: { status: 'SUBMITTED', totalScore: { not: null } },
-      include: { test: { select: { category: true, title: true } } },
-    })
+    const days: { date: string; attempts: number; completions: number }[] = dayRanges.map(({ d }, k) => ({
+      date: d.toLocaleDateString('en-US', { weekday: 'short' }),
+      attempts: dayCounts[k][0],
+      completions: dayCounts[k][1],
+    }))
 
     const bucketsACT: Record<string, number> = {
       '1–10': 0, '11–15': 0, '16–20': 0, '21–25': 0, '26–30': 0, '31–36': 0,
@@ -227,10 +231,13 @@ export async function GET(request: NextRequest) {
 
     // This week's engagement: questions worked on + avg study time per active student.
     const day7 = new Date(); day7.setDate(day7.getDate() - 7)
-    const weekAnswers = await prisma.attemptAnswer.findMany({
-      where: { updatedAt: { gte: day7 } },
-      select: { timeSpentSeconds: true, attempt: { select: { studentId: true } } },
-    })
+    const [weekAnswers, openDoubtsCount] = await Promise.all([
+      prisma.attemptAnswer.findMany({
+        where: { updatedAt: { gte: day7 } },
+        select: { timeSpentSeconds: true, attempt: { select: { studentId: true } } },
+      }),
+      prisma.attemptAnswer.count({ where: { doubtStatus: 'doubt' } }),
+    ])
     const questionsAttemptedThisWeek = weekAnswers.length
     const activeStudentsThisWeek = new Set(weekAnswers.map((r) => r.attempt.studentId)).size
     const totalSecondsThisWeek = weekAnswers.reduce((a, r) => a + r.timeSpentSeconds, 0)
@@ -238,7 +245,6 @@ export async function GET(request: NextRequest) {
       ? Math.round((totalSecondsThisWeek / activeStudentsThisWeek / 3600) * 10) / 10
       : null
 
-    const openDoubtsCount = await prisma.attemptAnswer.count({ where: { doubtStatus: 'doubt' } })
 
     return NextResponse.json({
       activityData: days,
