@@ -5,14 +5,14 @@ import {
   LogIn, MessageSquare, Phone, KeyRound, MonitorPlay, BarChart3,
 } from 'lucide-react';
 import { Header } from '../components/Header';
-import { Brand } from '../components/Brand';
+import { Footer } from '../components/Footer';
 import { APP_LOGIN_URL, PLATFORM_API_BASE, QUERY_API_BASE } from '../config';
 import { WHATSAPP_HREF, CALL_HREF } from '../components/WhatsAppButton';
-import { trackLead } from '../lib/metaPixel';
-import avatar1 from '../assets/avatar1.png';
-import avatar2 from '../assets/avatar2.png';
-import avatar3 from '../assets/avatar3.png';
-import avatar4 from '../assets/avatar4.png';
+import { trackLead, leadSource } from '../lib/analytics';
+import avatar1 from '../assets/img/avatar1.webp';
+import avatar2 from '../assets/img/avatar2.webp';
+import avatar3 from '../assets/img/avatar3.webp';
+import avatar4 from '../assets/img/avatar4.webp';
 
 type ExamType = 'SAT' | 'ACT' | 'AP' | 'GENERAL';
 
@@ -73,7 +73,7 @@ export function FreeTestPage() {
         const cfg = res?.config;
         if (!cfg) return;
         setBanner({
-          title: cfg.bannerTitle || 'Free Demo Test',
+          title: cfg.bannerTitle || 'Free Practice Test',
           subtitle: cfg.bannerSubtitle || '',
           active: cfg.activeOnWebsite !== false,
         });
@@ -132,7 +132,7 @@ export function FreeTestPage() {
         return;
       }
 
-      trackLead();
+      trackLead('free_practice_test', { exam: form.exam });
 
       // Mirror the lead into the website's own query-server / MongoDB CRM (best effort).
       fetch(`${QUERY_API_BASE}/api/queries`, {
@@ -148,7 +148,7 @@ export function FreeTestPage() {
           type: 'Free Demo Test',
           status: 'Active',
           stage: 'New Lead',
-          source: 'Website Free Demo Test',
+          source: leadSource('Website Free Demo Test'),
         }),
       }).catch(() => {});
 
@@ -162,7 +162,7 @@ export function FreeTestPage() {
     }
   };
 
-  const title = banner?.title || 'Free Demo Test';
+  const title = banner?.title || 'Free Practice Test';
   const subtitle =
     banner?.subtitle ||
     'Create your free account, take one full demo test on our real exam platform, and get a detailed score report with section and topic analytics.';
@@ -256,7 +256,7 @@ export function FreeTestPage() {
             </div>
           </section>
         </main>
-        <SiteFooter />
+        <Footer />
       </>
     );
   }
@@ -277,7 +277,7 @@ export function FreeTestPage() {
                 <Sparkles size={14} /> {title}
               </div>
               <h1 className="ft-title">
-                Digital SAT &amp; ACT <span>Demo Test on the Real Platform</span>
+                Free Digital SAT &amp; ACT <span>Practice Test with a Score Report</span>
               </h1>
               <p className="ft-subtitle">{subtitle}</p>
             </div>
@@ -287,7 +287,7 @@ export function FreeTestPage() {
               <div className="ft-benefits-card">
                 <div>
                   <div className="ft-benefits-header">
-                    <h3>How the Free Demo Works</h3>
+                    <h3>How the Free Practice Test Works</h3>
                   </div>
 
                   <ul className="ft-benefits-list">
@@ -338,7 +338,7 @@ export function FreeTestPage() {
 
               {/* Right: registration form */}
               <div className="ft-form-card">
-                <h2>Create Your Free Demo Account</h2>
+                <h2>Create Your Free Practice-Test Account</h2>
                 <p className="ft-form-desc">
                   Takes one minute. You'll log in to the test portal with this email and password.
                 </p>
@@ -540,7 +540,7 @@ export function FreeTestPage() {
                       'Creating your demo account...'
                     ) : (
                       <>
-                        <span>Create Account &amp; Get My Demo Test</span>
+                        <span>Create Account &amp; Get My Practice Test</span>
                         <ArrowRight size={17} />
                       </>
                     )}
@@ -557,46 +557,8 @@ export function FreeTestPage() {
         </section>
       </main>
 
-      <SiteFooter />
+      <Footer />
     </>
   );
 }
 
-function SiteFooter() {
-  return (
-    <footer className="footer">
-      <div className="footer-top shell">
-        <div className="footer-brand-col">
-          <Brand />
-          <p className="footer-desc">
-            ACT SAT GO offers expert guidance and resources to help students excel in their ACT | SAT | AP | and other academic courses. Join our community and unlock your potential with tailored learning strategies and comprehensive support.
-          </p>
-        </div>
-
-        <div className="footer-col">
-          <h4 className="footer-heading">Programs</h4>
-          <ul className="footer-links">
-            <li><a href="/sat">SAT</a></li>
-            <li><a href="/act">ACT</a></li>
-            <li><a href="/ap">AP</a></li>
-            <li><a href="/k-12-tutoring">K-12 Tutoring</a></li>
-            <li><a href="/future-programs">Future Programs</a></li>
-          </ul>
-        </div>
-
-        <div className="footer-col">
-          <h4 className="footer-heading">Company</h4>
-          <ul className="footer-links">
-            <li><a href="/about-us">About Us</a></li>
-            <li><a href="/">Home</a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div className="footer-bottom shell">
-        <p>&copy; {new Date().getFullYear()} ACT SAT GO. All rights reserved.</p>
-        <p>Designed for students who aim higher.</p>
-      </div>
-    </footer>
-  );
-}

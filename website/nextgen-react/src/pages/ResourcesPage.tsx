@@ -1,19 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Header } from '../components/Header';
-import { Brand } from '../components/Brand';
+import { Footer } from '../components/Footer';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { fetchBlogs, type BlogPost } from '../admin/api';
 
 // Image assets
-import heroImg from '../../images/resouces hero.png';
-import satReviewImg from '../assets/sat_review_cover.png';
-import actChecklistImg from '../assets/act_checklist_cover.png';
-import apOverviewImg from '../assets/ap_overview_cover.png';
-import collegeTimelineImg from '../assets/college_timeline_cover.png';
-import blogStudyHabitsImg from '../assets/6.jpeg';
-import blogSatDiffImg from '../assets/7.jpeg';
-import blogCollegeEssayImg from '../assets/8.jpeg';
-import blogApWorthImg from '../assets/9.jpeg';
+import heroImg from '../assets/img/resouces-hero.webp';
+import satReviewImg from '../assets/img/sat-review-cover.webp';
+import actChecklistImg from '../assets/img/act-checklist-cover.webp';
+import apOverviewImg from '../assets/img/ap-overview-cover.webp';
+import collegeTimelineImg from '../assets/img/college-timeline-cover.webp';
+import blogStudyHabitsImg from '../assets/img/6.webp';
+import blogSatDiffImg from '../assets/img/7.webp';
+import blogCollegeEssayImg from '../assets/img/8.webp';
+import blogApWorthImg from '../assets/img/9.webp';
 
 // Custom icons
 function IconSearch() {
@@ -153,7 +153,6 @@ export function ResourcesPage() {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    document.title = 'Resources & Blog — ACT SAT GO';
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -554,79 +553,7 @@ export function ResourcesPage() {
         </section>
       </main>
 
-      <footer className="footer">
-        <div className="footer-top shell">
-          {/* Brand column */}
-          <div className="footer-brand-col">
-            <Brand />
-            <p className="footer-desc">
-              ACT SAT GO offers expert guidance and resources to help students excel in their ACT | SAT | AP | and other academic courses. Join our community and unlock your potential with tailored learning strategies and comprehensive support.
-            </p>
-            {/* Social Media Links */}
-            <div className="footer-social">
-              <a href="https://www.facebook.com/actsatgousa" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
-              </a>
-              <a href="https://www.instagram.com/act_sat_go" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>
-              </a>
-              <a href="https://www.youtube.com/@ACTSATGOTutoring" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" /><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#04111f" /></svg>
-              </a>
-              <a href="https://www.linkedin.com/company/act-sat-go/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" /></svg>
-              </a>
-              <a href="https://g.page/r/CaMyM5bggIx1EBM/review" target="_blank" rel="noopener noreferrer" aria-label="Google Reviews">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-              </a>
-            </div>
-          </div>
-
-          {/* Courses */}
-          <div className="footer-col">
-            <h4 className="footer-heading">Programs</h4>
-            <ul className="footer-links">
-              <li><a href="/sat">SAT</a></li>
-              <li><a href="/act">ACT</a></li>
-              <li><a href="/ap">AP</a></li>
-              <li><a href="/k-12-tutoring">K-12 Tutoring</a></li>
-              <li><a href="/future-programs">Future Programs</a></li>
-            </ul>
-          </div>
-
-          {/* Quick Links */}
-          <div className="footer-col">
-            <h4 className="footer-heading">Company</h4>
-            <ul className="footer-links">
-              <li><a href="/about-us">About Us</a></li>
-              <li><a href="/#programs">Our Approach</a></li>
-              <li><a href="/#results">Success Stories</a></li>
-              <li><a href="/consultation">Contact Us</a></li>
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div className="footer-col">
-            <h4 className="footer-heading">Resources</h4>
-            <ul className="footer-links">
-              <li><a href="/resources" onClick={(e) => { e.preventDefault(); clearSearch(); }}>Blog</a></li>
-              <li><a href="/resources" onClick={(e) => { e.preventDefault(); setSearchQuery('guide'); }}>Guides &amp; Downloads</a></li>
-              <li><a href="/resources" onClick={(e) => { e.preventDefault(); setSearchQuery('webinar'); }}>Webinars &amp; Videos</a></li>
-              <li><a href="/consultation">Help Center</a></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="footer-bottom shell">
-          <p>&copy; {new Date().getFullYear()} ACT SAT GO. All rights reserved.</p>
-          <p>Designed for students who aim higher.</p>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }

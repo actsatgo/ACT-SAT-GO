@@ -1,20 +1,29 @@
-import { useState, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Header } from './components/Header';
-import { Brand } from './components/Brand';
+import { Footer } from './components/Footer';
 import { Testimonials } from './components/Testimonials';
 import { Universities } from './components/Universities';
 import { ProgramsHub } from './components/ProgramsHub';
 import { CountUp } from './components/CountUp';
 import { useScrollReveal } from './hooks/useScrollReveal';
 import { ACT_PAGE } from './data/programs';
-import heroImg from './assets/hero-y1.png';
-import avatar1 from './assets/avatar1.png';
-import avatar2 from './assets/avatar2.png';
-import avatar3 from './assets/avatar3.png';
-import avatar4 from './assets/avatar4.png';
+import heroImg from './assets/img/hero-y1.webp';
+import avatar1 from './assets/img/avatar1.webp';
+import avatar2 from './assets/img/avatar2.webp';
+import avatar3 from './assets/img/avatar3.webp';
+import avatar4 from './assets/img/avatar4.webp';
 import { QUERY_API_BASE } from './config';
-import { trackLead } from './lib/metaPixel';
+import { trackLead, leadSource, trackContactClick } from './lib/analytics';
+import { SITE, PRIMARY_CTA, SECONDARY_CTA } from './site';
+import { PainPoints } from './components/PainPoints';
+import { HowItWorks } from './components/HowItWorks';
+import { FaqSection } from './components/FaqSection';
+import { TutorCards } from './components/TutorCards';
+import { HOME_FAQ } from './data/faq';
+
+// useLayoutEffect warns during prerendering; fall back to useEffect on the server.
+const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 import { IconGlobe, IconUser, IconUsers, IconHeartCheck, IconGraduationCap, IconChart, IconDocument, IconClipboardCheck, IconLink, IconRoute, IconMonitor, IconFlag, IconNetwork, IconTrophy } from './components/Icons';
 
 
@@ -23,7 +32,7 @@ export default function App() {
 
   const tableRef = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     function adjustHeights() {
       if (!tableRef.current) return;
       const othersCol = tableRef.current.querySelector('.compare-col-others');
@@ -94,13 +103,14 @@ export default function App() {
         body: JSON.stringify({
           ...formData,
           phone: `${phoneCountryCode} ${phoneLocalNumber}`.trim(),
-          type: 'Consultation'
+          type: 'Consultation',
+          source: leadSource('Website · Home modal'),
         })
       });
 
       if (response.ok) {
         setSubmitStatus('success');
-        trackLead();
+        trackLead('home_modal', { exam: formData.exam });
       } else {
         setSubmitStatus('error');
       }
@@ -120,26 +130,24 @@ export default function App() {
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell hero-grid">
             <div className="hero-copy">
-              <span className="eyebrow-hero"></span>
-              <h1>The Right Guidance.<br />The Right Plan.<br /><span>The Right Future.</span></h1>
-              <p className="hero-text">Personalized online tutoring for SAT, ACT, AP and K-12 students designed to unlock potential and achieve real results.</p>
+              <h1>1-on-1 Digital SAT &amp; ACT tutoring that raises scores — <span>with a plan you can see every week.</span></h1>
+              <p className="hero-text">Expert tutors, a diagnostic before the first lesson, homework after every session and a weekly progress report for parents. Live online, scheduled around your family&rsquo;s time zone.</p>
 
               <div className="hero-actions-new">
-                <Link className="btn btn-secondary" to="/free-test" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                  ✨ Take Free Demo Test
-                </Link>
-                <a className="btn btn-primary" href="#consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
-                  Book Free Consultation <span aria-hidden="true">→</span>
+                <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
+                  {PRIMARY_CTA} <span aria-hidden="true">→</span>
                 </a>
-                <a className="btn btn-outline" href="#programs">Explore Programs</a>
+                <Link className="btn btn-secondary" to="/free-test" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                  {SECONDARY_CTA}
+                </Link>
               </div>
 
               <div className="hero-trust">
                 <div className="hero-avatars">
-                  <img src={avatar1} alt="Student avatar 1" />
-                  <img src={avatar2} alt="Student avatar 2" />
-                  <img src={avatar3} alt="Student avatar 3" />
-                  <img src={avatar4} alt="Student avatar 4" />
+                  <img src={avatar1} alt="" width="40" height="40" />
+                  <img src={avatar2} alt="" width="40" height="40" />
+                  <img src={avatar3} alt="" width="40" height="40" />
+                  <img src={avatar4} alt="" width="40" height="40" />
                 </div>
                 <div>
                   <div className="stars">★★★★★</div>
@@ -165,7 +173,7 @@ export default function App() {
                 </svg>
               </div>
 
-              <img src={heroImg} alt="Students studying online with tutoring support" />
+              <img src={heroImg} alt="Student in a live 1-on-1 online tutoring session" width="1200" height="952" {...{ fetchpriority: 'high' }} />
 
               {/* Concepts Made Simple check badge */}
               <div className="floating-card card-concepts-new">
@@ -182,8 +190,8 @@ export default function App() {
 
               {/* Score Improvement chart card */}
               <div className="floating-card card-score-new">
-                <span className="score-title">Score Improvement</span>
-                <span className="score-value">+230 Points</span>
+                <span className="score-title">Weekly Progress Report</span>
+                <span className="score-value">For Parents</span>
                 <svg className="score-chart" viewBox="0 0 160 50">
                   <path
                     d="M10,40 Q35,28 60,32 T110,22 L150,8"
@@ -238,32 +246,34 @@ export default function App() {
           </div>
         </section>
 
-        {/* Every Step is Personalised */}
+        <PainPoints />
+
+        {/* What changes for your child */}
         <section className="features shell" id="about">
           <article>
             <span className="icon"><IconUsers /></span>
-            <h3>Personalized One-to-One Learning</h3>
-            <p>Each roadmap is built around goals, diagnostics, pace, and learning style.</p>
+            <h3>A plan built around your test date</h3>
+            <p>From diagnostic to test day, every week is planned around your child&rsquo;s target score.</p>
           </article>
           <article>
             <span className="icon"><IconGraduationCap /></span>
-            <h3>Expert Mentors from Top Universities</h3>
-            <p>Work with skilled tutors from top academic backgrounds and exam tracks.</p>
+            <h3>A specialist tutor, not a generalist</h3>
+            <p>Every student is matched with a tutor for their exact test or AP course &mdash; selected, trained and reviewed by our academic team.</p>
           </article>
           <article>
             <span className="icon"><IconChart /></span>
-            <h3>Data-Driven Progress Tracking</h3>
-            <p>Progress analytics reveal strengths, gaps, and next-best actions.</p>
+            <h3>Weekly progress reports for parents</h3>
+            <p>See scores, completed homework and what the next sessions will focus on &mdash; no guessing whether it&rsquo;s working.</p>
           </article>
           <article>
             <span className="icon"><IconDocument /></span>
-            <h3>Proven Strategies &amp; Study Plans</h3>
-            <p>Battle-tested methods for every exam section, structured for consistent score gains.</p>
+            <h3>25+ full-length Digital SAT practice tests</h3>
+            <p>With a score report after each one, so you can see the trend, not just a single number.</p>
           </article>
           <article>
             <span className="icon"><IconClipboardCheck /></span>
-            <h3>Beyond Classes Complete Support Ecosystem</h3>
-            <p>Doubt support, parent updates, and resources keep momentum alive.</p>
+            <h3>Homework after every session</h3>
+            <p>Reviewed before the next lesson, with practice sets built from your child&rsquo;s own mistakes &mdash; so no hour is wasted re-teaching.</p>
           </article>
         </section>
 
@@ -299,22 +309,22 @@ export default function App() {
                 border: '1px solid rgba(56, 189, 248, 0.3)',
                 marginBottom: '12px'
               }}>
-                ✨ FREE DEMO TEST
+                FREE PRACTICE TEST
               </div>
               <h3 style={{ fontSize: '26px', fontWeight: 800, color: '#ffffff', lineHeight: 1.2, margin: '0 0 10px 0' }}>
-                Unsure where you stand? Take a free demo test on our real exam platform.
+                Not ready to talk to anyone yet? Take a free practice test first.
               </h3>
               <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
-                Create a free account, sit one timed demo test in the actual exam interface, and get your scaled score with section, topic and question-level analytics.
+                Sit one timed SAT or ACT practice test in our real exam interface and get your scaled score with section, topic and question-level analytics. No card, no sales call.
               </p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '220px', zIndex: 1 }}>
               <Link to="/free-test?exam=SAT" className="btn btn-secondary" style={{ textAlign: 'center', fontWeight: 700 }}>
-                Free SAT Demo Test →
+                Free SAT Practice Test →
               </Link>
               <Link to="/free-test?exam=ACT" className="btn btn-outline" style={{ textAlign: 'center', borderColor: 'rgba(255,255,255,0.2)', color: '#ffffff' }}>
-                Free ACT Demo Test →
+                Free ACT Practice Test →
               </Link>
             </div>
           </div>
@@ -330,8 +340,8 @@ export default function App() {
                 <span className="cta-line">Every action is <em>guided.</em></span>
                 <span className="cta-line">Every goal is <em>achievable.</em></span>
               </h3>
-              <a className="btn btn-primary" href="#consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
-                Book Free Consultation <span aria-hidden="true">→</span>
+              <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
+                {PRIMARY_CTA} <span aria-hidden="true">→</span>
               </a>
             </div>
             <div className="cta-graphic" aria-hidden="true">
@@ -406,7 +416,7 @@ export default function App() {
                 { n: '02', title: 'Assess', text: 'Diagnostic tests to analyze strengths & weaknesses.', icon: <IconDocument /> },
                 { n: '03', title: 'Plan', text: 'We create a custom learning roadmap just for you.', icon: <IconRoute /> },
                 { n: '04', title: 'Learn', text: 'Live classes, practice & resources with expert guidance.', icon: <IconMonitor /> },
-                { n: '05', title: 'Track', text: 'AI-driven tracking of progress and performance.', icon: <IconFlag /> },
+                { n: '05', title: 'Track', text: 'Weekly progress reports with section-by-section analytics.', icon: <IconFlag /> },
                 { n: '06', title: 'Improve', text: 'Continuous feedback & data insights for continuous improvement.', icon: <IconNetwork /> },
                 { n: '07', title: 'Achieve', text: 'Reach your target score & unlock your future.', icon: <IconTrophy /> },
               ].map((s, i) => (
@@ -428,7 +438,7 @@ export default function App() {
               <h2>Success Stories</h2>
               <p>Real students. Real results.</p>
             </div>
-            <a className="view-all-link" href="#results">View all stories <span aria-hidden="true">→</span></a>
+            <a className="view-all-link" href="#testimonials">Read parent &amp; student reviews <span aria-hidden="true">→</span></a>
           </div>
           <div className="story-grid">
             <article><div className="portrait">A</div><h3>Ananya K.</h3><span className="exam-type">SAT Score</span><strong>1540 / 1600</strong><p>+230 points improvement</p><span>University of Michigan</span></article>
@@ -439,6 +449,8 @@ export default function App() {
           <p className="uni-strip-label">Our students have been accepted to top universities worldwide.</p>
           <Universities />
         </section>
+
+        <TutorCards />
 
         {/* Why Families Choose ASG — Comparison Table */}
         <section className="comparison shell" id="why-us">
@@ -461,7 +473,7 @@ export default function App() {
             const COMPARE_ROWS = [
               { others: 'One-size-fits-all approach', asg: 'Personalized learning for every student' },
               { others: 'Focus only on tutoring', asg: 'End-to-end academic success partner' },
-              { others: 'Limited performance insights', asg: 'AI-powered progress analytics' },
+              { others: 'Limited performance insights', asg: 'Weekly parent reports with section-level analytics' },
               { others: 'Doubt support with limits', asg: 'Unlimited doubt solving & mentor support' },
               { others: 'Minimal parent communication', asg: 'Weekly reports & regular PTMs' },
               { others: 'Disconnected tools & platforms', asg: 'All-in-one learning ecosystem' },
@@ -494,6 +506,10 @@ export default function App() {
         {/* What Our Students & Parents Say — Testimonials */}
         <Testimonials />
 
+        <HowItWorks />
+
+        <FaqSection items={HOME_FAQ} />
+
         {/* CTA + Stats */}
         <section className="prog-cta section-dark" id="consultation">
           <span className="orb orb-gold" aria-hidden="true" />
@@ -502,13 +518,13 @@ export default function App() {
               <div>
                 <h2>Ready to Achieve Your Dream Score?</h2>
                 <p>
-                  Book a <strong>free consultation</strong> with our experts and take the first step toward your goals.
-                  We will assess your level, understand your goals, and recommend the best learning path for you.
+                  Book a <strong>free diagnostic lesson</strong>: your child gets a baseline score, you get a clear plan for the
+                  target score and test date. No payment, no obligation.
                 </p>
               </div>
               <div className="prog-cta-actions">
-                <a className="btn btn-primary" href="#consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
-                  Book Free Consultation <span aria-hidden="true">-&gt;</span>
+                <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
+                  {PRIMARY_CTA} <span aria-hidden="true">→</span>
                 </a>
               </div>
             </div>
@@ -530,86 +546,7 @@ export default function App() {
         </section>
       </main>
 
-      <footer className="footer">
-        <div className="footer-top shell">
-          {/* Brand column */}
-          <div className="footer-brand-col">
-            <Brand />
-            <p className="footer-desc">
-              ACT SAT GO offers expert guidance and resources to help students excel in their ACT | SAT | AP | and other academic courses. Join our community and unlock your potential with tailored learning strategies and comprehensive support.
-            </p>
-            {/* Social Media Links */}
-            <div className="footer-social">
-              <a href="https://www.facebook.com/actsatgousa" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /></svg>
-              </a>
-              <a href="https://www.instagram.com/act_sat_go" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" /><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" /><line x1="17.5" y1="6.5" x2="17.51" y2="6.5" /></svg>
-              </a>
-              <a href="https://www.youtube.com/@ACTSATGOTutoring" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" /><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#04111f" /></svg>
-              </a>
-              <a href="https://www.linkedin.com/company/act-sat-go/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" /><rect x="2" y="9" width="4" height="12" /><circle cx="4" cy="4" r="2" /></svg>
-              </a>
-              <a href="https://g.page/r/CaMyM5bggIx1EBM/review" target="_blank" rel="noopener noreferrer" aria-label="Google Reviews">
-                <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                </svg>
-              </a>
-            </div>
-          </div>
-
-          {/* Courses */}
-          <div className="footer-col">
-            <h4 className="footer-heading">Courses</h4>
-            <ul className="footer-links">
-              <li><Link to="/act">ACT</Link></li>
-              <li><Link to="/sat">SAT</Link></li>
-              <li><Link to="/ap">AP</Link></li>
-              <li><a href="/#programs">Elementary School</a></li>
-              <li><a href="/#programs">Middle School</a></li>
-              <li><a href="/#programs">High School</a></li>
-            </ul>
-          </div>
-
-          {/* Quick Links */}
-          <div className="footer-col">
-            <h4 className="footer-heading">Quick Links</h4>
-            <ul className="footer-links">
-              <li><a href="/#home">Home</a></li>
-              <li><Link to="/about-us">About Us</Link></li>
-              <li><a href="/#programs">Courses</a></li>
-              <li><a href="/#programs">Career</a></li>
-              <li><a href="/#resources">Blogs</a></li>
-              <li><a href="/consultation">Contact</a></li>
-            </ul>
-          </div>
-
-          {/* Get In Touch */}
-          <div className="footer-col">
-            <h4 className="footer-heading">Get In Touch</h4>
-            <ul className="footer-contact">
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.61 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 8.91a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" /></svg>
-                <a href="tel:+13322314081">+91 80855 59439</a>
-              </li>
-              <li>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
-                <a href="mailto:info@actsatgo.com">info@actsatgo.com</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="footer-bottom shell">
-          <p>&copy; {new Date().getFullYear()} ACT SAT GO. All rights reserved.</p>
-          <p>Designed for students who aim higher.</p>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Consultation Request Modal */}
       <div className={`c-modal-overlay${isModalOpen ? ' is-active' : ''}`} onClick={(e) => { if (e.target === e.currentTarget) closeConsultationModal(); }}>
@@ -619,19 +556,22 @@ export default function App() {
           {submitStatus === 'success' ? (
             <div className="c-success-state">
               <div className="c-success-icon">✓</div>
-              <h4>Consultation Booked!</h4>
-              <p>Thank you for reaching out. An expert academic counselor from ACT SAT GO will contact you shortly.</p>
+              <h4>Request received!</h4>
+              <p>Thank you. An academic advisor from ACT SAT GO will contact you shortly to schedule your free diagnostic lesson.</p>
+              {SITE.bookingUrl && (
+                <p><a href={SITE.bookingUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackContactClick('booking')} style={{ color: 'var(--gold)', fontWeight: 800 }}>Prefer to pick a time yourself? Open the calendar →</a></p>
+              )}
               <button className="btn btn-primary" style={{ width: '100%' }} onClick={closeConsultationModal}>Close</button>
             </div>
           ) : (
             <form onSubmit={handleFormSubmit}>
               <div className="c-modal-header">
-                <h3>Book Free Consultation</h3>
-                <p>Submit your goals and our experts will design a customized learning roadmap.</p>
+                <h3>{PRIMARY_CTA}</h3>
+                <p>Tell us a little about your child. An advisor will confirm a time &mdash; no payment, no obligation.</p>
               </div>
 
               <div className="c-form-group">
-                <label htmlFor="modal-name">Full Name</label>
+                <label htmlFor="modal-name">Parent or student name</label>
                 <input
                   id="modal-name"
                   type="text"
@@ -707,11 +647,11 @@ export default function App() {
               </div>
 
               <div className="c-form-group">
-                <label htmlFor="modal-message">Tell us about your learning goals</label>
+                <label htmlFor="modal-message">Target score and test date (optional)</label>
                 <textarea
                   id="modal-message"
                   className="c-input c-textarea"
-                  placeholder="e.g. Target SAT score is 1500+, looking for 1-on-1 tutoring..."
+                  placeholder="e.g. Aiming for 1450+ on the March SAT, currently around 1250"
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                 />
@@ -719,7 +659,7 @@ export default function App() {
 
               {submitStatus === 'error' && (
                 <p style={{ color: '#ef4444', fontSize: '13px', margin: '8px 0', fontWeight: 600 }}>
-                  ✕ Unable to submit form. Please check if the query server is running.
+                  ✕ Sorry, something went wrong. Please try again, or text us on WhatsApp.
                 </p>
               )}
 
@@ -728,7 +668,7 @@ export default function App() {
                 className="c-submit-btn"
                 disabled={submitStatus === 'submitting'}
               >
-                {submitStatus === 'submitting' ? 'Submitting...' : 'Book Free Consultation'}
+                {submitStatus === 'submitting' ? 'Submitting...' : PRIMARY_CTA}
               </button>
             </form>
           )}

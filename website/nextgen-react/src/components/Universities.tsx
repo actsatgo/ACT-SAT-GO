@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import lsuLogo from '../assets/uni-logos/lsu.png';
-import nyuLogo from '../assets/uni-logos/nyu.png';
+import lsuLogo from '../assets/img/lsu.webp';
+import nyuLogo from '../assets/img/nyu.webp';
 
 const UNIVERSITIES = [
   { name: 'Harvard University', domain: 'harvard.edu' },

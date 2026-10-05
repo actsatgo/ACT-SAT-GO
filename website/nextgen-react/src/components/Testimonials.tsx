@@ -126,7 +126,7 @@ export function Testimonials() {
   };
 
   return (
-    <section className="testimonials section-dark">
+    <section className="testimonials section-dark" id="testimonials">
       <div className="shell">
         <div className="section-heading inverse">
           <h2>What Our Students &amp; Parents Say</h2>

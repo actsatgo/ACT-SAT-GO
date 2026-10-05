@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Header } from '../components/Header';
-import img4 from '../assets/4.png';
-import careerPartnerImg from '../assets/career-partner.png';
+import img4 from '../assets/img/4.webp';
+import careerPartnerImg from '../assets/img/career-partner.webp';
 import { QUERY_API_BASE } from '../config';
 import { fetchJobs, type Job } from '../admin/api';
 
