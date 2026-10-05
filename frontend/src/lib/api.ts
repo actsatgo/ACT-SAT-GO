@@ -58,6 +58,84 @@ async function cachedGet<T>(path: string, ttlMs: number): Promise<T> {
   }
 }
 
+/**
+ * POST a batch of test-player events. Bypasses request() on purpose: it runs
+ * every few seconds during a test and must not clear the GET cache, and it
+ * uses keepalive so the final batch survives the tab closing.
+ */
+export async function postAttemptEvents(attemptId: string, events: unknown[]): Promise<boolean> {
+  try {
+    const res = await fetch(`${BASE}/api/attempts/${attemptId}/events`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
+      body: JSON.stringify({ events }),
+      keepalive: true,
+    })
+    // 4xx other than auth/rate errors will never succeed — drop rather than retry forever.
+    return res.ok || (res.status >= 400 && res.status < 500 && res.status !== 401 && res.status !== 429)
+  } catch {
+    return false
+  }
+}
+
+export type TaResult = 'correct' | 'incorrect' | 'unanswered'
+export interface TaVisit {
+  questionId: string
+  visitNo: number
+  start: number
+  end: number
+  activeMs: number
+  pauses: { start: number; end: number }[]
+  entryChoice: unknown
+  entryResult: TaResult
+  exitChoice: unknown
+  exitResult: TaResult
+  answers: { t: number; choice: unknown; result: TaResult; from: TaResult }[]
+  isFinal: boolean
+  glance: boolean
+  flagged: boolean
+}
+export interface TaSummary {
+  questionId: string
+  visits: number
+  totalMs: number
+  firstVisitMs: number
+  pattern: string
+  change: 'none' | 'wrong_to_right' | 'right_to_wrong' | 'wrong_to_wrong'
+  finalResult: TaResult
+  answeredInVisit: number | null
+  flaggedAtEnd: boolean
+}
+export interface TaMetrics {
+  rightToWrong: number
+  wrongToRight: number
+  revisits: number
+  revisitsImproved: number
+  timeSinks: number
+  firstPassCorrect: number
+  firstPassAnswered: number
+  skipAndReturn: number
+  glances: number
+  pausedMs: number
+  unfinishedFlags: number
+}
+export interface TaSection {
+  sectionId: string
+  name: string
+  orderIndex: number
+  questionIds: string[]
+  offsetMs: number
+  endMs: number
+  avgMs: number
+  visits: TaVisit[]
+  summary: TaSummary[]
+  metrics: TaMetrics
+}
+export interface TimeAnalyticsResponse {
+  hasEvents: boolean
+  sections: TaSection[]
+}
+
 const SHORT_TTL = 30_000
 const LONG_TTL = 5 * 60_000
 
@@ -418,6 +496,11 @@ export const api = {
       `/api/attempts/${attemptId}/sections/${sectionId}/submit`,
       { method: 'POST' }
     ),
+  // Visit-level time analytics (see lib/questionTimeTracker.ts)
+  getAttemptEventState: (attemptId: string) =>
+    request<{ lastSeq: number; lastT: number; serverElapsedMs: number }>(`/api/attempts/${attemptId}/events`),
+  getTimeAnalytics: (attemptId: string) =>
+    cachedGet<TimeAnalyticsResponse>(`/api/attempts/${attemptId}/time-analytics`, LONG_TTL),
   logCheatingEvent: (
     attemptId: string,
     eventType: string,

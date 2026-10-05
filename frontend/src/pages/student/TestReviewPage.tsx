@@ -14,6 +14,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Modal } from '../../components/common/Modal';
 import { SAT_CONTENT, ALL_DOMAIN_NAMES, SUBDOMAINS_BY_DOMAIN } from '../../data/satDomains';
 import { formatNumericDisplay, numericEqual } from '../../lib/numericAnswer';
+import { AttemptTimeAnalytics } from '../../components/dashboard/AttemptTimeAnalytics';
 import { QuestionTimeChart, type QuestionTimeStat } from '../../components/dashboard/QuestionTimeChart';
 
 // ─── DB types ─────────────────────────────────────────────────────────────────
@@ -997,6 +998,19 @@ export function TestReviewPage() {
     </div>
   );
 
+  // Time Analytics → click a visit bar to open that question in review.
+  const jumpToQuestion = (sectionId: string, questionIndex: number) => {
+    const idx = [...attempt.sectionAttempts]
+      .sort((a, b) => a.section.orderIndex - b.section.orderIndex)
+      .findIndex((sa) => sa.section.id === sectionId);
+    if (idx < 0) return;
+    setActiveSectionIdx(idx);
+    setFilterBy('all');
+    setCurrentQuestionIdx(questionIndex);
+    setTimeAnalyticsOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   // Build answer lookup map
   const answersMap = new Map(attempt.answers.map((a) => [a.questionId, a]));
 
@@ -1580,7 +1594,7 @@ export function TestReviewPage() {
                 topicName: tq.question.topic?.name ?? tq.question.subject ?? '',
               };
             });
-            return { name: sa.section.name, stats };
+            return { name: sa.section.name, sectionId: sa.section.id as string, stats };
           });
         return (
           <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
@@ -1612,7 +1626,12 @@ export function TestReviewPage() {
                   ))}
                 </div>
                 {chartSectionStats[timeChartSectionIdx] && (
-                  <QuestionTimeChart stats={chartSectionStats[timeChartSectionIdx].stats} />
+                  <AttemptTimeAnalytics
+                    attemptId={attempt.id}
+                    sectionId={chartSectionStats[timeChartSectionIdx].sectionId}
+                    legacy={<QuestionTimeChart stats={chartSectionStats[timeChartSectionIdx].stats} />}
+                    onQuestionClick={(qi) => jumpToQuestion(chartSectionStats[timeChartSectionIdx].sectionId, qi)}
+                  />
                 )}
               </>
             )}
@@ -1679,7 +1698,7 @@ export function TestReviewPage() {
                     topicName: tq.question.topic?.name ?? tq.question.subject ?? '',
                   };
                 });
-                return { name: sa.section.name, stats };
+                return { name: sa.section.name, sectionId: sa.section.id as string, stats };
               });
             return (
               <div className="border-t border-slate-150 pt-5 mt-4 space-y-4">
@@ -1698,7 +1717,12 @@ export function TestReviewPage() {
                   ))}
                 </div>
                 {chartSectionStats[timeChartSectionIdx] && (
-                  <QuestionTimeChart stats={chartSectionStats[timeChartSectionIdx].stats} />
+                  <AttemptTimeAnalytics
+                    attemptId={attempt.id}
+                    sectionId={chartSectionStats[timeChartSectionIdx].sectionId}
+                    legacy={<QuestionTimeChart stats={chartSectionStats[timeChartSectionIdx].stats} />}
+                    onQuestionClick={(qi) => jumpToQuestion(chartSectionStats[timeChartSectionIdx].sectionId, qi)}
+                  />
                 )}
               </div>
             );

@@ -11,6 +11,7 @@ import { Card } from '../../components/common/Card';
 import { Modal } from '../../components/common/Modal';
 import { RichContentRenderer } from '../../components/admin/RichContentRenderer';
 import { OptionRenderer } from '../../components/admin/OptionRenderer';
+import { AttemptTimeAnalytics } from '../../components/dashboard/AttemptTimeAnalytics';
 import { QuestionTimeChart, type QuestionTimeStat } from '../../components/dashboard/QuestionTimeChart';
 import { TutorMultiSelect } from '../../components/common/TutorMultiSelect';
 import { TrashModal } from '../../components/common/TrashModal';
@@ -2313,7 +2314,7 @@ export function MyStudentsPage() {
                           topicName: tq.question.topic?.name ?? tq.question.subject ?? '',
                         };
                       });
-                      return { name: sa.section.name, stats };
+                      return { name: sa.section.name, sectionId: sa.section.id as string, stats };
                     });
                   return (
                     <div className="mt-6 bg-white rounded-xl border border-slate-200 p-5">
@@ -2345,7 +2346,11 @@ export function MyStudentsPage() {
                             ))}
                           </div>
                           {sectionStats[timeChartSectionIdx] && (
-                            <QuestionTimeChart stats={sectionStats[timeChartSectionIdx].stats} />
+                            <AttemptTimeAnalytics
+                              attemptId={testAnalysisAttempt.id}
+                              sectionId={sectionStats[timeChartSectionIdx].sectionId}
+                              legacy={<QuestionTimeChart stats={sectionStats[timeChartSectionIdx].stats} />}
+                            />
                           )}
                         </>
                       )}
