@@ -1,7 +1,7 @@
 import { SITE } from './site';
-import { HOME_FAQ } from './data/faq';
 
-// Per-route <title>, meta description, canonical URL and structured data.
+// Per-route <title>, meta description and canonical URL. Structured data
+// (JSON-LD) lives in schema.ts, which only the prerenderer loads.
 // Used twice: by scripts/prerender.mjs to write real HTML <head> tags for
 // every public page (what search engines and link previews read), and by
 // <RouteMeta> to keep the head in sync during client-side navigation.
@@ -12,56 +12,7 @@ export interface PageMeta {
   description: string;
   /** Excluded from the sitemap and marked noindex. */
   noindex?: boolean;
-  jsonLd?: Record<string, unknown>[];
 }
-
-const ORG_ID = `${SITE.url}/#organization`;
-
-const organization = {
-  '@context': 'https://schema.org',
-  '@type': 'EducationalOrganization',
-  '@id': ORG_ID,
-  name: SITE.name,
-  url: SITE.url,
-  logo: `${SITE.url}/favicon.jpg`,
-  email: SITE.email,
-  telephone: SITE.phoneHref.replace('tel:', ''),
-  sameAs: Object.values(SITE.socials),
-  areaServed: 'US',
-  description:
-    'Live 1-on-1 online tutoring for the Digital SAT, enhanced ACT and AP exams, plus K-12 academics.',
-};
-
-const website = {
-  '@context': 'https://schema.org',
-  '@type': 'WebSite',
-  name: SITE.name,
-  url: SITE.url,
-  publisher: { '@id': ORG_ID },
-};
-
-function service(name: string, path: string, description: string) {
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Service',
-    name,
-    serviceType: 'Online tutoring',
-    url: `${SITE.url}${path}`,
-    description,
-    provider: { '@id': ORG_ID },
-    areaServed: 'US',
-  };
-}
-
-const faqPage = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: HOME_FAQ.map((f) => ({
-    '@type': 'Question',
-    name: f.q,
-    acceptedAnswer: { '@type': 'Answer', text: f.a },
-  })),
-};
 
 export const PAGES: PageMeta[] = [
   {
@@ -69,35 +20,30 @@ export const PAGES: PageMeta[] = [
     title: 'Online SAT & ACT Tutoring for US Students | 1-on-1 | ACT SAT GO',
     description:
       '1-on-1 online tutoring for the Digital SAT, enhanced ACT and AP exams. A diagnostic before the first lesson, homework after every session and progress reports for parents. Book a free diagnostic lesson.',
-    jsonLd: [organization, website, faqPage],
   },
   {
     path: '/sat',
     title: 'Digital SAT Tutoring Online — 1-on-1 Expert Tutors | ACT SAT GO',
     description:
       'Live 1-on-1 Digital SAT tutoring with a personalised plan, full-length adaptive practice tests and a score report after each one. See programs and fees, then book a free diagnostic lesson.',
-    jsonLd: [service('Digital SAT Tutoring', '/sat', '1-on-1 online tutoring for the Digital SAT.')],
   },
   {
     path: '/act',
     title: 'ACT Tutoring Online for the Enhanced ACT — 1-on-1 | ACT SAT GO',
     description:
       'Online 1-on-1 tutoring built for the enhanced ACT: 131 core questions, about 2 hours, Science optional. Programs, fees and a free diagnostic lesson.',
-    jsonLd: [service('ACT Tutoring', '/act', '1-on-1 online tutoring for the enhanced ACT.')],
   },
   {
     path: '/ap',
     title: 'AP Tutoring Online — Calculus, Physics, Chemistry & More | ACT SAT GO',
     description:
       '1-on-1 online AP tutoring for Calculus AB/BC, Physics, Chemistry, Biology, Statistics, Economics, Computer Science and more — aiming for 4s and 5s. Book a free diagnostic lesson.',
-    jsonLd: [service('AP Tutoring', '/ap', '1-on-1 online tutoring for Advanced Placement courses and exams.')],
   },
   {
     path: '/k-12-tutoring',
     title: 'Online K-12 Tutoring — Math, English & Science | ACT SAT GO',
     description:
       '1-on-1 online tutoring for elementary, middle and high school students in Math, English, Science and study skills, with a personalised plan for every child.',
-    jsonLd: [service('K-12 Tutoring', '/k-12-tutoring', '1-on-1 online tutoring for grades 1–12.')],
   },
   {
     path: '/future-programs',
@@ -185,7 +131,7 @@ function esc(s: string): string {
 }
 
 /** Static <head> tags for prerendered HTML. */
-export function headTags(meta: PageMeta): string {
+export function headTags(meta: PageMeta, jsonLd?: Record<string, unknown> | null): string {
   const url = canonicalUrl(meta.path);
   const image = `${SITE.url}/og-image.jpg`;
   const tags = [
@@ -203,8 +149,8 @@ export function headTags(meta: PageMeta): string {
     `<meta name="twitter:description" content="${esc(meta.description)}" />`,
     `<meta name="twitter:image" content="${image}" />`,
   ];
-  for (const ld of meta.jsonLd ?? []) {
-    tags.push(`<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`);
+  if (jsonLd) {
+    tags.push(`<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>`);
   }
   return tags.join('\n    ');
 }
