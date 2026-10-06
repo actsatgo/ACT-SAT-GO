@@ -11,6 +11,7 @@ import type { QuestionState, SectionAttempt } from '../../types';
 import type { TestAttempt } from '../../types';
 import { transformDbTest, flattenTest } from './TestInstructionsPage';
 import { parseNumericAnswer, isValidNumericInput, sanitizeNumericInput } from '../../lib/numericAnswer';
+import { useVisitTracking } from '../../hooks/useVisitTracking';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -200,6 +201,9 @@ export function TestInterfacePage() {
   const [selectedAnswer, setSelectedAnswer] = useState<string | string[] | number | Record<string, any> | null>(null);
   const [eliminatedOptions, setEliminatedOptions] = useState<Set<string>>(new Set());
   const [numericInput, setNumericInput] = useState('');
+  // Which question the local answer state above belongs to. It lags one render
+  // behind a question change, so effects can tell a stale answer from a real one.
+  const [answerFor, setAnswerFor] = useState<string | null>(null);
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   const [showBreak, setShowBreak] = useState(false);
@@ -943,6 +947,7 @@ export function TestInterfacePage() {
       setNumericInput('');
     }
     setEliminatedOptions(new Set()); // reset eliminations on question change
+    setAnswerFor(currentQuestion?.id ?? null);
   }, [currentQuestion?.id]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // Commit the current question's answer to the store as soon as it changes —
@@ -951,6 +956,9 @@ export function TestInterfacePage() {
   // palette counts, the submit modal, and autosave all show it as unanswered.
   useEffect(() => {
     if (!currentSection || !currentQuestion) return;
+    // Right after a question change the local answer still belongs to the
+    // previous question — don't write it onto the new one.
+    if (answerFor !== currentQuestion.id) return;
     const finalAns = currentQuestion.type === 'numeric' ? numericInput : selectedAnswer;
     const hasAnswer = finalAns !== null && finalAns !== '' && !(Array.isArray(finalAns) && finalAns.length === 0);
     const prevState = currentQAttempt?.state ?? 'not_visited';
@@ -965,7 +973,25 @@ export function TestInterfacePage() {
     const sameAns = JSON.stringify(prevAns) === JSON.stringify(finalAns ?? null);
     if (sameAns && prevState === newState) return;
     updateQuestionState(currentSection.id, currentQuestion.id, newState, finalAns as any);
-  }, [selectedAnswer, numericInput, currentQuestion?.id, currentSection?.id]);  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [selectedAnswer, numericInput, answerFor, currentQuestion?.id, currentSection?.id]);  // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Visit-level time analytics: log ENTER/LEAVE, answer changes and flags as
+  // events. A question only counts as "on screen" when no full-screen overlay
+  // (directions, break, module transition, review screen) is covering it.
+  const questionOnScreen = !restoring && !restoreError && !showSectionDirections && !showBreak
+    && !transitioning && !finished && !showSectionReview && currentQuestion ? currentQuestion.id : null;
+  const answerIsCurrent = !!currentQuestion && answerFor === currentQuestion.id;
+  useVisitTracking({
+    attemptId: attempt?.id,
+    enabled: !isPreview && !!attempt?.id && attempt.id !== 'preview',
+    questionId: questionOnScreen,
+    answer: answerIsCurrent && currentQuestion
+      ? toDbAnswer(currentQuestion.type, currentQuestion.type === 'numeric' ? numericInput : selectedAnswer)
+      : undefined,
+    debounceAnswer: currentQuestion?.type === 'numeric',
+    flagged: currentQAttempt?.state === 'marked_review' || currentQAttempt?.state === 'answered_marked',
+    finished,
+  });
 
   // ── Loading & Error views for resume ────────────────────────────────────────
   if (restoring) {

@@ -217,6 +217,7 @@ model TestAttempt {
   sectionAttempts SectionAttempt[]
   answers         AttemptAnswer[]
   cheatingLogs    CheatingLog[]
+  events          AttemptEvent[]
 
   @@index([studentId, startedAt])
   @@index([testId])
@@ -300,4 +301,24 @@ model Notification {
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+// Append-only log of what happened in the test player (question shown/left,
+// answer chosen/cleared, flag, tab hidden, idle, module end…). Never updated:
+// visit-level time analytics are rebuilt from it (src/lib/timeAnalytics.ts),
+// so a bug in the reconstruction can be fixed and re-run on old attempts.
+model AttemptEvent {
+  id         BigInt   @id @default(autoincrement())
+  attemptId  String
+  seq        Int      // client counter, defines order
+  eventType  String   @db.VarChar(16)
+  questionId String?
+  tMs        Int      // ms since the attempt started (monotonic on the client)
+  choice     Json?    // ANSWER only — the raw choice, never its correctness
+  clientWall DateTime? // audit only
+  receivedAt DateTime @default(now())
+
+  attempt TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, seq]) // makes retried batches idempotent
 }
