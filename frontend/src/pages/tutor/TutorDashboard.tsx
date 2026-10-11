@@ -942,7 +942,7 @@ export function TutorDashboard() {
                   <div className="w-9 h-9 rounded-lg bg-red-50 text-red-500 flex items-center justify-center"><AlertCircle size={16} /></div>
                   <span className="text-[10px] text-slate-600 text-center font-bold">Mistakes</span>
                 </Link>
-                <Link to="/session-log" className="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all">
+                <Link to="/attendance" className="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all">
                   <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><ClipboardList size={16} /></div>
                   <span className="text-[10px] text-slate-600 text-center font-bold">Session Log</span>
                 </Link>

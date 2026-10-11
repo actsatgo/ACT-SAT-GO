@@ -12,6 +12,9 @@ import { api, type DbUser } from '../../lib/api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { AdminTeacherSalaryPage } from './AdminTeacherSalaryPage';
 
+// Scores above 36 are on the SAT scale (400-1600); the rest on the ACT scale (1-36).
+const isWeakScore = (score: number) => score > 0 && (score > 36 ? score < 1160 : score < 24);
+
 const SPECIALIZATIONS = ['Math', 'English', 'Reading', 'Science', 'Writing', 'ACT Prep', 'SAT Prep'];
 
 type TabKey = 'all' | 'active' | 'inactive';
@@ -257,11 +260,8 @@ export function TutorManagementPage() {
     const assignedIds = tutor.studentIds ?? [];
     const assignedStudentsList = students.filter(s => assignedIds.includes(s.id));
     
-    // Alert definition: student average score is critically low (< 22) or average accuracy < 60%
-    const weakStudents = assignedStudentsList.filter(s => {
-      const score = s.avgScore ?? 0;
-      return score > 0 && score < 24;
-    });
+    // Alert definition: student average score is below 1160 (SAT scale) or 24 (ACT scale)
+    const weakStudents = assignedStudentsList.filter(s => isWeakScore(s.avgScore ?? 0));
 
     return {
       weakAlertsCount: weakStudents.length,
@@ -368,7 +368,7 @@ export function TutorManagementPage() {
       sortable: true,
       render: (row: DbUser) => {
         const score = row.avgScore ?? 0;
-        const pct = Math.min(100, (score / 36) * 100);
+        const pct = Math.min(100, (score / (score > 36 ? 1600 : 36)) * 100);
         return (
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-semibold text-slate-900">{score || '—'}</span>
@@ -861,7 +861,7 @@ export function TutorManagementPage() {
                   <ShieldAlert className="text-red-500 w-5 h-5 flex-shrink-0 mt-0.5" />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-red-800">Critical Alerts: {stats.weakAlertsCount} Weak Student(s)</p>
-                    <p className="text-[11px] text-red-600/95 mt-0.5">The following students have an average score below 24 ACT point standard and need urgent syllabus revision:</p>
+                    <p className="text-[11px] text-red-600/95 mt-0.5">The following students have an average score below 1160 (SAT) or 24 (ACT) and need urgent syllabus revision:</p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {stats.weakStudents.map(ws => (
                         <span key={ws.id} className="text-[10px] font-bold bg-white text-red-600 border border-red-200 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
@@ -892,7 +892,7 @@ export function TutorManagementPage() {
                   ) : (
                     stats.assignedStudentsList.map((st) => {
                       const stScore = st.avgScore ?? 0;
-                      const isWeak = stScore > 0 && stScore < 24;
+                      const isWeak = isWeakScore(stScore);
                       return (
                         <div key={st.id} className="flex items-center justify-between p-2.5 border border-slate-100 rounded-xl hover:bg-slate-50/50 transition-colors bg-white">
                           <div className="flex items-center gap-2">
