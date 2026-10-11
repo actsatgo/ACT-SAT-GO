@@ -299,6 +299,72 @@ export interface DbTestPackage {
   items: DbTestPackageItem[]
 }
 
+
+// ── Flashcards ───────────────────────────────────────────────────────────────
+export interface FlashcardCard { id: string; front: string; back: string }
+export interface FlashcardShareInfo {
+  studentId: string
+  studentName: string
+  sharedAt: string
+  viewedAt: string | null
+  lastStudiedAt: string | null
+  knownCount: number
+}
+/** A deck as listed for a tutor/admin (with sharing + progress). */
+export interface FlashcardDeckSummary {
+  id: string
+  title: string
+  topic: string
+  description: string | null
+  subject: string | null
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  cardCount: number
+  shares: FlashcardShareInfo[]
+}
+/** A deck as listed for a student (with their own progress). */
+export interface StudentFlashcardDeck {
+  id: string
+  title: string
+  topic: string
+  description: string | null
+  subject: string | null
+  updatedAt: string
+  createdByName: string
+  cardCount: number
+  sharedAt: string
+  viewedAt: string | null
+  lastStudiedAt: string | null
+  knownCount: number
+}
+export interface FlashcardDeckDetail {
+  id: string
+  title: string
+  topic: string
+  description: string | null
+  subject: string | null
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  cards: FlashcardCard[]
+  canEdit: boolean
+  /** Manager view only */
+  shares?: FlashcardShareInfo[]
+  /** Student view only */
+  knownCardIds?: string[]
+}
+export interface FlashcardDeckInput {
+  title: string
+  topic: string
+  description?: string
+  subject?: string
+  cards: Array<{ id?: string; front: string; back: string }>
+  studentIds?: string[]
+}
+
 export const api = {
   // Users
   getUsersByRole: (role?: string, opts?: { deleted?: boolean }) => {
@@ -505,6 +571,26 @@ export const api = {
       `/api/attempts/${attemptId}/sections/${sectionId}/submit`,
       { method: 'POST' }
     ),
+  // Flashcards
+  getFlashcardDecks: () =>
+    request<{ decks: FlashcardDeckSummary[] | StudentFlashcardDeck[] }>('/api/flashcards'),
+  getFlashcardDeck: (deckId: string) =>
+    request<{ deck: FlashcardDeckDetail }>(`/api/flashcards/${deckId}`),
+  createFlashcardDeck: (body: FlashcardDeckInput) =>
+    request<{ id: string; sharedWith: number }>('/api/flashcards', { method: 'POST', body: JSON.stringify(body) }),
+  updateFlashcardDeck: (deckId: string, body: FlashcardDeckInput) =>
+    request<{ id: string }>(`/api/flashcards/${deckId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteFlashcardDeck: (deckId: string) =>
+    request<{ success: boolean }>(`/api/flashcards/${deckId}`, { method: 'DELETE' }),
+  setFlashcardShares: (deckId: string, studentIds: string[]) =>
+    request<{ added: number; removed: number; total: number }>(`/api/flashcards/${deckId}/shares`, {
+      method: 'PUT', body: JSON.stringify({ studentIds }),
+    }),
+  saveFlashcardProgress: (deckId: string, knownCardIds: string[]) =>
+    request<{ knownCount: number; cardCount: number }>(`/api/flashcards/${deckId}/progress`, {
+      method: 'PUT', body: JSON.stringify({ knownCardIds }),
+    }),
+
   // Visit-level time analytics (see lib/questionTimeTracker.ts)
   getAttemptEventState: (attemptId: string) =>
     request<{ lastSeq: number; lastT: number; serverElapsedMs: number }>(`/api/attempts/${attemptId}/events`),

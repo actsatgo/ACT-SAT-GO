@@ -73,6 +73,10 @@ model User {
   students      TutorAssignment[] @relation("TutorToStudent")
   tutors        TutorAssignment[] @relation("StudentToTutor")
   notifications Notification[]
+
+  // Flashcards: decks a tutor/admin created, and decks shared with a student
+  flashcardDecks  FlashcardDeck[]  @relation("FlashcardDecksCreated")
+  flashcardShares FlashcardShare[] @relation("FlashcardSharesReceived")
 }
 
 model TutorAssignment {
@@ -321,4 +325,53 @@ model AttemptEvent {
   attempt TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 
   @@unique([attemptId, seq]) // makes retried batches idempotent
+}
+
+// ── Flashcards ───────────────────────────────────────────────────────────────
+// A tutor (or admin) builds a deck about one topic — a short "about this
+// topic" note plus front/back cards — and shares it with students.
+
+model FlashcardDeck {
+  id          String   @id @default(uuid())
+  title       String
+  topic       String
+  description String?  // "About this topic" — shown to students before the cards
+  subject     String?  // e.g. "SAT Math", "SAT Reading & Writing", "ACT Science"
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User             @relation("FlashcardDecksCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  cards     FlashcardCard[]
+  shares    FlashcardShare[]
+
+  @@index([createdById])
+}
+
+model FlashcardCard {
+  id         String @id @default(uuid())
+  deckId     String
+  front      String // term / question
+  back       String // definition / answer / explanation
+  orderIndex Int
+
+  deck FlashcardDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@index([deckId])
+}
+
+model FlashcardShare {
+  id            String    @id @default(uuid())
+  deckId        String
+  studentId     String
+  sharedAt      DateTime  @default(now())
+  viewedAt      DateTime? // first time the student opened the deck
+  lastStudiedAt DateTime?
+  knownCardIds  Json?     // string[] — cards the student marked "Got it"
+
+  deck    FlashcardDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  student User          @relation("FlashcardSharesReceived", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([deckId, studentId])
+  @@index([studentId])
 }

@@ -3,6 +3,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import type { Role } from '../../types';
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const roleLabels: Record<Role, string> = {
   super_admin: 'Super Admin',
@@ -26,6 +27,7 @@ function relativeTime(iso: string): string {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const { notifications, markRead } = useNotificationStore();
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -78,7 +80,10 @@ export function Header({ onMenuClick }: HeaderProps) {
                   <p className="text-xs text-slate-400 text-center py-6">No notifications</p>
                 ) : (
                   notifications.slice(0, 10).map((n) => (
-                    <div key={n.id} onClick={() => { if (!n.read) markRead(n.id); }}
+                    <div key={n.id} onClick={() => {
+                      if (!n.read) markRead(n.id);
+                      if (n.link?.startsWith('/')) { setNotifOpen(false); navigate(n.link); }
+                    }}
                       className={`px-4 py-3 hover:bg-slate-50 cursor-pointer transition-colors ${!n.read ? 'bg-blue-50/30' : ''}`}>
                       <div className="flex items-start gap-2">
                         <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${!n.read ? 'bg-blue-500' : 'bg-transparent'}`} />
