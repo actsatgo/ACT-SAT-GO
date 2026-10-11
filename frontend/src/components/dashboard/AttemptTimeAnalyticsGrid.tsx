@@ -1,31 +1,38 @@
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
-import { api, type TaSection, type TimeAnalyticsResponse } from '../../lib/api';
-import { Modal } from '../common/Modal';
-import { VisitGridChart, VisitGridLegend } from './VisitGridChart';
+import { api, type TimeAnalyticsResponse } from '../../lib/api';
+import type { QuestionTimeStat } from './QuestionTimeChart';
+import { VisitGridCard, VisitGridModal, gridFromTotals, gridFromVisits, type GridSection } from './VisitGridChart';
+
+export interface TimeGridModule {
+  sectionId: string;
+  /** Shown above the module's chart, e.g. "Section 1, Module 1: Reading and Writing". */
+  title: string;
+  /** Per-question totals, used when the attempt has no visit data. */
+  stats: QuestionTimeStat[];
+}
 
 /**
- * Time Analysis for a whole attempt: all modules side by side in a 2×2 grid,
- * one compact visit-level pacing chart each, with an expand button per chart.
+ * "View Time Analytics" (Zuperscore layout): every module of the attempt at
+ * once in a 2×2 grid, one visit chart each, with an expand icon per chart.
  *
- * Attempts taken before visit tracking existed have no event data; for those
- * `legacy` (the old per-module tabs) is rendered instead.
+ * Modules with recorded visits draw one bar per visit. Modules without them
+ * (attempts from before visit tracking, or when the request fails) draw one
+ * bar per question from the stored per-question time, so the view always shows.
  */
 export function AttemptTimeAnalyticsGrid({
   attemptId,
-  sectionIds,
-  legacy,
+  modules,
   onQuestionClick,
 }: {
   attemptId: string;
-  /** Section ids in display order; sections missing from the response are skipped. */
-  sectionIds: string[];
-  legacy: React.ReactNode;
+  modules: TimeGridModule[];
   onQuestionClick?: (sectionId: string, questionIndex: number) => void;
 }) {
   const [data, setData] = useState<TimeAnalyticsResponse | null>(null);
   const [failed, setFailed] = useState(false);
-  const [expanded, setExpanded] = useState<TaSection | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -39,7 +46,7 @@ export function AttemptTimeAnalyticsGrid({
         setFailed(true);
       });
     return () => { cancelled = true; };
-  }, [attemptId]);
+  }, [attemptId, reloadKey]);
 
   if (!data && !failed) {
     return (
@@ -50,39 +57,48 @@ export function AttemptTimeAnalyticsGrid({
   }
 
   const byId = new Map((data?.hasEvents ? data.sections : []).map((s) => [s.sectionId, s]));
-  const sections = sectionIds.map((id) => byId.get(id)).filter((s): s is TaSection => !!s && s.visits.length > 0);
-
-  if (sections.length === 0) return <>{legacy}</>;
+  let usedTotals = false;
+  const sections: GridSection[] = modules.map((m) => {
+    const s = byId.get(m.sectionId);
+    if (s && s.visits.length > 0) return gridFromVisits(s, m.title);
+    usedTotals = true;
+    return gridFromTotals(m.sectionId, m.title, m.stats);
+  });
+  const expanded = sections.find((s) => s.sectionId === expandedId) ?? null;
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <div className="mt-4 space-y-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {sections.map((s) => (
-          <div key={s.sectionId} className="space-y-1">
-            <div className="px-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">{s.name}</div>
-            <VisitGridChart
+          <div key={s.sectionId} className="space-y-1.5">
+            <div className="px-1 text-xs font-semibold text-slate-600">{s.title}</div>
+            <VisitGridCard
               section={s}
-              onExpand={() => setExpanded(s)}
+              onExpand={() => setExpandedId(s.sectionId)}
               onQuestionClick={onQuestionClick ? (qi) => onQuestionClick(s.sectionId, qi) : undefined}
             />
           </div>
         ))}
       </div>
-      <VisitGridLegend />
 
-      <Modal isOpen={!!expanded} onClose={() => setExpanded(null)} title={expanded?.name ?? ''} size="xl">
-        {expanded && (
-          <div className="space-y-3">
-            <VisitGridChart
-              section={expanded}
-              size="large"
-              onQuestionClick={onQuestionClick ? (qi) => { setExpanded(null); onQuestionClick(expanded.sectionId, qi); } : undefined}
-            />
-            <VisitGridLegend />
-            {onQuestionClick && <p className="text-center text-[11px] text-slate-400">Click a bar to open that question.</p>}
-          </div>
-        )}
-      </Modal>
+      {failed ? (
+        <p className="text-xs text-slate-500">
+          Visit-level timing could not be loaded, so each question shows as one bar.{' '}
+          <button type="button" className="font-semibold text-blue-600 hover:underline" onClick={() => setReloadKey((k) => k + 1)}>
+            Retry
+          </button>
+        </p>
+      ) : usedTotals ? (
+        <p className="text-xs text-slate-500">Revisits were not recorded for this test, so each question shows as one bar.</p>
+      ) : null}
+
+      {expanded && (
+        <VisitGridModal
+          section={expanded}
+          onClose={() => setExpandedId(null)}
+          onQuestionClick={onQuestionClick ? (qi) => { setExpandedId(null); onQuestionClick(expanded.sectionId, qi); } : undefined}
+        />
+      )}
     </div>
   );
 }

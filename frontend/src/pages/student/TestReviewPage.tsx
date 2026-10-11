@@ -11,12 +11,10 @@ import { OptionRenderer } from '../../components/admin/OptionRenderer';
 import { api } from '../../lib/api';
 import { satSectionScore } from '../../lib/analyticsData';
 import { useAuthStore } from '../../store/useAuthStore';
-import { Modal } from '../../components/common/Modal';
 import { SAT_CONTENT, ALL_DOMAIN_NAMES, SUBDOMAINS_BY_DOMAIN } from '../../data/satDomains';
 import { formatNumericDisplay, numericEqual } from '../../lib/numericAnswer';
-import { AttemptTimeAnalytics } from '../../components/dashboard/AttemptTimeAnalytics';
 import { AttemptTimeAnalyticsGrid } from '../../components/dashboard/AttemptTimeAnalyticsGrid';
-import { QuestionTimeChart, type QuestionTimeStat } from '../../components/dashboard/QuestionTimeChart';
+import { type QuestionTimeStat } from '../../components/dashboard/QuestionTimeChart';
 
 // ─── DB types ─────────────────────────────────────────────────────────────────
 
@@ -938,15 +936,14 @@ export function TestReviewPage() {
   const isTutorOrAdmin = user?.role === 'tutor' || user?.role === 'admin' || user?.role === 'super_admin';
   const [activeSectionIdx, setActiveSectionIdx] = useState(0);
   const [filterBy, setFilterBy] = useState<string>('all');
-  const [timeAnalyticsOpen, setTimeAnalyticsOpen] = useState(false);
   const [questionNavigatorOpen, setQuestionNavigatorOpen] = useState(false);
   const [fullscreenReportOpen, setFullscreenReportOpen] = useState(false);
   const [showFullscreenQuestionNavigator, setShowFullscreenQuestionNavigator] = useState(false);
   const [knowledgeSkillsOpen, setKnowledgeSkillsOpen] = useState(false);
   const [showCalculator, setShowCalculator] = useState(false);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
-  const [timeChartOpen, setTimeChartOpen] = useState(false);
-  const [timeChartSectionIdx, setTimeChartSectionIdx] = useState(0);
+  // Question Wise Report: true shows "View Time Analytics" (all modules' charts) instead of a module's questions.
+  const [showTimeGrid, setShowTimeGrid] = useState(false);
   const [attempt, setAttempt] = useState<DbAttempt | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -1008,7 +1005,6 @@ export function TestReviewPage() {
     setActiveSectionIdx(idx);
     setFilterBy('all');
     setCurrentQuestionIdx(questionIndex);
-    setTimeAnalyticsOpen(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -1193,41 +1189,6 @@ export function TestReviewPage() {
     }
   });
 
-
-  // Precompute pacing stats per section for the Time Analysis modal
-  const pacingStats = sections.map((sa) => {
-    let correctCount = 0, incorrectCount = 0, omittedCount = 0;
-    let correctTime = 0, incorrectTime = 0, omittedTime = 0, totalTime = 0;
-    
-    sa.section.questions.forEach((tq) => {
-      const ans = answersMap.get(tq.questionId);
-      const time = ans?.timeSpentSeconds ?? 0;
-      totalTime += time;
-      
-      if (!ans || !ans.answerGiven) {
-        omittedCount++;
-        omittedTime += time;
-      } else if (answersMatch(ans.answerGiven, tq.question.correctAnswer)) {
-        correctCount++;
-        correctTime += time;
-      } else {
-        incorrectCount++;
-        incorrectTime += time;
-      }
-    });
-    
-    const totalQ = sa.section.questions.length;
-    
-    return {
-      name: sa.section.name,
-      totalQuestions: totalQ,
-      totalTime,
-      avgTime: totalQ > 0 ? Math.round(totalTime / totalQ) : 0,
-      avgTimeCorrect: correctCount > 0 ? Math.round(correctTime / correctCount) : 0,
-      avgTimeIncorrect: incorrectCount > 0 ? Math.round(incorrectTime / incorrectCount) : 0,
-      avgTimeOmitted: omittedCount > 0 ? Math.round(omittedTime / omittedCount) : 0,
-    };
-  });
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -1437,11 +1398,12 @@ export function TestReviewPage() {
                 key={sa.id}
                 onClick={() => {
                   setActiveSectionIdx(idx);
+                  setShowTimeGrid(false);
                   setFilterBy('all');
                   setCurrentQuestionIdx(0);
                 }}
                 className={`px-4 py-2.5 rounded-lg text-xs font-bold transition-all shadow-sm ${
-                  activeSectionIdx === idx
+                  activeSectionIdx === idx && !showTimeGrid
                     ? 'bg-blue-600 text-white'
                     : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                 }`}
@@ -1450,11 +1412,10 @@ export function TestReviewPage() {
               </button>
             ))}
             <button
-              onClick={() => setTimeAnalyticsOpen(true)}
-              className="px-4 py-2.5 rounded-lg text-xs font-bold bg-slate-200 text-slate-700 hover:bg-slate-300 transition-all flex items-center gap-1.5 shadow-sm"
+              onClick={() => setShowTimeGrid(true)}
+              className="px-4 py-2.5 rounded-lg text-xs font-bold bg-amber-400 text-slate-900 hover:bg-amber-300 transition-all shadow-sm"
             >
-              <Clock size={12} />
-              Time Analysis
+              View Time Analytics
             </button>
           </div>
 
@@ -1477,7 +1438,32 @@ export function TestReviewPage() {
         {/* Card Content Area */}
         <div className="px-6 py-4">
           {/* Single Question View with Previous/Next Navigation */}
-        {(() => {
+        {showTimeGrid ? (
+          <AttemptTimeAnalyticsGrid
+            attemptId={attempt.id}
+            modules={sections
+              .slice()
+              .sort((a: any, b: any) => a.section.orderIndex - b.section.orderIndex)
+              .map((sa: any) => ({
+                sectionId: sa.section.id as string,
+                title: getSectionModuleLabel(sa.section.name),
+                stats: sa.section.questions.map((tq: any, idx: number): QuestionTimeStat => {
+                  const ans = answersMap.get(tq.questionId) as any;
+                  const correct = !!ans?.answerGiven && answersMatch(ans.answerGiven, tq.question.correctAnswer);
+                  const skipped = !ans?.answerGiven;
+                  return {
+                    questionIndex: idx + 1,
+                    sectionName: sa.section.name,
+                    timeSpentSeconds: ans?.timeSpentSeconds ?? 0,
+                    status: skipped ? 'skipped' : correct ? 'correct' : 'incorrect',
+                    difficulty: tq.question.difficultyLevel ?? 'MEDIUM',
+                    topicName: tq.question.topic?.name ?? tq.question.subject ?? '',
+                  };
+                }),
+              }))}
+            onQuestionClick={(sectionId, qi) => { setShowTimeGrid(false); jumpToQuestion(sectionId, qi); }}
+          />
+        ) : (() => {
           const activeSection = sections[activeSectionIdx];
           const activeQuestions = activeSection?.section.questions ?? [];
           const filteredQuestions = activeQuestions.filter((tq) => {
@@ -1575,183 +1561,6 @@ export function TestReviewPage() {
         })()}
         </div>
       </div>
-
-      {/* ── Time Spent Per Question collapsible card ── */}
-      {(() => {
-        const chartSectionStats = sections
-          .slice()
-          .sort((a: any, b: any) => a.section.orderIndex - b.section.orderIndex)
-          .map((sa: any) => {
-            const stats: QuestionTimeStat[] = sa.section.questions.map((tq: any, idx: number) => {
-              const ans = answersMap.get(tq.questionId) as any;
-              const correct = !!ans?.answerGiven && answersMatch(ans.answerGiven, tq.question.correctAnswer);
-              const skipped = !ans?.answerGiven;
-              return {
-                questionIndex: idx + 1,
-                sectionName: sa.section.name,
-                timeSpentSeconds: ans?.timeSpentSeconds ?? 0,
-                status: (skipped ? 'skipped' : correct ? 'correct' : 'incorrect') as 'correct' | 'incorrect' | 'skipped',
-                difficulty: tq.question.difficultyLevel ?? 'MEDIUM',
-                topicName: tq.question.topic?.name ?? tq.question.subject ?? '',
-              };
-            });
-            return { name: sa.section.name, sectionId: sa.section.id as string, stats };
-          });
-        return (
-          <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
-            <button
-              onClick={() => setTimeChartOpen(!timeChartOpen)}
-              className="w-full text-left flex items-center justify-between hover:opacity-80 transition-opacity"
-            >
-              <div className="flex items-center gap-2">
-                <h4 className="text-base font-bold text-slate-900">Time Analysis</h4>
-                <span className="text-xs text-slate-400 font-medium">section-wise breakdown</span>
-              </div>
-              <div className="text-slate-500">
-                {timeChartOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-              </div>
-            </button>
-            {timeChartOpen && (
-              <div className="mt-4">
-                <AttemptTimeAnalyticsGrid
-                  attemptId={attempt.id}
-                  sectionIds={chartSectionStats.map((sec: any) => sec.sectionId as string)}
-                  onQuestionClick={(sectionId, qi) => jumpToQuestion(sectionId, qi)}
-                  legacy={
-                    <>
-                      <div className="flex flex-wrap gap-2 mb-5 border-b border-slate-100 pb-4">
-                        {chartSectionStats.map((sec: any, idx: number) => (
-                          <button
-                            key={idx}
-                            onClick={() => setTimeChartSectionIdx(idx)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                              timeChartSectionIdx === idx ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                            }`}
-                          >
-                            {getSectionModuleLabel(sec.name)}
-                          </button>
-                        ))}
-                      </div>
-                      {chartSectionStats[timeChartSectionIdx] && (
-                        <AttemptTimeAnalytics
-                          attemptId={attempt.id}
-                          sectionId={chartSectionStats[timeChartSectionIdx].sectionId}
-                          legacy={<QuestionTimeChart stats={chartSectionStats[timeChartSectionIdx].stats} />}
-                          onQuestionClick={(qi) => jumpToQuestion(chartSectionStats[timeChartSectionIdx].sectionId, qi)}
-                        />
-                      )}
-                    </>
-                  }
-                />
-              </div>
-            )}
-          </div>
-        );
-      })()}
-
-      {/* Pacing Modal */}
-      <Modal
-        isOpen={timeAnalyticsOpen}
-        onClose={() => setTimeAnalyticsOpen(false)}
-        title="Time Analysis"
-        size="xl"
-      >
-        <div className="space-y-4">
-          <p className="text-sm text-slate-500 leading-relaxed">
-            Review how much time you spent per question on average, broken down by correctness. This helps identify pacing issues.
-          </p>
-          <div className="overflow-x-auto rounded-lg border border-slate-200 shadow-sm">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-gradient-to-r from-blue-50 to-blue-100/40 border-b border-blue-100 text-blue-800 font-semibold">
-                <tr>
-                  <th className="px-4 py-3">Section / Module</th>
-                  <th className="px-4 py-3 text-center">Questions</th>
-                  <th className="px-4 py-3 text-center">Total Time</th>
-                  <th className="px-4 py-3 text-center font-bold">Avg/Q</th>
-                  <th className="px-4 py-3 text-center text-green-700">Correct</th>
-                  <th className="px-4 py-3 text-center text-red-700">Incorrect</th>
-                  <th className="px-4 py-3 text-center text-amber-700">Skipped</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-600 bg-white">
-                {pacingStats.map((stat, idx) => (
-                  <tr key={idx} className="hover:bg-slate-50/50">
-                    <td className="px-4 py-3 font-semibold text-slate-800">{getSectionModuleLabel(stat.name)}</td>
-                    <td className="px-4 py-3 text-center font-medium">{stat.totalQuestions}</td>
-                    <td className="px-4 py-3 text-center">{formatSeconds(stat.totalTime)}</td>
-                    <td className="px-4 py-3 text-center font-bold text-slate-900">{stat.avgTime}s</td>
-                    <td className="px-4 py-3 text-center text-green-600 font-bold bg-green-50/20">{stat.avgTimeCorrect}s</td>
-                    <td className="px-4 py-3 text-center text-red-600 font-bold bg-red-50/20">{stat.avgTimeIncorrect}s</td>
-                    <td className="px-4 py-3 text-center text-amber-600 font-bold bg-amber-50/20">{stat.avgTimeOmitted}s</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Detailed Question wise pacing chart inside Modal */}
-          {(() => {
-            const chartSectionStats = sections
-              .slice()
-              .sort((a: any, b: any) => a.section.orderIndex - b.section.orderIndex)
-              .map((sa: any) => {
-                const stats: QuestionTimeStat[] = sa.section.questions.map((tq: any, idx: number) => {
-                  const ans = answersMap.get(tq.questionId) as any;
-                  const correct = !!ans?.answerGiven && answersMatch(ans.answerGiven, tq.question.correctAnswer);
-                  const skipped = !ans?.answerGiven;
-                  return {
-                    questionIndex: idx + 1,
-                    sectionName: sa.section.name,
-                    timeSpentSeconds: ans?.timeSpentSeconds ?? 0,
-                    status: (skipped ? 'skipped' : correct ? 'correct' : 'incorrect') as 'correct' | 'incorrect' | 'skipped',
-                    difficulty: tq.question.difficultyLevel ?? 'MEDIUM',
-                    topicName: tq.question.topic?.name ?? tq.question.subject ?? '',
-                  };
-                });
-                return { name: sa.section.name, sectionId: sa.section.id as string, stats };
-              });
-            return (
-              <div className="border-t border-slate-150 pt-5 mt-4 space-y-4">
-                <h4 className="font-bold text-slate-900 text-sm">Pacing Chart (section-wise breakdown)</h4>
-                <AttemptTimeAnalyticsGrid
-                  attemptId={attempt.id}
-                  sectionIds={chartSectionStats.map((sec: any) => sec.sectionId as string)}
-                  onQuestionClick={(sectionId, qi) => jumpToQuestion(sectionId, qi)}
-                  legacy={
-                    <>
-                      <div className="flex flex-wrap gap-2 pb-2">
-                        {chartSectionStats.map((sec: any, idx: number) => (
-                          <button
-                            key={idx}
-                            onClick={() => setTimeChartSectionIdx(idx)}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                              timeChartSectionIdx === idx ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                            }`}
-                          >
-                            {getSectionModuleLabel(sec.name)}
-                          </button>
-                        ))}
-                      </div>
-                      {chartSectionStats[timeChartSectionIdx] && (
-                        <AttemptTimeAnalytics
-                          attemptId={attempt.id}
-                          sectionId={chartSectionStats[timeChartSectionIdx].sectionId}
-                          legacy={<QuestionTimeChart stats={chartSectionStats[timeChartSectionIdx].stats} />}
-                          onQuestionClick={(qi) => jumpToQuestion(chartSectionStats[timeChartSectionIdx].sectionId, qi)}
-                        />
-                      )}
-                    </>
-                  }
-                />
-              </div>
-            );
-          })()}
-
-          <div className="flex justify-end pt-2">
-            <Button variant="secondary" onClick={() => setTimeAnalyticsOpen(false)}>Close</Button>
-          </div>
-        </div>
-      </Modal>
 
       {/* Question Navigator Modal */}
       {questionNavigatorOpen && (
