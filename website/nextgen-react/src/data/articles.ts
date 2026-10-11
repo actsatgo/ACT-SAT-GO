@@ -42,6 +42,8 @@ export interface Article {
   answer: string;
   sections: ArticleSection[];
   faq: FaqItem[];
+  /** Primary sources cited at the end of the article. */
+  sources?: { name: string; url: string }[];
 }
 
 export const ARTICLES: Article[] = [
@@ -258,6 +260,234 @@ export const ARTICLES: Article[] = [
         q: 'How many practice tests should I take before the SAT?',
         a: 'Most students benefit from four to eight full-length, timed practice tests spread across their preparation. Reviewing every mistake after each test matters more than the number of tests you take.',
       },
+    ],
+  },
+  {
+    slug: 'what-is-a-good-sat-score',
+    title: 'What Is a Good SAT Score in 2026?',
+    metaTitle: 'What Is a Good SAT Score in 2026? Averages & College Ranges | ACT SAT GO',
+    description:
+      'The average SAT score, what counts as a good score for different kinds of colleges, and how to set the right target score for your own college list.',
+    published: '2026-10-11',
+    updated: '2026-10-11',
+    tag: 'SAT',
+    answer:
+      'A good SAT score is one that falls in or above the middle 50% range of admitted students at the colleges you are applying to. As a national reference, the average SAT score for the class of 2025 was about 1030 out of 1600. A score above 1200 is above average, a score above 1350 is competitive at many selective colleges, and the most selective colleges typically admit students in the high 1400s to 1500s.',
+    sections: [
+      {
+        heading: 'The national average',
+        paragraphs: [
+          'The SAT is scored from 400 to 1600, with two sections each scored from 200 to 800: Reading and Writing, and Math. According to College Board’s annual report, the class of 2025 averaged about 1029, made up of about 521 in Reading and Writing and 508 in Math.',
+          'The average is a useful reference point, but colleges compare your score with the students they admit, not with the national average.',
+        ],
+      },
+      {
+        heading: 'Good SAT scores by type of college',
+        paragraphs: [
+          'These are rough ranges to help you plan. Always check the published middle 50% range for each college on your list, which you can find on its admissions page or Common Data Set.',
+        ],
+        table: {
+          head: ['Type of college', 'Typical middle 50% SAT range', 'A strong target'],
+          rows: [
+            ['Most selective (Ivy League, Stanford, MIT and similar)', 'About 1480 to 1570', '1530 or higher'],
+            ['Highly selective (top 50 national universities)', 'About 1350 to 1530', '1450 or higher'],
+            ['Selective state flagships and private colleges', 'About 1200 to 1400', '1350 or higher'],
+            ['Most other four-year colleges', 'About 1000 to 1200', '1150 or higher'],
+          ],
+        },
+      },
+      {
+        heading: 'How to set your target score',
+        list: [
+          'List the colleges you plan to apply to, including reach, match and likely schools.',
+          'Look up the middle 50% SAT range for each one.',
+          'Set your target at or above the 75th percentile (the top of the range) for the colleges you care about most.',
+          'Take a full-length practice test to measure your starting score, so you know how many points you need to gain.',
+        ],
+      },
+      {
+        heading: 'Does a good score still matter if colleges are test-optional?',
+        paragraphs: [
+          'Yes. A growing number of selective colleges require the SAT or ACT again, and at test-optional colleges a score in or above the middle 50% range can still strengthen an application. If your score falls below a college’s range, test-optional policies let you leave it out.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Is 1200 a good SAT score?',
+        a: 'Yes. A 1200 is well above the national average of about 1030 and is competitive at many state universities and private colleges. For highly selective colleges, a 1200 usually falls below the middle 50% range, so students aiming for those schools typically target 1400 or higher.',
+      },
+      {
+        q: 'Is 1400 a good SAT score?',
+        a: 'Yes. A 1400 is a strong score that places a student well above average and within or above the middle 50% range at many selective colleges. At the most selective colleges, where admitted students often score in the high 1400s to 1500s, a 1400 is usually below the typical range.',
+      },
+      {
+        q: 'What is the average SAT score?',
+        a: 'According to College Board’s annual report, the average SAT score for the class of 2025 was about 1029 out of 1600, with about 521 in Reading and Writing and 508 in Math.',
+      },
+      {
+        q: 'What SAT score do I need for an Ivy League school?',
+        a: 'Admitted students at Ivy League colleges typically score from the high 1400s to the mid 1500s or higher. A score of 1530 or above puts most applicants within or above the typical range, though scores are only one part of a holistic admissions decision.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: SAT Suite Annual Report', url: 'https://reports.collegeboard.org/sat-suite-program-results' },
+      { name: 'College Board: Understanding SAT Scores', url: 'https://satsuite.collegeboard.org/scores/understanding-scores' },
+    ],
+  },
+  {
+    slug: 'sat-to-act-score-conversion',
+    title: 'SAT to ACT Score Conversion Chart (Official Concordance)',
+    metaTitle: 'SAT to ACT Score Conversion Chart (Official Concordance) | ACT SAT GO',
+    description:
+      'Convert SAT scores to ACT scores and back with the official ACT and College Board concordance table, and learn how to use it to choose between the two tests.',
+    published: '2026-10-11',
+    updated: '2026-10-11',
+    tag: 'SAT & ACT',
+    answer:
+      'To compare SAT and ACT scores, use the official concordance table published by ACT and College Board. For example, an ACT composite of 36 matches an SAT score of 1570 to 1600, an ACT 30 matches an SAT 1360 to 1380, and an ACT 24 matches an SAT 1160 to 1190. Colleges use the same table, so it is the fairest way to see which test gives you the stronger score.',
+    sections: [
+      {
+        heading: 'ACT to SAT concordance table',
+        paragraphs: [
+          'Each ACT composite score matches a range of SAT total scores. When you need a single number, use the SAT score in the middle column.',
+        ],
+        table: {
+          head: ['ACT composite', 'SAT score (single point)', 'SAT score range'],
+          rows: [
+            ['36', '1590', '1570–1600'],
+            ['35', '1540', '1530–1560'],
+            ['34', '1500', '1490–1520'],
+            ['33', '1460', '1450–1480'],
+            ['32', '1430', '1420–1440'],
+            ['31', '1400', '1390–1410'],
+            ['30', '1370', '1360–1380'],
+            ['29', '1340', '1330–1350'],
+            ['28', '1310', '1300–1320'],
+            ['27', '1280', '1260–1290'],
+            ['26', '1240', '1230–1250'],
+            ['25', '1210', '1200–1220'],
+            ['24', '1180', '1160–1190'],
+            ['23', '1140', '1130–1150'],
+            ['22', '1110', '1100–1120'],
+            ['21', '1080', '1060–1090'],
+            ['20', '1040', '1030–1050'],
+            ['19', '1010', '990–1020'],
+            ['18', '970', '960–980'],
+            ['17', '930', '920–950'],
+            ['16', '890', '880–910'],
+            ['15', '850', '830–870'],
+          ],
+        },
+      },
+      {
+        heading: 'How to use the table to choose a test',
+        list: [
+          'Take one full-length, timed practice test of the Digital SAT and one of the ACT, ideally within the same week.',
+          'Convert your ACT composite to its SAT equivalent using the table above.',
+          'If one score is clearly higher, prepare for that test. If they are close, choose the test whose format and pacing felt more comfortable.',
+        ],
+      },
+      {
+        heading: 'Does the table still apply to the Digital SAT and the enhanced ACT?',
+        paragraphs: [
+          'Yes. ACT and College Board still publish and use this concordance, and both organizations designed the Digital SAT and the enhanced ACT to keep their score scales comparable with earlier versions. Colleges continue to use this table when comparing applicants who took different tests.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'What is a 30 ACT score on the SAT?',
+        a: 'An ACT composite of 30 corresponds to an SAT score of 1360 to 1380, or 1370 as a single point, according to the official ACT and College Board concordance table.',
+      },
+      {
+        q: 'What is a 1400 SAT score on the ACT?',
+        a: 'An SAT score of 1400 corresponds to an ACT composite of 31. Under the official concordance, ACT 31 matches SAT scores from 1390 to 1410.',
+      },
+      {
+        q: 'What is a 1200 SAT score on the ACT?',
+        a: 'An SAT score of 1200 corresponds to an ACT composite of 25. Under the official concordance, ACT 25 matches SAT scores from 1200 to 1220.',
+      },
+      {
+        q: 'Do colleges use the concordance table?',
+        a: 'Yes. Colleges use the official concordance table published by ACT and College Board to compare applicants who submitted different tests, so neither test gives an advantage when the scores are equivalent.',
+      },
+    ],
+    sources: [
+      { name: 'ACT: ACT/SAT Concordance', url: 'https://www.act.org/content/act/en/products-and-services/the-act/scores/act-sat-concordance.html' },
+      { name: 'College Board: SAT Concordance Tables', url: 'https://satsuite.collegeboard.org/scores/understanding-scores/concordance' },
+    ],
+  },
+  {
+    slug: 'test-optional-colleges',
+    title: 'Test-Optional vs Test-Required Colleges in 2026: Should You Submit SAT or ACT Scores?',
+    metaTitle: 'Test-Optional vs Test-Required Colleges 2026: Submit SAT/ACT? | ACT SAT GO',
+    description:
+      'Which colleges require the SAT or ACT again, what test-optional and test-free really mean, and how to decide whether to submit your scores.',
+    published: '2026-10-11',
+    updated: '2026-10-11',
+    tag: 'College Admissions',
+    answer:
+      'Many highly selective colleges now require the SAT or ACT again, including Harvard, Yale, Stanford, MIT, Brown, Dartmouth, Cornell, Penn and Johns Hopkins, so most students applying to top colleges should plan to take a test. At test-optional colleges, submit your score if it is at or above the college’s middle 50% range, and leave it out if it is well below.',
+    sections: [
+      {
+        heading: 'What the policies mean',
+        table: {
+          head: ['Policy', 'What it means'],
+          rows: [
+            ['Test-required', 'You must submit an SAT or ACT score to be considered.'],
+            ['Test-optional', 'You choose whether to submit a score. Applications without one are reviewed without penalty.'],
+            ['Test-flexible', 'You must submit some test, but you can choose among the SAT, ACT and other exams such as AP or IB.'],
+            ['Test-free (test-blind)', 'The college does not look at SAT or ACT scores for admission, even if you send them.'],
+          ],
+        },
+      },
+      {
+        heading: 'Colleges that require the SAT or ACT',
+        paragraphs: [
+          'These colleges have announced that they require scores for recent or upcoming admission cycles. Policies change, so confirm each one on the college’s admissions website before you apply.',
+        ],
+        list: [
+          'Harvard, Yale, Brown, Dartmouth, Cornell and the University of Pennsylvania',
+          'Stanford, MIT and Caltech',
+          'Johns Hopkins University (Krieger and Whiting schools)',
+          'Carnegie Mellon University (School of Computer Science; most other schools are test-flexible)',
+          'University of Texas at Austin, Ohio State University (Columbus) and the University of Miami',
+          'University of Georgia, Georgia Tech and other University System of Georgia campuses',
+          'Princeton, Columbia and Notre Dame have announced requirements starting with the 2027–28 application cycle',
+        ],
+      },
+      {
+        heading: 'Colleges that do not use scores',
+        paragraphs: [
+          'The University of California and California State University systems are test-free: they do not consider SAT or ACT scores for admission. Many other colleges remain test-optional.',
+        ],
+      },
+      {
+        heading: 'Should you submit your score?',
+        list: [
+          'Submit it if your score is at or above the middle 50% range for that college.',
+          'Consider leaving it out if your score is well below the 25th percentile and the college is test-optional.',
+          'Remember that scores can also count toward merit scholarships, course placement and honors programs at some colleges, even when admission is test-optional.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Do I need the SAT or ACT for college in 2026?',
+        a: 'It depends on your college list. Many highly selective colleges, including Harvard, Yale, Stanford, MIT and Penn, require the SAT or ACT again, while many others remain test-optional and the University of California does not consider scores. Most students applying to selective colleges should plan to take a test.',
+      },
+      {
+        q: 'Is it better to apply test-optional?',
+        a: 'Only if your score is well below the college’s typical range. At test-optional colleges, a score at or above the middle 50% range usually helps an application, while leaving out a low score avoids hurting it.',
+      },
+      {
+        q: 'Which Ivy League schools require the SAT or ACT?',
+        a: 'Harvard, Yale, Brown, Dartmouth, Cornell and the University of Pennsylvania require the SAT or ACT for current admission cycles, and Princeton and Columbia have announced requirements starting with the 2027–28 application cycle. Check each college’s admissions website for the latest policy.',
+      },
+    ],
+    sources: [
+      { name: 'Compass Education Group: Testing Policies in the Spotlight', url: 'https://www.compassprep.com/testing-spotlight/' },
     ],
   },
 ];
