@@ -11,6 +11,7 @@ import { Card } from '../../components/common/Card';
 import { Modal } from '../../components/common/Modal';
 import { RichContentRenderer } from '../../components/admin/RichContentRenderer';
 import { OptionRenderer } from '../../components/admin/OptionRenderer';
+import { ExplanationDoubtBar } from '../../components/admin/ExplanationDoubtBar';
 import { AttemptTimeAnalyticsGrid } from '../../components/dashboard/AttemptTimeAnalyticsGrid';
 import { type QuestionTimeStat } from '../../components/dashboard/QuestionTimeChart';
 import { TutorMultiSelect } from '../../components/common/TutorMultiSelect';
@@ -467,6 +468,19 @@ export function StudentManagementPage() {
   const [selectedAttemptId, setSelectedAttemptId] = useUrlString('attempt');
   const [testAnalysisLoading, setTestAnalysisLoading] = useState(false);
   const [testAnalysisAttempt, setTestAnalysisAttempt] = useState<TaAttempt | null>(null);
+
+  // Still Doubt / Cleared saved from the Question Wise Report: reflect it locally
+  // so the filters and badges update without reloading the attempt.
+  const handleDoubtChange = (questionId: string, status: 'doubt' | 'cleared' | null) => {
+    setTestAnalysisAttempt((prev) => {
+      if (!prev) return prev;
+      const exists = prev.answers.some((a) => a.questionId === questionId);
+      const answers = exists
+        ? prev.answers.map((a) => (a.questionId === questionId ? { ...a, doubtStatus: status } : a))
+        : [...prev.answers, { id: `local-${questionId}`, questionId, answerGiven: null, timeSpentSeconds: 0, isFlagged: false, doubtStatus: status }];
+      return { ...prev, answers };
+    });
+  };
 
   // ── Mock Test Report (per-student list of all attempts, plus assigned-but-not-yet-completed) ──
   const [reportRows, setReportRows] = useState<Array<{
@@ -2219,14 +2233,15 @@ export function StudentManagementPage() {
                                       <span className="text-slate-500">Correct: <strong className="text-blue-600">{(currentTq.question.correctAnswer.displayValues && currentTq.question.correctAnswer.displayValues.length > 0 ? currentTq.question.correctAnswer.displayValues.join(' or ') : (currentTq.question.correctAnswer.value !== undefined ? formatNumericDisplay(currentTq.question.correctAnswer.value) : ''))}</strong></span>
                                     </div>
                                   )}
-                                  {/* Explanation (same as fullscreen) */}
-                                  {explText && (
-                                    <div className="mt-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100/80 text-left">
-                                      <h5 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2">Explanation</h5>
-                                      <div className="text-sm text-slate-700 leading-relaxed">
-                                        <RichContentRenderer content={explText} variant="question" className="prose-sm" />
-                                      </div>
-                                    </div>
+                                  {/* Explanation dropdown + Still Doubt / Cleared */}
+                                  {testAnalysisAttempt && (
+                                    <ExplanationDoubtBar
+                                      attemptId={testAnalysisAttempt.id}
+                                      questionId={currentTq.questionId}
+                                      explanation={explText}
+                                      doubtStatus={studentAnswer?.doubtStatus ?? null}
+                                      onDoubtChange={handleDoubtChange}
+                                    />
                                   )}
                                 </div>
                               </div>
@@ -2241,9 +2256,7 @@ export function StudentManagementPage() {
                                   </div>
                                   {correct ? <CheckCircle size={14} className="text-blue-600" /> : <XCircle size={14} className={skipped ? 'text-slate-400' : 'text-blue-400'} />}
                                 </div>
-                                <div className="text-sm text-slate-800 flex-1 leading-relaxed text-left font-medium">
-                                  <RichContentRenderer content={currentTq.question.content.text || `Question`} variant="question" className="prose-sm" />
-                                </div>
+                                <div className="flex-1" />
                                 <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end">
                                   {studentAnswer?.timeSpentSeconds ? (
                                     <span className="text-xs text-slate-500 flex items-center gap-1"><Clock size={9} />{fmtSec(studentAnswer.timeSpentSeconds)}</span>
@@ -2268,6 +2281,10 @@ export function StudentManagementPage() {
                               </div>
 
                               <div className="px-4 py-3 border-t border-slate-100">
+                                {/* Question text sits below the header, not inside it */}
+                                <div className="text-sm text-slate-800 leading-relaxed text-left font-medium mb-3">
+                                  <RichContentRenderer content={currentTq.question.content.text || `Question`} variant="question" className="prose-sm" />
+                                </div>
                                 <div className="flex justify-start mb-2">
                                   <button onClick={() => setShowAnswerFeedback(v => !v)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${showAnswerFeedback ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400'}`}>
                                     {showAnswerFeedback ? 'Hide Answer' : 'Show Answer'}
@@ -2299,14 +2316,15 @@ export function StudentManagementPage() {
                                     <span className="text-slate-500">Correct: <strong className="text-blue-600">{(currentTq.question.correctAnswer.displayValues && currentTq.question.correctAnswer.displayValues.length > 0 ? currentTq.question.correctAnswer.displayValues.join(' or ') : (currentTq.question.correctAnswer.value !== undefined ? formatNumericDisplay(currentTq.question.correctAnswer.value) : ''))}</strong></span>
                                   </div>
                                 )}
-                                {/* Explanation (same as fullscreen) */}
-                                {explText && (
-                                  <div className="mt-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100/80 text-left">
-                                    <h5 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2">Explanation</h5>
-                                    <div className="text-sm text-slate-700 leading-relaxed">
-                                      <RichContentRenderer content={explText} variant="question" className="prose-sm" />
-                                    </div>
-                                  </div>
+                                {/* Explanation dropdown + Still Doubt / Cleared */}
+                                {testAnalysisAttempt && (
+                                  <ExplanationDoubtBar
+                                    attemptId={testAnalysisAttempt.id}
+                                    questionId={currentTq.questionId}
+                                    explanation={explText}
+                                    doubtStatus={studentAnswer?.doubtStatus ?? null}
+                                    onDoubtChange={handleDoubtChange}
+                                  />
                                 )}
                               </div>
                             </>
