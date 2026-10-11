@@ -16,6 +16,8 @@ import { SearchableSelect } from '../../components/common/SearchableSelect';
 import { TutorMultiSelect } from '../../components/common/TutorMultiSelect';
 import { AttemptAnalysis } from '../../components/report/AttemptAnalysis';
 import { api, type DbUser } from '../../lib/api';
+import { toLines } from '../../lib/sessionLog';
+import { useAuthStore } from '../../store/useAuthStore';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import {
@@ -41,6 +43,7 @@ interface Analytics {
 }
 
 interface Note { id: string; text: string; createdAt: string; author: string }
+interface ClassProgressEntry { id: string; topic: string; homework?: string; notes: string; classDate: string; author: string; createdAt: string }
 interface DbTest { id: string; title: string; status: string; category?: string; subCategory?: string; sections: unknown[] }
 
 export interface AssignedTestItem {
@@ -124,12 +127,20 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 export function AdminStudentProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user, dbId } = useAuthStore();
+  // One shared screen for admins and tutors — only permissions differ (see isTutor checks).
+  const isTutor = user?.role === 'tutor';
+  const backPath = isTutor ? '/my-students' : '/students';
+  // Notes are keyed per owner: admins share one 'admin' bucket, tutors use their own dbId.
+  const notesOwnerId = isTutor ? dbId : 'admin';
 
   const [student, setStudent] = useState<DbUser | null>(null);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [publishedTests, setPublishedTests] = useState<DbTest[]>([]);
   const [tutors, setTutors] = useState<DbUser[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
+  // Tutor-only: today's session-log entry gets a "Homework Assigned" line when a tutor assigns HW.
+  const [progressEntries, setProgressEntries] = useState<ClassProgressEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Assigned Homework & Tests state
@@ -192,7 +203,7 @@ export function AdminStudentProfilePage() {
       api.getUser(id),
       api.getStudentAnalytics(id),
       api.getAllTests(),
-      api.getUsersByRole('TUTOR'),
+      isTutor ? Promise.resolve({ users: [] as DbUser[] }) : api.getUsersByRole('TUTOR'),
       fetchAssigned(),
     ]).then(([u, a, t, tu]) => {
       const s = u.user;
@@ -215,9 +226,16 @@ export function AdminStudentProfilePage() {
       });
     }).catch(() => toast.error('Failed to load student')).finally(() => setLoading(false));
 
-    // Load notes without blocking page
-    api.getNotes('admin', id).then((r) => setNotes(r.notes)).catch(() => {});
-  }, [id, fetchAssigned]);
+  }, [id, fetchAssigned, isTutor]);
+
+  // Load notes (and, for tutors, the session log) without blocking the page.
+  useEffect(() => {
+    if (!id || !notesOwnerId) return;
+    api.getNotes(notesOwnerId, id).then((r) => setNotes(r.notes)).catch(() => {});
+    if (isTutor) {
+      api.getClassProgress(notesOwnerId, id).then((r) => setProgressEntries(r.entries)).catch(() => {});
+    }
+  }, [id, notesOwnerId, isTutor]);
 
   const openAssignHomework = () => {
     setAssignFilter('Practice Sheet');
@@ -404,7 +422,7 @@ export function AdminStudentProfilePage() {
     try {
       await api.deleteUser(id);
       toast.success('Student deleted');
-      navigate('/students');
+      navigate(backPath);
     } catch (e) {
       toast.error((e as Error).message || 'Failed to delete');
       setDeleteLoading(false);
@@ -426,10 +444,10 @@ export function AdminStudentProfilePage() {
   };
 
   const handleAddNote = async () => {
-    if (!noteText.trim() || !id) return;
+    if (!noteText.trim() || !id || !notesOwnerId) return;
     setNoteSaving(true);
     try {
-      const { note } = await api.addNote('admin', id, noteText.trim(), 'Admin');
+      const { note } = await api.addNote(notesOwnerId, id, noteText.trim(), isTutor ? (user?.name ?? 'Tutor') : 'Admin');
       setNotes((prev) => [note, ...prev]);
       setNoteText('');
       setNoteOpen(false);
@@ -453,15 +471,20 @@ export function AdminStudentProfilePage() {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">
         <p className="text-slate-500">Student not found.</p>
-        <button onClick={() => navigate('/students')} className="text-sm text-blue-600 hover:underline">Back to students</button>
+        <button onClick={() => navigate(backPath)} className="text-sm text-blue-600 hover:underline">Back to students</button>
       </div>
     );
   }
 
-  const target = (student.targetScore as number | null) ?? 32;
+  // ACT only when every recorded score fits the 1-36 scale; new students default to SAT.
+  const isSATStudent = !(analytics && analytics.trend.length > 0 && analytics.trend.every(d => d.score <= 36));
+  const scaleMax = isSATStudent ? 1600 : 36;
+  const targetScore = (student.targetScore as number | null) ?? null;
+  // Progress is measured against the target when one is set, else against the scale max.
+  const target = targetScore ?? scaleMax;
   const avg = student.avgScore ?? 0;
   const gap = target - avg;
-  const pct = Math.min(100, (avg / target) * 100);
+  const pct = target > 0 ? Math.min(100, (avg / target) * 100) : 0;
 
   const sectionData = (analytics?.sectionStats ?? []).map((s) => ({
     name: s.sectionName,
@@ -478,12 +501,12 @@ export function AdminStudentProfilePage() {
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <button onClick={() => navigate('/students')} className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 self-start transition-colors">
+        <button onClick={() => navigate(backPath)} className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 self-start transition-colors">
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl md:text-2xl font-bold text-slate-900 truncate">{student.name}</h1>
-          <p className="text-sm text-slate-400">{student.email}</p>
+          <p className="text-sm text-slate-500">{student.email}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           {editing ? (
@@ -496,16 +519,22 @@ export function AdminStudentProfilePage() {
           ) : (
             <>
               <Button variant="secondary" size="sm" icon={<MessageSquare size={13} />} onClick={() => setNoteOpen(true)}>Note</Button>
-              <Button variant="secondary" size="sm" icon={<Pencil size={13} />} onClick={() => setEditing(true)}>Edit</Button>
+              {!isTutor && (
+                <Button variant="secondary" size="sm" icon={<Pencil size={13} />} onClick={() => setEditing(true)}>Edit</Button>
+              )}
               <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignOpen(true); setAssignFilter('All'); setAssignSearch(''); setSelectedTestIds([]); }}>Assign Test</Button>
-              <button onClick={() => setResetPasswordOpen(true)}
-                className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Reset password">
-                <KeyRound size={15} />
-              </button>
-              <button onClick={() => setDeleteOpen(true)}
-                className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Delete student">
-                <Trash2 size={15} />
-              </button>
+              {!isTutor && (
+                <>
+                  <button onClick={() => setResetPasswordOpen(true)}
+                    className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Reset password">
+                    <KeyRound size={15} />
+                  </button>
+                  <button onClick={() => setDeleteOpen(true)}
+                    className="p-2 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors" title="Delete student">
+                    <Trash2 size={15} />
+                  </button>
+                </>
+              )}
             </>
           )}
         </div>
@@ -624,16 +653,16 @@ export function AdminStudentProfilePage() {
           <div className="bg-white rounded-xl border border-slate-100 p-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs font-semibold text-slate-600">Progress to Target</p>
-              <Badge variant={pct >= 85 ? 'success' : pct >= 65 ? 'warning' : 'danger'} size="sm">
-                {pct >= 85 ? 'On Track' : pct >= 65 ? 'Improving' : 'Needs Help'}
+              <Badge variant={pct >= 85 ? 'success' : pct >= 70 ? 'warning' : 'danger'} size="sm">
+                {pct >= 85 ? 'On Track' : pct >= 70 ? 'Progressing' : 'Needs Help'}
               </Badge>
             </div>
             <div className="flex items-end justify-between text-sm font-bold mb-2">
               <span className="text-slate-900">{avg || '—'} <span className="text-xs text-slate-400 font-normal">current</span></span>
-              <span className="text-blue-600">{target} <span className="text-xs text-slate-400 font-normal">target</span></span>
+              <span className="text-blue-600">{target} <span className="text-xs text-slate-400 font-normal">{targetScore != null ? 'target' : `no target set (${isSATStudent ? 'SAT' : 'ACT'} max)`}</span></span>
             </div>
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-              <div className={`h-full rounded-full transition-all ${pct >= 85 ? 'bg-emerald-500' : pct >= 65 ? 'bg-amber-400' : 'bg-red-400'}`}
+              <div className={`h-full rounded-full transition-all ${pct >= 85 ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-400' : 'bg-red-400'}`}
                 style={{ width: `${pct}%` }} />
             </div>
             {avg > 0 && (
@@ -646,7 +675,7 @@ export function AdminStudentProfilePage() {
           {/* Notes */}
           <div className="bg-white rounded-xl border border-slate-100">
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-50">
-              <p className="text-sm font-semibold text-slate-700">Admin Notes</p>
+              <p className="text-sm font-semibold text-slate-700">{isTutor ? 'Tutor Notes' : 'Admin Notes'}</p>
               <button onClick={() => setNoteOpen(true)} className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700">
                 <PlusCircle size={12} /> Add
               </button>
@@ -673,18 +702,12 @@ export function AdminStudentProfilePage() {
         <div className="lg:col-span-2 space-y-4">
 
           {/* Stat cards */}
-          {(() => {
-            // ACT only when every recorded score fits the 1-36 scale; new students default to SAT.
-            const isSATStudent = !(analytics && analytics.trend.length > 0 && analytics.trend.every(d => d.score <= 36));
-            return (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <StatCard title="Accuracy" value={analytics ? `${analytics.overallAccuracy}%` : '—'} icon={<TrendingUp size={15} />} />
-                <StatCard title="Tests Taken" value={analytics?.totalAttempts ?? 0} subtitle="completed" icon={<Clock size={15} />} />
-                <StatCard title="Avg Score" value={analytics?.avgScore ?? '—'} subtitle={isSATStudent ? "out of 1600" : "out of 36"} icon={<Target size={15} />} />
-                <StatCard title="Latest Score" value={analytics?.latestScore ?? '—'} subtitle={isSATStudent ? "SAT composite" : "ACT composite"} icon={<BookOpen size={15} />} />
-              </div>
-            );
-          })()}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <StatCard title="Accuracy" value={analytics ? `${analytics.overallAccuracy}%` : '—'} icon={<TrendingUp size={15} />} />
+            <StatCard title="Tests Taken" value={analytics?.totalAttempts ?? 0} subtitle="completed" icon={<Clock size={15} />} />
+            <StatCard title="Avg Score" value={analytics?.avgScore ?? '—'} subtitle={isSATStudent ? "out of 1600" : "out of 36"} icon={<Target size={15} />} />
+            <StatCard title="Latest Score" value={analytics?.latestScore ?? '—'} subtitle={isSATStudent ? "SAT composite" : "ACT composite"} icon={<BookOpen size={15} />} />
+          </div>
 
           {/* Score trend */}
           <div className="bg-white rounded-xl border border-slate-100 p-5">
@@ -701,7 +724,7 @@ export function AdminStudentProfilePage() {
                   <Tooltip contentStyle={{ borderRadius: '8px', border: '1px solid #f1f5f9', fontSize: '12px', boxShadow: 'none' }}
                     formatter={(v, n, p) => [v, p.payload?.testTitle ?? n]} />
                   <Line type="monotone" dataKey="score" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6', r: 3 }} name="Score" />
-                  {target > 0 && (
+                  {targetScore != null && targetScore > 0 && (
                     <Line type="monotone" dataKey={() => target} stroke="#e2e8f0" strokeWidth={1.5} strokeDasharray="4 4" dot={false} name="Target" />
                   )}
                 </LineChart>
@@ -1064,7 +1087,39 @@ export function AdminStudentProfilePage() {
                 );
                 const titles = selectedTestIds
                   .map((tId) => publishedTests.find((t) => t.id === tId)?.title)
-                  .filter(Boolean);
+                  .filter((t): t is string => Boolean(t));
+
+                // Tutor only: record the assignment in today's session log so the
+                // "Homework Assigned" entry shows up in class progress. Admins don't log.
+                if (isTutor && dbId && titles.length > 0) {
+                  const today = new Date().toISOString().split('T')[0];
+                  const todayEntry = progressEntries.find((e) => e.classDate === today);
+                  if (todayEntry) {
+                    const existingLines = toLines(todayEntry.homework);
+                    const combined = Array.from(new Set([...existingLines, ...titles])).join('\n');
+                    try {
+                      const { entry: updated } = await api.updateClassProgress(dbId, id, todayEntry.id, { homework: combined });
+                      setProgressEntries((prev) => prev.map((e) => e.id === todayEntry.id ? { ...e, ...updated } : e));
+                    } catch {
+                      // Fallback if update fails
+                    }
+                  } else {
+                    try {
+                      const { entry } = await api.addClassProgress(dbId, id, {
+                        topic: 'Homework Assigned',
+                        homework: titles.join('\n'),
+                        classDate: today,
+                        author: user?.name ?? 'Tutor',
+                        status: 'Completed',
+                        subject: 'Other',
+                      });
+                      setProgressEntries((prev) => [entry, ...prev]);
+                    } catch (e) {
+                      console.error('Failed to log homework progress:', e);
+                    }
+                  }
+                }
+
                 toast.success(
                   titles.length > 1
                     ? `${titles.length} tests assigned successfully`
@@ -1273,6 +1328,8 @@ export function AdminStudentProfilePage() {
         </div>
       </Modal>
 
+      {/* Admin-only modals: tutors can't delete students or reset passwords. */}
+      {!isTutor && (<>
       {/* Delete Confirm Modal — moves to Trash, not a permanent delete. */}
       <Modal isOpen={deleteOpen} onClose={() => setDeleteOpen(false)} title="Move Student to Trash" size="sm"
         footer={
@@ -1330,6 +1387,7 @@ export function AdminStudentProfilePage() {
           </div>
         )}
       </Modal>
+      </>)}
 
     </div>
   );
