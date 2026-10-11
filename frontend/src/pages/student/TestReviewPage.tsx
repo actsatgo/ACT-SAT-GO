@@ -356,7 +356,7 @@ export function TestReviewPage() {
                 ))}
               </select>
             ) : (
-              <h1 className="text-xl font-bold text-slate-900 mt-0.5 truncate">{attempt.test.title}</h1>
+              <h1 className="text-xl md:text-2xl font-bold text-slate-900 mt-0.5 truncate">{attempt.test.title}</h1>
             )}
             {attempt.completedAt && (
               <p className="text-slate-400 text-xs mt-1">

@@ -62,7 +62,7 @@ export function LibraryPage() {
   };
 
   return (
-    <div className="space-y-5 max-w-6xl mx-auto px-4 py-6">
+    <div className="space-y-5">
       <Toaster position="top-right" />
 
       {/* Header */}
@@ -70,7 +70,7 @@ export function LibraryPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <Library size={20} className="text-blue-600" />
-            <h1 className="text-xl font-bold text-slate-900">ASG Library</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900">ASG Library</h1>
           </div>
           <p className="text-sm text-slate-500">
             {isAdmin

@@ -102,11 +102,11 @@ export function StudentDoubtsAdminPage() {
 
   return (
     <>
-      <div className="space-y-5 max-w-6xl mx-auto px-4 py-6">
+      <div className="space-y-5">
         {/* Header */}
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-xl font-bold text-slate-900">Student Doubts</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Student Doubts</h1>
           </div>
           <p className="text-sm text-slate-500">
             Click View to open the student's question review.

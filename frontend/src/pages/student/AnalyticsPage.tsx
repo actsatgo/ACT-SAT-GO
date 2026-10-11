@@ -47,9 +47,9 @@ function DomainBars({ rows }: { rows: Array<{ name: string; agg: { correct: numb
   })).filter(d => d.total > 0);
 
   if (data.length === 0) return (
-    <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-300">
+    <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-300">
       <BarChart2 size={22} />
-      <p className="text-xs text-gray-400">No data yet</p>
+      <p className="text-xs text-slate-400">No data yet</p>
     </div>
   );
 
@@ -63,10 +63,10 @@ function DomainBars({ rows }: { rows: Array<{ name: string; agg: { correct: numb
           if (!active || !payload?.length) return null;
           const d = payload[0].payload;
           return (
-            <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs shadow-xl">
-              <p className="text-gray-700 font-semibold mb-0.5">{d.fullName}</p>
-              <p className="text-gray-900">Accuracy: <strong>{d.accuracy}%</strong></p>
-              <p className="text-gray-400">{d.correct}/{d.total} correct</p>
+            <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-xl">
+              <p className="text-slate-700 font-semibold mb-0.5">{d.fullName}</p>
+              <p className="text-slate-900">Accuracy: <strong>{d.accuracy}%</strong></p>
+              <p className="text-slate-400">{d.correct}/{d.total} correct</p>
             </div>
           );
         }} />
@@ -93,11 +93,11 @@ function TimeRadial({ time, attempts }: { time: number; attempts: number }) {
         </ResponsiveContainer>
       </div>
       <div>
-        <p className="text-2xl font-black text-gray-900">{fmtTime(time)}</p>
-        <p className="text-xs text-gray-400 mt-0.5">total across {attempts} test{attempts !== 1 ? 's' : ''}</p>
-        <div className="mt-2 pt-2 border-t border-gray-100">
+        <p className="text-2xl font-black text-slate-900">{fmtTime(time)}</p>
+        <p className="text-xs text-slate-400 mt-0.5">total across {attempts} test{attempts !== 1 ? 's' : ''}</p>
+        <div className="mt-2 pt-2 border-t border-slate-100">
           <p className="text-base font-bold text-amber-500">{fmtTime(avgPerTest)}</p>
-          <p className="text-xs text-gray-400">avg per test</p>
+          <p className="text-xs text-slate-400">avg per test</p>
         </div>
       </div>
     </div>
@@ -234,8 +234,8 @@ export function AnalyticsPage() {
         <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <Target size={24} className="text-blue-400" />
         </div>
-        <h2 className="text-lg font-bold text-gray-900 mb-1">No tests completed yet</h2>
-        <p className="text-gray-500 text-sm mb-6">Finish a test to unlock your score &amp; analytics.</p>
+        <h2 className="text-lg font-bold text-slate-900 mb-1">No tests completed yet</h2>
+        <p className="text-slate-500 text-sm mb-6">Finish a test to unlock your score &amp; analytics.</p>
         <button
           onClick={() => navigate('/my-tests')}
           className="px-5 py-2.5 bg-[#1b3d6e] text-white rounded-xl text-sm font-semibold hover:bg-[#15305a] transition-colors shadow-sm"
@@ -255,7 +255,7 @@ export function AnalyticsPage() {
           <select
             value={scope}
             onChange={e => setScope(e.target.value)}
-            className="px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1b3d6e] min-w-[160px] shadow-sm"
+            className="px-3 py-2 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1b3d6e] min-w-[160px] shadow-sm"
           >
             <option value="latest">Latest Test</option>
             <option value="all">All Tests ({attempts.length})</option>
@@ -279,7 +279,7 @@ export function AnalyticsPage() {
 
       {/* ── Subject toggle ───────────────────────────────────────────────── */}
       <div className="flex items-center gap-2 pt-1">
-        <span className="text-xs text-gray-500 font-medium">Breakdown for:</span>
+        <span className="text-xs text-slate-500 font-medium">Breakdown for:</span>
         {([['rw', 'Reading & Writing'], ['math', 'Math']] as const).map(([key, label]) => (
           <button
             key={key}
@@ -287,7 +287,7 @@ export function AnalyticsPage() {
             className={`text-xs px-3.5 py-1.5 rounded-lg font-semibold transition-all ${
               subject === key
                 ? 'bg-[#1b3d6e] text-white shadow-sm'
-                : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
             }`}
           >
             {label}
@@ -297,20 +297,20 @@ export function AnalyticsPage() {
 
       {/* ── Domain bars + time radial ────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="sm:col-span-2 bg-white border border-gray-100 rounded-xl shadow-sm p-4">
+        <div className="sm:col-span-2 bg-white border border-slate-100 rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-2 mb-3">
             <BarChart2 size={15} className="text-emerald-500" />
-            <span className="text-sm font-bold text-gray-800">Domain Accuracy</span>
-            <span className="text-xs text-gray-400 ml-1">· {subjectLabel}</span>
+            <span className="text-sm font-bold text-slate-800">Domain Accuracy</span>
+            <span className="text-xs text-slate-400 ml-1">· {subjectLabel}</span>
           </div>
           <div style={{ height: 180 }}>
             <DomainBars rows={domainRows} />
           </div>
         </div>
-        <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4">
+        <div className="bg-white border border-slate-100 rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-2 mb-3">
             <Clock size={15} className="text-amber-500" />
-            <span className="text-sm font-bold text-gray-800">Time Spent</span>
+            <span className="text-sm font-bold text-slate-800">Time Spent</span>
           </div>
           <div style={{ height: 180 }}>
             <TimeRadial time={summary.time} attempts={attempts.length} />

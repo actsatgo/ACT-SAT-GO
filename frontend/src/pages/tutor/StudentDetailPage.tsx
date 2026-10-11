@@ -377,8 +377,8 @@ export function StudentDetailPage() {
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-semibold text-slate-900 truncate">{student.name}</h1>
-          <p className="text-slate-400 text-sm">{student.email}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 truncate">{student.name}</h1>
+          <p className="text-sm text-slate-500">{student.email}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" size="sm" icon={<MessageSquare size={13} />} onClick={() => setNoteOpen(true)}>
