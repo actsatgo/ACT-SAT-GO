@@ -30,7 +30,6 @@ const AdminFreeTestLeadsPage = lazy(() => import('./pages/admin/AdminFreeTestLea
 
 // Tutor pages
 const TutorDashboard = lazy(() => import('./pages/tutor/TutorDashboard').then((m) => ({ default: m.TutorDashboard })));
-const StudentDetailPage = lazy(() => import('./pages/tutor/StudentDetailPage').then((m) => ({ default: m.StudentDetailPage })));
 const AttendancePage = lazy(() => import('./pages/tutor/AttendancePage').then((m) => ({ default: m.AttendancePage })));
 
 // Student pages
@@ -160,7 +159,7 @@ const router = createBrowserRouter(
 
         {/* Tutor */}
         <Route path="my-students" element={<StudentManagementPage />} />
-        <Route path="student/:id" element={<StudentDetailPage />} />
+        <Route path="student/:id" element={<AdminStudentProfilePage />} />
         <Route path="analytics" element={<AnalyticsRouter />} />
         <Route path="attendance" element={<AttendanceRouter />} />
 
