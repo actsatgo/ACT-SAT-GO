@@ -73,6 +73,7 @@ export function AttemptTimeAnalytics({
 
 function failureReason(f: { status?: number; message: string }): string {
   if (!f.status) return 'could not reach the server';
+  if (f.status === 503 || f.status === 504) return 'the server took too long to respond';
   if (f.status === 404) {
     return /attempt not found/i.test(f.message)
       ? 'this attempt was not found'

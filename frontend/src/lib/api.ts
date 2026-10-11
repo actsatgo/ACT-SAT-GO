@@ -36,7 +36,7 @@ export function invalidateApiCache(prefix: string) {
   for (const key of [...getCache.keys()]) if (key.startsWith(prefix)) getCache.delete(key)
 }
 
-async function cachedGet<T>(path: string, ttlMs: number): Promise<T> {
+async function cachedGet<T>(path: string, ttlMs: number, timeoutMs?: number): Promise<T> {
   const now = Date.now()
   const hit = getCache.get(path)
   if (hit && hit.expiresAt > now) {
@@ -46,7 +46,7 @@ async function cachedGet<T>(path: string, ttlMs: number): Promise<T> {
     for (const [k, v] of getCache) if (v.expiresAt <= now) getCache.delete(k)
     if (getCache.size >= GET_CACHE_MAX) getCache.delete(getCache.keys().next().value as string)
   }
-  const text = requestText(path)
+  const text = requestText(path, undefined, timeoutMs)
   const entry: CacheEntry = { text, expiresAt: now + ttlMs }
   getCache.set(path, entry)
   try {
@@ -148,11 +148,26 @@ export interface TimeAnalyticsResponse {
 const SHORT_TTL = 30_000
 const LONG_TTL = 5 * 60_000
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  return JSON.parse(await requestText(path, options)) as T
+async function request<T>(path: string, options?: RequestInit, timeoutMs?: number): Promise<T> {
+  return JSON.parse(await requestText(path, options, timeoutMs)) as T
 }
 
-async function requestText(path: string, options?: RequestInit): Promise<string> {
+/**
+ * With `timeoutMs`, a request that gets no answer in time fails with status 504
+ * instead of waiting forever (callers show their fallback and can retry).
+ */
+async function requestText(path: string, options?: RequestInit, timeoutMs?: number): Promise<string> {
+  if (timeoutMs && typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+    try {
+      return await requestText(path, { ...options, signal: AbortSignal.timeout(timeoutMs) })
+    } catch (err) {
+      if ((err as Error)?.name !== 'TimeoutError') throw err
+      const e = new Error('The server took too long to respond') as Error & { status?: number }
+      e.status = 504
+      throw e
+    }
+  }
+
   const method = (options?.method ?? 'GET').toUpperCase()
   if (method !== 'GET' && method !== 'HEAD') clearApiCache()
 
@@ -507,9 +522,10 @@ export const api = {
     ),
   // Visit-level time analytics (see lib/questionTimeTracker.ts)
   getAttemptEventState: (attemptId: string) =>
-    request<{ lastSeq: number; lastT: number; serverElapsedMs: number }>(`/api/attempts/${attemptId}/events`),
+    // The player sends no events until this answers, so don't wait long.
+    request<{ lastSeq: number; lastT: number; serverElapsedMs: number }>(`/api/attempts/${attemptId}/events`, undefined, 10_000),
   getTimeAnalytics: (attemptId: string) =>
-    cachedGet<TimeAnalyticsResponse>(`/api/attempts/${attemptId}/time-analytics`, LONG_TTL),
+    cachedGet<TimeAnalyticsResponse>(`/api/attempts/${attemptId}/time-analytics`, LONG_TTL, 30_000),
   logCheatingEvent: (
     attemptId: string,
     eventType: string,

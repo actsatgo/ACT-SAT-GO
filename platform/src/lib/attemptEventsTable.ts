@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { withTimeout } from '@/lib/withTimeout'
 
 // The AttemptEvent table is created by migration 6_add_attempt_events. If a
 // deploy's `prisma migrate deploy` step was skipped or failed, every
@@ -26,6 +27,11 @@ const DDL = [
   END $$`,
 ]
 
+// How long a request waits for the check below. If it is stuck (e.g. on a dead
+// database connection) the caller carries on as if the table exists — it does
+// on any deploy where migration 6 ran — instead of waiting forever.
+const ENSURE_TIMEOUT_MS = 5_000
+
 let ready: Promise<void> | null = null
 
 export function ensureAttemptEventsTable(): Promise<void> {
@@ -40,5 +46,11 @@ export function ensureAttemptEventsTable(): Promise<void> {
     ready = null // try again on the next request
     console.error('[attempt-events] could not ensure AttemptEvent table:', err)
   })
-  return ready
+  const current = ready
+  return withTimeout(current, ENSURE_TIMEOUT_MS, 'ensureAttemptEventsTable').catch((err) => {
+    // Don't let every later request wait on the same stuck check: forget it so
+    // the next request starts a fresh one.
+    if (ready === current) ready = null
+    console.error('[attempt-events] table check is slow, continuing without it:', err.message)
+  })
 }

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { isAnswerCorrect } from '@/lib/answerCheck'
 import { ensureAttemptEventsTable } from '@/lib/attemptEventsTable'
+import { withTimeout, TimeoutError } from '@/lib/withTimeout'
 import {
   buildVisits, summarise, insights, isEmptyChoice,
   type Grader, type Result, type TrackedEvent,
@@ -88,7 +89,9 @@ export async function GET(
     }
 
     await ensureAttemptEventsTable()
-    const [events, allSections] = await Promise.all([
+    // Bounded so a stuck query gives the page an error (it then shows the
+    // per-question chart with a Retry button) instead of an endless spinner.
+    const [events, allSections] = await withTimeout(Promise.all([
       prisma.attemptEvent.findMany({
         where: { attemptId },
         orderBy: { seq: 'asc' },
@@ -114,7 +117,7 @@ export async function GET(
           },
         },
       }),
-    ])
+    ]), 20_000, 'time-analytics queries')
 
     const sections = onlySections ? allSections.filter((s) => onlySections.has(s.id)) : allSections
 
@@ -179,6 +182,9 @@ export async function GET(
     return NextResponse.json({ hasEvents: true, sections: result })
   } catch (err) {
     console.error('GET /api/attempts/[attemptId]/time-analytics:', err)
+    if (err instanceof TimeoutError) {
+      return NextResponse.json({ error: 'The server took too long to respond' }, { status: 503 })
+    }
     return NextResponse.json({ error: 'Failed to build time analytics' }, { status: 500 })
   }
 }
