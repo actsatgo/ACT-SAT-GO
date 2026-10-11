@@ -525,7 +525,7 @@ export const api = {
     // The player sends no events until this answers, so don't wait long.
     request<{ lastSeq: number; lastT: number; serverElapsedMs: number }>(`/api/attempts/${attemptId}/events`, undefined, 10_000),
   getTimeAnalytics: (attemptId: string) =>
-    cachedGet<TimeAnalyticsResponse>(`/api/attempts/${attemptId}/time-analytics`, LONG_TTL, 30_000),
+    cachedGet<TimeAnalyticsResponse>(`/api/attempts/${attemptId}/time-analytics`, LONG_TTL, 60_000),
   logCheatingEvent: (
     attemptId: string,
     eventType: string,

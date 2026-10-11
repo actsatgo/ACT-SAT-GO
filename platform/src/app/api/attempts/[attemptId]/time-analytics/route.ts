@@ -117,7 +117,7 @@ export async function GET(
           },
         },
       }),
-    ]), 20_000, 'time-analytics queries')
+    ]), 45_000, 'time-analytics queries')
 
     const sections = onlySections ? allSections.filter((s) => onlySections.has(s.id)) : allSections
 
