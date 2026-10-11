@@ -59,7 +59,7 @@ export function AttendancePage() {
   const { user, dbId } = useAuthStore();
   const navigate = useNavigate();
 
-  const [students, setStudents] = useState<{ id: string; name: string }[]>([]);
+  const [students, setStudents] = useState<{ id: string; name: string; customExam?: string | null }[]>([]);
   const [entries, setEntries] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [publishedTests, setPublishedTests] = useState<DbTest[]>([]);
@@ -127,7 +127,7 @@ export function AttendancePage() {
     setLoading(true);
     api.getTutorAssignments({ tutorId: dbId })
       .then(async ({ assignments }) => {
-        const studs = assignments.map(a => ({ id: a.student.id, name: a.student.name }));
+        const studs = assignments.map(a => ({ id: a.student.id, name: a.student.name, customExam: a.student.track === 'CUSTOM' ? a.student.customExam : null }));
         setStudents(studs);
         const lists = await Promise.all(
           studs.map(s =>

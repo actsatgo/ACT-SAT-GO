@@ -55,7 +55,7 @@ export function AdminAttendancePage() {
   const [tutorRates, setTutorRates] = useState<Map<string, number>>(new Map());
   const [tutorList, setTutorList] = useState<{ id: string; name: string }[]>([]);
   const [allTutors, setAllTutors] = useState<{ id: string; name: string }[]>([]);
-  const [tutorStudentsMap, setTutorStudentsMap] = useState<Map<string, { id: string; name: string }[]>>(new Map());
+  const [tutorStudentsMap, setTutorStudentsMap] = useState<Map<string, { id: string; name: string; customExam?: string | null }[]>>(new Map());
   const [publishedTests, setPublishedTests] = useState<DbTest[]>([]);
   const [logOpen, setLogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -217,12 +217,12 @@ export function AdminAttendancePage() {
         if (cancelled) return;
         // Every tutor-student pair, independent of whether any session has been
         // logged for it yet — this is what lets an admin pick "who" to log for.
-        const studentsByTutor = new Map<string, { id: string; name: string }[]>();
+        const studentsByTutor = new Map<string, { id: string; name: string; customExam?: string | null }[]>();
         const tutorsById = new Map<string, string>();
         for (const a of assignments) {
           tutorsById.set(a.tutorId, a.tutor.name);
           const list = studentsByTutor.get(a.tutorId) ?? [];
-          list.push({ id: a.studentId, name: a.student.name });
+          list.push({ id: a.studentId, name: a.student.name, customExam: a.student.track === 'CUSTOM' ? a.student.customExam : null });
           studentsByTutor.set(a.tutorId, list);
         }
         setTutorStudentsMap(studentsByTutor);

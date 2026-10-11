@@ -29,7 +29,7 @@ interface LogSessionModalProps {
   /** Only needed when fixedTutorId isn't set, so admin/super-admin can pick who they're logging for. */
   tutors?: { id: string; name: string }[];
   /** tutorId -> that tutor's students. For fixedTutorId mode this only needs one entry. */
-  studentsByTutor: Map<string, { id: string; name: string }[]>;
+  studentsByTutor: Map<string, { id: string; name: string; customExam?: string | null }[]>;
 }
 
 // Shared "Log a Session" form — used both by a tutor logging their own session and by
@@ -53,6 +53,9 @@ export function LogSessionModal({
 
   const tutorId = fixedTutorId ?? selectedTutorId;
   const students = studentsByTutor.get(tutorId) ?? [];
+  // Custom-exam students (IELTS, school exams…): their exam is offered as the subject.
+  const studentExam = students.find((s) => s.id === form.studentId)?.customExam ?? null;
+  const subjectOptions = studentExam && !SUBJECTS.includes(studentExam) ? [studentExam, ...SUBJECTS] : SUBJECTS;
 
   const topicOptions = useMemo(() => topicsForSubject(form.subject), [form.subject]);
   const selectedTopicLines = useMemo(() => toLines(form.topic), [form.topic]);
@@ -169,7 +172,11 @@ export function LogSessionModal({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-slate-600 mb-1">Student</label>
-            <select value={form.studentId} onChange={(e) => setForm((f) => ({ ...f, studentId: e.target.value }))}
+            <select value={form.studentId} onChange={(e) => {
+                const id = e.target.value;
+                const exam = students.find((s) => s.id === id)?.customExam;
+                setForm((f) => ({ ...f, studentId: id, ...(exam ? { subject: exam } : {}) }));
+              }}
               disabled={!tutorId}
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400">
               <option value="">{tutorId ? 'Select student…' : 'Select a tutor first'}</option>
@@ -180,7 +187,7 @@ export function LogSessionModal({
             <label className="block text-xs font-medium text-slate-600 mb-1">Subject</label>
             <select value={form.subject} onChange={(e) => setForm((f) => ({ ...f, subject: e.target.value }))}
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100">
-              {SUBJECTS.map((s) => <option key={s} value={s}>{s}</option>)}
+              {subjectOptions.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
         </div>

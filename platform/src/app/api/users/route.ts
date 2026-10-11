@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
         students: { include: { student: { select: { id: true, email: true } } } },
         attempts: {
           where: { status: 'SUBMITTED' },
-          select: { totalScore: true, completedAt: true, test: { select: { title: true, subCategory: true, category: true } } },
+          select: { totalScore: true, completedAt: true, testId: true, test: { select: { title: true, subCategory: true, category: true } } },
           orderBy: { completedAt: 'desc' },
         },
       },
@@ -53,6 +53,13 @@ export async function GET(request: NextRequest) {
       ? users
       : users.filter((u) => ((u.permissions ?? {}) as Record<string, unknown>).accountType !== 'DEMO')
 
+    // Max marks for the custom-exam tests custom students took (one query), so their
+    // average can be shown as a percentage — see lib/customScores.ts.
+    const customTestIds = visibleUsers
+      .filter((u) => ((u.permissions ?? {}) as Record<string, unknown>).track === 'CUSTOM')
+      .flatMap((u) => u.attempts.filter((a) => (a.test.category ?? '').toLowerCase() === 'custom').map((a) => a.testId))
+    const customMaxMarks = await maxMarksByTest(customTestIds)
+
     return NextResponse.json({
       users: visibleUsers.map((u) => {
         const perms = (u.permissions ?? {}) as Record<string, unknown>
@@ -62,9 +69,11 @@ export async function GET(request: NextRequest) {
         // with Mock/Sectional scores would be meaningless (e.g. a "17" HW score dragging
         // down a 1400 average).
         const scaledAttempts = submittedAttempts.filter((at) => !isRawScoredTest(at.test))
-        const avgScore = scaledAttempts.length
-          ? scaledAttempts.reduce((a, at) => a + (at.totalScore ?? 0), 0) / scaledAttempts.length
-          : null
+        const avgScore = perms.track === 'CUSTOM'
+          ? averagePercent(submittedAttempts, customMaxMarks)
+          : scaledAttempts.length
+            ? scaledAttempts.reduce((a, at) => a + (at.totalScore ?? 0), 0) / scaledAttempts.length
+            : null
         const tutorUsers = u.tutors.map((t) => t.tutor)
         const tutorNameOf = (tu: (typeof tutorUsers)[number]) =>
           (tu as unknown as { permissions?: Record<string, unknown> }).permissions?.displayName as string ?? tu.email.split('@')[0]
@@ -104,6 +113,8 @@ export async function GET(request: NextRequest) {
           timezone: perms.timezone ?? null,
           firstClassDate: perms.firstClassDate ?? null,
           programVariant: perms.programVariant ?? null,
+          track: perms.track ?? null,
+          customExam: perms.customExam ?? null,
           mockVariant: perms.mockVariant ?? null,
           accommodation: perms.accommodation ?? null,
           stage: perms.stage ?? null,
@@ -127,6 +138,8 @@ export async function GET(request: NextRequest) {
 import { createAdminClient } from '@/lib/supabase/admin'
 import { randomUUID } from 'crypto'
 import { generateTempPassword } from '@/lib/tempPassword'
+import { parseTrack, targetScoreError } from '@/lib/examTrack'
+import { averagePercent, maxMarksByTest } from '@/lib/customScores'
 
 export async function POST(request: NextRequest) {
   try {
@@ -139,7 +152,7 @@ export async function POST(request: NextRequest) {
       name, email, role, grade, targetScore, targetDate, tutorId, tutorIds, specialization,
       phone, parentPhone, dob, schoolName, board, timezone, firstClassDate,
       programVariant, mockVariant, accommodation, stage, onboarded,
-      manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate,
+      manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate, track, customExam,
     } = body as {
       name: string
       email: string
@@ -166,6 +179,8 @@ export async function POST(request: NextRequest) {
       manualDiagRW?: number | null
       manualDiagMath?: number | null
       hourlyRate?: number | null
+      track?: string | null
+      customExam?: string | null
     }
 
     // 1. Validation
@@ -190,11 +205,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const parsedTrack = parseTrack(track, customExam)
+    if ('error' in parsedTrack) return NextResponse.json({ error: parsedTrack.error }, { status: 400 })
+
     if (targetScore) {
-      const scoreNum = Number(targetScore)
-      if (isNaN(scoreNum) || scoreNum < 1 || scoreNum > 36) {
-        return NextResponse.json({ error: 'Target score must be a valid ACT score between 1 and 36' }, { status: 400 })
-      }
+      const scoreError = targetScoreError(Number(targetScore), parsedTrack.value.track)
+      if (scoreError) return NextResponse.json({ error: scoreError }, { status: 400 })
     }
 
     // 2. Duplicate checking
@@ -248,6 +264,10 @@ export async function POST(request: NextRequest) {
     if (timezone) permissions.timezone = timezone
     if (firstClassDate) permissions.firstClassDate = firstClassDate
     if (programVariant) permissions.programVariant = programVariant
+    if (upperRole === 'STUDENT' && parsedTrack.value.track) {
+      permissions.track = parsedTrack.value.track
+      if (parsedTrack.value.customExam) permissions.customExam = parsedTrack.value.customExam
+    }
     if (mockVariant) permissions.mockVariant = mockVariant
     if (accommodation !== undefined) permissions.accommodation = accommodation
     if (stage !== undefined) permissions.stage = stage

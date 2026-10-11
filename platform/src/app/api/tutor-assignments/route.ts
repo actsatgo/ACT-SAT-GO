@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { requireRole } from '@/lib/auth'
 import { isHomeworkTest, isRawScoredTest } from '@/lib/testCategorize'
+import { averagePercent, maxMarksByTest } from '@/lib/customScores'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
             id: true, name: true, email: true, permissions: true, role: true,
             attempts: {
               where: { status: 'SUBMITTED' },
-              select: { totalScore: true, completedAt: true, test: { select: { title: true, subCategory: true, category: true } } },
+              select: { totalScore: true, completedAt: true, testId: true, test: { select: { title: true, subCategory: true, category: true } } },
               orderBy: { completedAt: 'desc' },
             },
           },
@@ -44,6 +45,13 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
+    // Custom-exam students' averages are a % of max marks (lib/customScores.ts).
+    type AttemptRow = { totalScore: number | null; completedAt: Date | null; testId: string; test: { title: string | null; subCategory: string | null; category: string | null } }
+    const attemptsOf = (a: (typeof assignments)[number]) => ((a.student as unknown as { attempts?: AttemptRow[] }).attempts ?? [])
+    const customMaxMarks = await maxMarksByTest(assignments
+      .filter((a) => ((a.student.permissions ?? {}) as Record<string, unknown>).track === 'CUSTOM')
+      .flatMap((a) => attemptsOf(a).filter((at) => (at.test.category ?? '').toLowerCase() === 'custom').map((at) => at.testId)))
+
     return NextResponse.json({
       assignments: assignments.map((a) => {
         const sp = (a.student.permissions ?? {}) as Record<string, unknown>
@@ -51,9 +59,11 @@ export async function GET(request: NextRequest) {
         const testsAttempted = studentAttempts.filter((at) => !isHomeworkTest(at.test)).length
         // Practice Sheet attempts are raw counts, not scaled scores — exclude them from the average.
         const scaledAttempts = studentAttempts.filter((at) => !isRawScoredTest(at.test))
-        const avgScore = scaledAttempts.length
-          ? scaledAttempts.reduce((x, at) => x + (at.totalScore ?? 0), 0) / scaledAttempts.length
-          : null
+        const avgScore = sp.track === 'CUSTOM'
+          ? averagePercent(attemptsOf(a), customMaxMarks)
+          : scaledAttempts.length
+            ? scaledAttempts.reduce((x, at) => x + (at.totalScore ?? 0), 0) / scaledAttempts.length
+            : null
         return {
           id: `${a.tutorId}_${a.studentId}`,
           tutorId: a.tutorId,
@@ -66,6 +76,8 @@ export async function GET(request: NextRequest) {
             role: (a.student.role as string).toLowerCase(),
             grade: sp.grade ?? null,
             targetScore: sp.targetScore ?? null,
+            track: sp.track ?? null,
+            customExam: sp.customExam ?? null,
             specialization: sp.specialization ?? [],
             testsAttempted,
             avgScore: avgScore !== null ? Math.round(avgScore * 10) / 10 : null,

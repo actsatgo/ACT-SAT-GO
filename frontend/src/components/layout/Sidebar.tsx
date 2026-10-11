@@ -258,7 +258,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
 
         {user?.role === 'student' && !user.isDemo && !collapsed && (
           <div className="mb-2 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5">
-            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Exam Date</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">{user.track === 'CUSTOM' && user.customExam ? `${user.customExam} Date` : 'Exam Date'}</p>
             {user.targetDate ? (() => {
               const days = daysUntil(user.targetDate as string);
               return (

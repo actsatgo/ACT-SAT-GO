@@ -20,10 +20,12 @@ import { satSectionScore } from '../../lib/analyticsData';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import { formatNumericDisplay, numericEqual } from '../../lib/numericAnswer';
+import { isRawScoredTest } from '../../lib/testCategorize';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend,
 } from 'recharts';
+import { defaultAssignFilter, examLabel, examTestsFirst, isCustomStudent, targetScoreHint } from '../../lib/examTrack';
 
 // ─── Test Analysis types ──────────────────────────────────────────────────────
 
@@ -760,7 +762,10 @@ export function AdminStudentProfilePage() {
     );
   }
 
-  const target = (student.targetScore as number | null) ?? 32;
+  // Custom-exam students: avgScore and target are percentages (see lib/examTrack).
+  const customStudent = isCustomStudent(student);
+  const unit = customStudent ? '%' : '';
+  const target = (student.targetScore as number | null) ?? (customStudent ? 80 : 32);
   const avg = student.avgScore ?? 0;
   const gap = target - avg;
   const pct = Math.min(100, (avg / target) * 100);
@@ -784,7 +789,9 @@ export function AdminStudentProfilePage() {
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-semibold text-slate-900 truncate">{student.name}</h1>
+          <h1 className="text-xl font-semibold text-slate-900 truncate">{student.name}
+            {customStudent && <span className="ml-2 align-middle rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">{examLabel(student)}</span>}
+          </h1>
           <p className="text-sm text-slate-400">{student.email}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -799,7 +806,7 @@ export function AdminStudentProfilePage() {
             <>
               <Button variant="secondary" size="sm" icon={<MessageSquare size={13} />} onClick={() => setNoteOpen(true)}>Note</Button>
               <Button variant="secondary" size="sm" icon={<Pencil size={13} />} onClick={() => setEditing(true)}>Edit</Button>
-              <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignOpen(true); setAssignFilter('All'); setAssignSearch(''); setSelectedTestIds([]); }}>Assign Test</Button>
+              <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignOpen(true); setAssignFilter(defaultAssignFilter(student, publishedTests)); setAssignSearch(''); setSelectedTestIds([]); }}>Assign Test</Button>
               <button onClick={() => setResetPasswordOpen(true)}
                 className="p-2 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors" title="Reset password">
                 <KeyRound size={15} />
@@ -850,6 +857,7 @@ export function AdminStudentProfilePage() {
                   value={student.targetDate ? formatDate(student.targetDate) : null} />
                 <InfoRow icon={<Calendar size={13} />} label="First Class Started On"
                   value={student.firstClassDate ? formatDate(student.firstClassDate) : null} />
+                <InfoRow icon={<BookOpen size={13} />} label="Preparing For" value={student.track ? examLabel(student) : null} />
                 <InfoRow icon={<BookOpen size={13} />} label="Program Variant" value={student.programVariant} />
                 <InfoRow icon={<BookOpen size={13} />} label="Mock Variant" value={student.mockVariant} />
                 <InfoRow icon={<CheckCircle size={13} />} label="Accommodation"
@@ -906,8 +914,8 @@ export function AdminStudentProfilePage() {
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>Target Score</label>
-                    <input type="number" min={1} max={36} className={inputCls} value={editForm.targetScore} onChange={(e) => setEditForm(f => ({ ...f, targetScore: e.target.value }))} placeholder="e.g. 32" />
+                    <label className={labelCls}>{targetScoreHint(student.track).label}</label>
+                    <input type="number" min={targetScoreHint(student.track).min} max={targetScoreHint(student.track).max} className={inputCls} value={editForm.targetScore} onChange={(e) => setEditForm(f => ({ ...f, targetScore: e.target.value }))} placeholder={targetScoreHint(student.track).placeholder} />
                   </div>
                 </div>
                 <div>
@@ -931,8 +939,8 @@ export function AdminStudentProfilePage() {
               </Badge>
             </div>
             <div className="flex items-end justify-between text-sm font-bold mb-2">
-              <span className="text-slate-900">{avg || '—'} <span className="text-xs text-slate-400 font-normal">current</span></span>
-              <span className="text-blue-600">{target} <span className="text-xs text-slate-400 font-normal">target</span></span>
+              <span className="text-slate-900">{avg ? `${Math.round(avg * 10) / 10}${unit}` : '—'} <span className="text-xs text-slate-400 font-normal">current</span></span>
+              <span className="text-blue-600">{target}{unit} <span className="text-xs text-slate-400 font-normal">target</span></span>
             </div>
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
               <div className={`h-full rounded-full transition-all ${pct >= 85 ? 'bg-emerald-500' : pct >= 65 ? 'bg-amber-400' : 'bg-red-400'}`}
@@ -940,7 +948,7 @@ export function AdminStudentProfilePage() {
             </div>
             {avg > 0 && (
               <p className="text-xs text-slate-400 mt-2">
-                {gap > 0 ? `${gap} points to go` : 'Target reached!'}
+                {gap > 0 ? (customStudent ? `${Math.round(gap * 10) / 10}% to go` : `${gap} points to go`) : 'Target reached!'}
               </p>
             )}
           </div>
@@ -1045,7 +1053,7 @@ export function AdminStudentProfilePage() {
                 <Button variant="secondary" size="sm" icon={<GraduationCap size={13} />} onClick={openAssignHomework}>
                   Assign HW
                 </Button>
-                <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignOpen(true); setAssignFilter('All'); setAssignSearch(''); setSelectedTestIds([]); }}>
+                <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignOpen(true); setAssignFilter(defaultAssignFilter(student, publishedTests)); setAssignSearch(''); setSelectedTestIds([]); }}>
                   Assign Test
                 </Button>
               </div>
@@ -1217,7 +1225,7 @@ export function AdminStudentProfilePage() {
           <div className="bg-white rounded-xl border border-slate-100">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50">
               <p className="font-medium text-slate-900 text-sm">Test History</p>
-              <Button size="sm" variant="secondary" icon={<BookOpen size={12} />} onClick={() => { setAssignOpen(true); setAssignFilter('All'); setAssignSearch(''); setSelectedTestIds([]); }}>
+              <Button size="sm" variant="secondary" icon={<BookOpen size={12} />} onClick={() => { setAssignOpen(true); setAssignFilter(defaultAssignFilter(student, publishedTests)); setAssignSearch(''); setSelectedTestIds([]); }}>
                 Assign Test
               </Button>
             </div>
@@ -1291,7 +1299,7 @@ export function AdminStudentProfilePage() {
                           ) : expandedAttempt ? (() => {
                             const analysis = computeTestAnalysis(expandedAttempt);
                             // Scaled score applies to Diagnostic/Mock/Sectional — only Practice Sheet shows a raw count.
-                            const isMockTest = !(['Practice Sheet'].includes(expandedAttempt.test.category ?? '') || /practice\s*sheet/i.test(expandedAttempt.test.title ?? ''));
+                            const isMockTest = !(isRawScoredTest(expandedAttempt.test));
                             const completedDate = expandedAttempt.completedAt
                               ? formatDateTime(expandedAttempt.completedAt)
                               : '—';
@@ -1798,7 +1806,7 @@ export function AdminStudentProfilePage() {
             <p className="text-sm text-slate-400 py-2">No published tests available.</p>
           ) : (() => {
             const categories = ['All', ...Array.from(new Set(publishedTests.map(t => t.category ?? 'Other')))];
-            const filtered = publishedTests
+            const filtered = examTestsFirst(publishedTests, student)
               .filter(t => assignFilter === 'All' || (t.category ?? 'Other') === assignFilter)
               .filter((t) => {
                 if (assignFilter !== 'Practice Sheet' || assignSubFilter === 'All') return true;

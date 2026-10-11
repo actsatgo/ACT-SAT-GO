@@ -464,9 +464,11 @@ function PackageAssignModal({ pkg, onClose }: { pkg: DbTestPackage; onClose: () 
 
 // ── Test category filter helpers ──────────────────────────────────────────────
 
-const isTestMock       = (t: ApiTest) => t.category === 'Mock' || t.category === 'Mock Test' || /\bmock\b/i.test(t.title ?? '');
-const isTestDiagnostic = (t: ApiTest) => t.category === 'Diagnostic' || /\bdiagnostic\b/i.test(t.title ?? '');
-const isTestSectional  = (t: ApiTest) => t.category === 'Sectional' || /\bsectional\b/i.test(t.title ?? '');
+// Custom-exam tests (e.g. "IELTS Mock 1") are their own group, never SAT/ACT mocks.
+const isTestCustom     = (t: ApiTest) => (t.category ?? '').toLowerCase() === 'custom';
+const isTestMock       = (t: ApiTest) => !isTestCustom(t) && (t.category === 'Mock' || t.category === 'Mock Test' || /\bmock\b/i.test(t.title ?? ''));
+const isTestDiagnostic = (t: ApiTest) => !isTestCustom(t) && (t.category === 'Diagnostic' || /\bdiagnostic\b/i.test(t.title ?? ''));
+const isTestSectional  = (t: ApiTest) => !isTestCustom(t) && (t.category === 'Sectional' || /\bsectional\b/i.test(t.title ?? ''));
 // Test Builder tags homework as subCategory "{Subject}-Homework" (e.g. "Math-Homework"),
 // which does NOT contain the substring "hw" — match on "homework" instead.
 const isTestHW         = (t: ApiTest) => { const s = (t.subCategory ?? '').toLowerCase(); const ti = (t.title ?? '').toLowerCase(); return s.includes('homework') || ti.includes(' hw') || ti.endsWith('hw') || /\bhw\b/.test(ti) || ti.includes('homework') || /\b(hw|m-hw|r-hw|w-hw|rw-hw|mhw|rhw|whw|rwhw)\b/.test(ti); };
@@ -490,6 +492,7 @@ const TEST_CAT_FILTERS = [
   { key: 'Math Practice'   , match: (t: ApiTest) => isTestMath(t) && isTestPractice(t) },
   { key: 'Reading Practice', match: (t: ApiTest) => isTestReading(t) && isTestPractice(t) },
   { key: 'Writing Practice', match: (t: ApiTest) => isTestWriting(t) && isTestPractice(t) },
+  { key: 'Custom Exams'    , match: isTestCustom },
 ] as const;
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
@@ -1069,7 +1072,8 @@ export function TestsPage() {
           const statusLower = test.status.toLowerCase();
 
           const cat = test.category;
-          const subParts = test.subCategory?.split('-') ?? [];
+          // Custom tests keep the exam name whole (it may contain "-").
+          const subParts = cat === 'Custom' ? [test.subCategory ?? ''] : test.subCategory?.split('-') ?? [];
           const subject = subParts[0];
           const assignType = subParts[1];
           const typeColors: Record<string, string> = {
@@ -1077,6 +1081,7 @@ export function TestsPage() {
             'Sectional':      'bg-emerald-100 text-emerald-800',
             'Practice Sheet': 'bg-purple-100 text-purple-800',
             'Diagnostic':     'bg-amber-100 text-amber-800',
+            'Custom':         'bg-rose-100 text-rose-800',
           };
 
           const isSelectedForBundle = selectedTestIds.has(test.id);

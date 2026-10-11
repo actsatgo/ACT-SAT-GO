@@ -62,12 +62,14 @@ const isReadingSubject = (t: ApiTest): boolean => {
     || /\br-\d+/.test(title)
     || (t.sections ?? []).some(s => /read/i.test(s.name));
 };
+// Custom-exam tests (non-SAT/ACT, e.g. "IELTS Mock 1") get their own tab.
+const isCustom = (t: ApiTest): boolean => t.category?.toLowerCase() === 'custom';
 const isMock = (t: ApiTest): boolean =>
-  t.category?.toLowerCase() === 'mock' || t.category?.toLowerCase() === 'diagnostic' || /mock|diagnostic/i.test(t.title);
+  !isCustom(t) && (t.category?.toLowerCase() === 'mock' || t.category?.toLowerCase() === 'diagnostic' || /mock|diagnostic/i.test(t.title));
 const isSectional = (t: ApiTest): boolean =>
-  t.category?.toLowerCase() === 'sectional' || /sectional/i.test(t.title);
+  !isCustom(t) && (t.category?.toLowerCase() === 'sectional' || /sectional/i.test(t.title));
 const isPractice = (t: ApiTest): boolean =>
-  !isHW(t) && (t.category === 'Practice Sheet' || /practice/i.test(t.title));
+  !isCustom(t) && !isHW(t) && (t.category === 'Practice Sheet' || /practice/i.test(t.title));
 
 const TEST_FILTERS = [
   { key: 'Mock',             match: isMock },
@@ -78,6 +80,7 @@ const TEST_FILTERS = [
   { key: 'Math Practice',    match: (t: ApiTest) => isPractice(t) && isMathSubject(t) },
   { key: 'Reading Practice', match: (t: ApiTest) => isPractice(t) && isReadingSubject(t) },
   { key: 'Writing Practice', match: (t: ApiTest) => isPractice(t) && isWritingSubject(t) },
+  { key: 'Exam Tests',       match: isCustom },
 ] as const;
 type FilterKey = typeof TEST_FILTERS[number]['key'];
 
@@ -88,13 +91,15 @@ const CAT_COLORS: Record<string, string> = {
   'Practice Sheet': 'bg-purple-100 text-purple-700',
   ACT:              'bg-[#1b3d6e]/10 text-[#1b3d6e]',
   SAT:              'bg-rose-100 text-rose-700',
+  Custom:           'bg-rose-100 text-rose-700',
   Math:             'bg-blue-100 text-blue-700',
   Reading:          'bg-emerald-100 text-emerald-700',
   Writing:          'bg-indigo-100 text-indigo-700',
 };
 
 function TestCategoryBadges({ category, subCategory }: { category?: string; subCategory?: string }) {
-  const subject = subCategory?.split('-')[0];
+  // A custom test's subCategory is the exam name, kept whole.
+  const subject = category?.toLowerCase() === 'custom' ? subCategory : subCategory?.split('-')[0];
   return (
     <>
       {subject && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${CAT_COLORS[subject] ?? 'bg-gray-100 text-gray-600'}`}>{subject}</span>}
@@ -105,7 +110,7 @@ function TestCategoryBadges({ category, subCategory }: { category?: string; subC
 
 export function MyTestsPage() {
   const navigate = useNavigate();
-  const { dbId } = useAuthStore();
+  const { dbId, user } = useAuthStore();
   const [tests, setTests] = useState<ApiTest[]>([]);
   const [attempts, setAttempts] = useState<LoadedAttempt[]>([]);
   const [records, setRecords] = useState<Map<string, QRecord[]>>(new Map());
@@ -221,7 +226,8 @@ export function MyTestsPage() {
 
       {tests.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
-          {TEST_FILTERS.map(f => {
+          {/* Custom-exam students only see tabs that have tests (no empty SAT tabs). */}
+          {TEST_FILTERS.filter(f => user?.track !== 'CUSTOM' || pool.some(f.match)).map(f => {
             const count = pool.filter(f.match).length;
             return (
               <button

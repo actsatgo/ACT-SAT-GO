@@ -18,11 +18,12 @@ import { TrashModal } from '../../components/common/TrashModal';
 import { api, type DbUser, type DbTestPackage } from '../../lib/api';
 import { studentStatusFromDecision } from '../../lib/studentStatus';
 import { satSectionScore } from '../../lib/analyticsData';
-import { practiceSubjectOf } from '../../lib/testCategorize';
+import { isCustomTest, isRawScoredTest, practiceSubjectOf } from '../../lib/testCategorize';
 import { parseCSV, exportToCsv } from '../../utils/exportCsv';
 import { SAT_CONTENT, ALL_DOMAIN_NAMES } from '../../data/satDomains';
 import { formatNumericDisplay, numericEqual } from '../../lib/numericAnswer';
 import { toLines } from '../../lib/sessionLog';
+import { defaultAssignFilter, examLabel, examTestsFirst, isCustomStudent, targetScoreHint, TRACK_OPTIONS, useCustomExamNames } from '../../lib/examTrack';
 
 type MainViewTab = 'analysis' | 'test_analysis';
 
@@ -401,7 +402,8 @@ export function MyStudentsPage() {
   const [csvError, setCsvError] = useState('');
   const [csvSuccess, setCsvSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [addForm, setAddForm] = useState({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [] as string[], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '' });
+  const customExamNames = useCustomExamNames();
+  const [addForm, setAddForm] = useState({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [] as string[], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '', track: '', customExam: '' });
   const [addError, setAddError] = useState('');
   const [addLoading, setAddLoading] = useState(false);
   const [createdPassword, setCreatedPassword] = useState<{ name: string; email: string; password: string } | null>(null);
@@ -626,7 +628,7 @@ export function MyStudentsPage() {
               totalRaw: an.totalCorrect, totalRawT: an.totalQuestions,
               rwSS: an.rwScaled, mathSS: an.mathScaled, totalSS: an.finalScaledScore, isSAT: an.isSAT,
               // Scaled score applies to Diagnostic/Mock/Sectional — only Practice Sheet shows a raw count.
-              isMockTest: !(['Practice Sheet'].includes(att.test.category ?? '') || /practice\s*sheet/i.test(att.test.title ?? '')),
+              isMockTest: !(isRawScoredTest(att.test)),
               isAnalysed,
             };
           } catch (err) {
@@ -886,6 +888,7 @@ export function MyStudentsPage() {
 
   const handleAddStudent = async () => {
     if (!addForm.email) return;
+    if (addForm.track === 'CUSTOM' && !addForm.customExam.trim()) { setAddError('Enter the exam this student is preparing for.'); return; }
     setAddError(''); setAddLoading(true);
     const fullName = `${addForm.firstName} ${addForm.lastName}`.trim() || addForm.email.split('@')[0];
     try {
@@ -904,6 +907,8 @@ export function MyStudentsPage() {
           timezone: addForm.timezone || undefined,
           firstClassDate: addForm.firstClassDate || undefined,
           programVariant: addForm.programVariant || undefined,
+          track: addForm.track || undefined,
+          customExam: addForm.track === 'CUSTOM' ? addForm.customExam.trim() : undefined,
           mockVariant: addForm.mockVariant || undefined,
           accommodation: addForm.accommodation,
           stage: addForm.stage ? Number(addForm.stage) : undefined,
@@ -913,7 +918,7 @@ export function MyStudentsPage() {
           manualDiagMath: addForm.manualDiagMath ? Number(addForm.manualDiagMath) : null,
         });
         setShowAddModal(false); setIsEditing(false); setEditingStudentId(null);
-        setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '' });
+        setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '', track: '', customExam: '' });
         reload();
       } else {
         const res = await api.createUser({
@@ -930,6 +935,8 @@ export function MyStudentsPage() {
           timezone: addForm.timezone || undefined,
           firstClassDate: addForm.firstClassDate || undefined,
           programVariant: addForm.programVariant || undefined,
+          track: addForm.track || undefined,
+          customExam: addForm.track === 'CUSTOM' ? addForm.customExam.trim() : undefined,
           mockVariant: addForm.mockVariant || undefined,
           accommodation: addForm.accommodation,
           stage: addForm.stage ? Number(addForm.stage) : undefined,
@@ -939,7 +946,7 @@ export function MyStudentsPage() {
           manualDiagMath: addForm.manualDiagMath ? Number(addForm.manualDiagMath) : null,
         });
         setShowAddModal(false);
-        setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '' });
+        setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '', track: '', customExam: '' });
         reload();
         if (res.tempPassword) setCreatedPassword({ name: fullName, email: addForm.email, password: res.tempPassword });
       }
@@ -969,6 +976,8 @@ export function MyStudentsPage() {
       timezone: student.timezone || 'Asia/Kolkata',
       firstClassDate: student.firstClassDate || '',
       programVariant: student.programVariant || '',
+      track: student.track || '',
+      customExam: student.customExam || '',
       mockVariant: student.mockVariant || '',
       accommodation: student.accommodation ?? false,
       stage: student.stage != null ? String(student.stage) : '',
@@ -1220,6 +1229,12 @@ export function MyStudentsPage() {
                             <div className="min-w-0">
                               <div className="flex items-center gap-1.5">
                                 <p className="font-semibold text-slate-900 text-sm group-hover:text-blue-700 group-hover:underline">{row.studentName}</p>
+                                {(() => {
+                                  const st = students.find((x) => x.id === row.studentId);
+                                  return isCustomStudent(st) ? (
+                                    <span className="rounded-full bg-rose-50 px-1.5 py-0.5 text-[10px] font-bold text-rose-700 whitespace-nowrap" title="Custom exam student">{examLabel(st)}</span>
+                                  ) : null;
+                                })()}
                               </div>
                             </div>
                           </button>
@@ -1293,7 +1308,7 @@ export function MyStudentsPage() {
                         <td className="px-4 py-3 text-center">
                           <div className="flex items-center justify-center gap-1.5">
                             <button
-                              onClick={() => { setAssignStudentId(row.studentId); setAssignOpen(true); setAssignFilter('All'); setAssignSearch(''); setAssignSelectedTestIds([]); }}
+                              onClick={() => { setAssignStudentId(row.studentId); setAssignOpen(true); setAssignFilter(defaultAssignFilter(students.find((s) => s.id === row.studentId), publishedTests)); setAssignSearch(''); setAssignSelectedTestIds([]); }}
                               className="px-2.5 py-1 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
                             >
                               Assign
@@ -1653,13 +1668,14 @@ export function MyStudentsPage() {
           ) : testAnalysisAttempt ? (() => {
             const analysis = computeTestAnalysis(testAnalysisAttempt);
             // Scaled score applies to Diagnostic/Mock/Sectional — only Practice Sheet shows a raw count.
-            const isPracticeSheet = ['Practice Sheet'].includes(testAnalysisAttempt.test.category ?? '') || /practice\s*sheet/i.test(testAnalysisAttempt.test.title ?? '');
+            const isPracticeSheet = isRawScoredTest(testAnalysisAttempt.test);
             const showScaled = analysis.isSAT && !isPracticeSheet;
 
             // Sectional tests only have sections for one subject — rwTotal/mathTotal is 0
             // for the one they don't cover, so hide that box instead of showing a fake 0.
-            const showRW = analysis.rwTotal > 0;
-            const showMath = analysis.mathTotal > 0;
+            // Custom-exam tests have no SAT subject split.
+            const showRW = analysis.rwTotal > 0 && !isCustomTest(testAnalysisAttempt.test);
+            const showMath = analysis.mathTotal > 0 && !isCustomTest(testAnalysisAttempt.test);
             return (
               <div className="space-y-4">
                 {/* ── Score Card ── */}
@@ -2457,17 +2473,33 @@ export function MyStudentsPage() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Preparing For</label>
+                <select value={addForm.track} onChange={(e) => setAddForm(f => ({ ...f, track: e.target.value }))} aria-label="Preparing for"
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="">— (SAT/ACT, not set)</option>
+                  {TRACK_OPTIONS.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                </select>
+              </div>
+              {addForm.track === 'CUSTOM' ? (
+                <div>
+                  <label className="block text-xs font-medium text-slate-600 mb-1">Exam Name *</label>
+                  <input value={addForm.customExam} maxLength={60} list="student-custom-exams" onChange={(e) => setAddForm(f => ({ ...f, customExam: e.target.value }))}
+                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. IELTS, Class 10 Maths" />
+                  <datalist id="student-custom-exams">{customExamNames.map((n) => <option key={n} value={n} />)}</datalist>
+                </div>
+              ) : <div className="hidden sm:block" />}
+              <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Grade</label>
                 <select value={addForm.grade} onChange={(e) => setAddForm(f => ({ ...f, grade: e.target.value }))}
                   className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                   <option value="">—</option>
-                  {['9', '10', '11', '12'].map((g) => <option key={g} value={g}>Grade {g}</option>)}
+                  {(addForm.track === 'CUSTOM' ? ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'] : ['9', '10', '11', '12']).map((g) => <option key={g} value={g}>Grade {g}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Target ACT Score</label>
-                <input type="number" min={1} max={36} value={addForm.targetScore} onChange={(e) => setAddForm(f => ({ ...f, targetScore: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 32" />
+                <label className="block text-xs font-medium text-slate-600 mb-1">{addForm.track === 'CUSTOM' ? 'Target Score (%)' : addForm.track === 'SAT' ? 'Target SAT Score' : 'Target ACT Score'}</label>
+                <input type="number" min={targetScoreHint(addForm.track).min} max={targetScoreHint(addForm.track).max} value={addForm.targetScore} onChange={(e) => setAddForm(f => ({ ...f, targetScore: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder={targetScoreHint(addForm.track).placeholder} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Assign Tutor(s)</label>
@@ -2595,7 +2627,7 @@ export function MyStudentsPage() {
               onClick={() => {
                 setIsEditing(false);
                 setEditingStudentId(null);
-                setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '' });
+                setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '', track: '', customExam: '' });
                 setShowManageModal(false);
                 setShowAddModal(true);
               }}
@@ -3441,7 +3473,7 @@ export function MyStudentsPage() {
       {(() => {
         const assignStudent = students.find((s) => s.id === assignStudentId);
         const categories = ['All', ...Array.from(new Set(publishedTests.map((t) => t.category ?? 'Other')))];
-        const filtered = publishedTests
+        const filtered = examTestsFirst(publishedTests, assignStudent)
           .filter((t) => assignFilter === 'All' || (t.category ?? 'Other') === assignFilter)
           .filter((t) => {
             if (assignFilter !== 'Practice Sheet' || assignSubFilter === 'All') return true;

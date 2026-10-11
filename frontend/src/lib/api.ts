@@ -214,6 +214,10 @@ export interface DbUser {
   timezone?: string | null
   firstClassDate?: string | null
   programVariant?: string | null
+  /** Exam track: 'SAT' | 'ACT' | 'CUSTOM' (null = not set, treated as SAT) */
+  track?: string | null
+  /** Name of the custom exam when track is CUSTOM, e.g. "IELTS" */
+  customExam?: string | null
   mockVariant?: string | null
   accommodation?: boolean | null
   stage?: number | null
@@ -550,6 +554,8 @@ export const api = {
     timezone?: string
     firstClassDate?: string
     programVariant?: string
+    track?: string | null
+    customExam?: string | null
     mockVariant?: string
     accommodation?: boolean
     stage?: number
@@ -579,6 +585,8 @@ export const api = {
     timezone?: string
     firstClassDate?: string
     programVariant?: string
+    track?: string | null
+    customExam?: string | null
     mockVariant?: string
     accommodation?: boolean
     stage?: number

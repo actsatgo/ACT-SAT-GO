@@ -19,6 +19,7 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, Legend
 } from 'recharts';
+import { defaultAssignFilter, examLabel, examTestsFirst, isCustomStudent } from '../../lib/examTrack';
 
 interface Note {
   id: string;
@@ -260,8 +261,11 @@ export function StudentDetailPage() {
     );
   }
 
-  const target = (student.targetScore as number | null) ?? 32;
-  const gap = target - (student.avgScore ?? 0);
+  // Custom-exam students: scores and target are percentages.
+  const customStudent = isCustomStudent(student);
+  const unit = customStudent ? '%' : '';
+  const target = (student.targetScore as number | null) ?? (customStudent ? 80 : 32);
+  const gap = Math.round((target - (student.avgScore ?? 0)) * 10) / 10;
   const pct = Math.min(100, ((student.avgScore ?? 0) / target) * 100);
 
   const sectionData = (analytics?.sectionStats ?? []).map((s) => ({
@@ -377,7 +381,9 @@ export function StudentDetailPage() {
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl font-semibold text-slate-900 truncate">{student.name}</h1>
+          <h1 className="text-xl font-semibold text-slate-900 truncate">{student.name}
+            {customStudent && <span className="ml-2 align-middle rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">{examLabel(student)}</span>}
+          </h1>
           <p className="text-slate-400 text-sm">{student.email}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -387,7 +393,7 @@ export function StudentDetailPage() {
           <Button variant="secondary" size="sm" icon={<GraduationCap size={13} />} onClick={openAssignHomework}>
             Assign Homework
           </Button>
-          <Button size="sm" icon={<BookOpen size={13} />} onClick={() => setAssignOpen(true)}>
+          <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignFilter(defaultAssignFilter(student, publishedTests)); setAssignOpen(true); }}>
             Assign Test
           </Button>
         </div>
@@ -401,9 +407,9 @@ export function StudentDetailPage() {
           </div>
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {[
-              { label: 'Current Score', value: student.avgScore ?? '—', color: 'text-slate-900' },
-              { label: 'Target Score', value: target, color: 'text-blue-600' },
-              { label: 'Gap', value: gap > 0 ? `+${gap}` : String(gap), color: gap > 0 ? 'text-amber-600' : 'text-emerald-600' },
+              { label: customStudent ? 'Average %' : 'Current Score', value: student.avgScore != null ? `${Math.round(student.avgScore * 10) / 10}${unit}` : '—', color: 'text-slate-900' },
+              { label: 'Target Score', value: `${target}${unit}`, color: 'text-blue-600' },
+              { label: 'Gap', value: (gap > 0 ? `+${gap}` : String(gap)) + unit, color: gap > 0 ? 'text-amber-600' : 'text-emerald-600' },
               { label: 'Tests Done', value: student.testsAttempted ?? 0, color: 'text-slate-900' },
             ].map((s) => (
               <div key={s.label} className="bg-slate-50 rounded-lg p-3 text-center">
@@ -432,7 +438,7 @@ export function StudentDetailPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard title="Overall Accuracy" value={analytics ? `${analytics.overallAccuracy}%` : '—'} icon={<TrendingUp size={16} />} trend={{ value: 5, positive: true }} />
         <StatCard title="Tests Taken" value={analytics?.totalAttempts ?? 0} subtitle="submitted" icon={<Clock size={16} />} />
-        <StatCard title="Avg Score" value={analytics?.avgScore ?? '—'} subtitle={analytics?.trend.some(d => d.score > 36) ? "submitted tests (SAT)" : "submitted tests (ACT)"} icon={<Target size={16} />} />
+        <StatCard title="Avg Score" value={analytics?.avgScore ?? '—'} subtitle={customStudent ? `submitted tests (${examLabel(student)})` : analytics?.trend.some(d => d.score > 36) ? "submitted tests (SAT)" : "submitted tests (ACT)"} icon={<Target size={16} />} />
         <StatCard title="Latest Score" value={analytics?.latestScore ?? '—'} subtitle={analytics?.trend.some(d => d.score > 36) ? "SAT composite" : "ACT composite"} icon={<BookOpen size={16} />} />
       </div>
 
@@ -502,7 +508,7 @@ export function StudentDetailPage() {
             <Button variant="secondary" size="sm" icon={<GraduationCap size={13} />} onClick={openAssignHomework}>
               Assign HW
             </Button>
-            <Button size="sm" icon={<BookOpen size={13} />} onClick={() => setAssignOpen(true)}>
+            <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignFilter(defaultAssignFilter(student, publishedTests)); setAssignOpen(true); }}>
               Assign Test
             </Button>
           </div>
@@ -869,7 +875,7 @@ export function StudentDetailPage() {
             <p className="text-sm text-slate-400 py-2">No published tests available.</p>
           ) : (() => {
             const categories = ['All', ...Array.from(new Set(publishedTests.map(t => t.category ?? 'Other')))];
-            const filtered = publishedTests
+            const filtered = examTestsFirst(publishedTests, student)
               .filter(t => assignFilter === 'All' || (t.category ?? 'Other') === assignFilter)
               .filter((t) => {
                 if (assignFilter !== 'Practice Sheet' || assignSubFilter === 'All') return true;

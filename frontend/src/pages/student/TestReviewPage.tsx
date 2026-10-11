@@ -17,6 +17,7 @@ import { formatNumericDisplay, numericEqual } from '../../lib/numericAnswer';
 import { AttemptTimeAnalytics } from '../../components/dashboard/AttemptTimeAnalytics';
 import { AttemptTimeAnalyticsGrid } from '../../components/dashboard/AttemptTimeAnalyticsGrid';
 import { QuestionTimeChart, type QuestionTimeStat } from '../../components/dashboard/QuestionTimeChart';
+import { isCustomTest, isRawScoredTest } from '../../lib/testCategorize';
 
 // ─── DB types ─────────────────────────────────────────────────────────────────
 
@@ -1145,7 +1146,18 @@ export function TestReviewPage() {
 
   // Scaled scores apply to Diagnostic, Mock Test and Sectional attempts —
   // only Practice Sheet tests show the raw count instead.
-  const isPracticeSheet = (attempt.test.category ?? '').trim() === 'Practice Sheet' || /practice\s*sheet/i.test(attempt.test.title ?? '');
+  const isPracticeSheet = isRawScoredTest(attempt.test);
+  // Custom-exam tests (IELTS, school exams…): no SAT labels or scales — marks and a %.
+  const customTest = isCustomTest(attempt.test);
+  const sectionLabel = (name: string) => (customTest ? name : getSectionModuleLabel(name));
+  const customMaxMarks = customTest
+    ? sections.reduce((sum, sa) => sum + sa.section.questions.reduce((m, tq) => {
+        const marks = (tq as { marksPositive?: number }).marksPositive ?? 1;
+        const children = tq.question.childQuestions?.length ?? 0;
+        return m + (children > 0 ? children * marks : marks);
+      }, 0), 0)
+    : 0;
+  const customPct = customMaxMarks > 0 ? Math.round(((attempt.totalScore ?? 0) / customMaxMarks) * 1000) / 10 : null;
   const showScaled = isSAT && !isPracticeSheet;
 
   // rwScaled/mathScaled stay 0 (never a real scaled value, which floors at 200) when that
@@ -1269,8 +1281,23 @@ export function TestReviewPage() {
       {(() => {
         // Sectional tests only have sections for one subject — rwTotal/mathTotal is 0 for
         // the one they don't cover, so hide that box instead of showing a fake 200 floor.
-        const showRW = rwTotal > 0;
-        const showMath = mathTotal > 0;
+        const showRW = rwTotal > 0 && !customTest;
+        const showMath = mathTotal > 0 && !customTest;
+        if (customTest) {
+          return (
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-stretch divide-x divide-slate-200">
+              <div className="px-8 py-6 text-center bg-gradient-to-br from-[#1b3d6e] to-[#2563eb] rounded-l-xl flex flex-col justify-center">
+                <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Score</p>
+                <p className="text-6xl font-black text-white leading-none tabular-nums mt-1.5">{customPct != null ? `${customPct}%` : rawScore}</p>
+                <p className="text-xs text-blue-300 mt-2">{rawScore} of {customMaxMarks || '—'} marks</p>
+              </div>
+              <div className="px-8 py-6 flex flex-col justify-center">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Correct answers</p>
+                <p className="text-4xl font-black text-blue-900 leading-none tabular-nums mt-2">{totalCorrect}/{totalQ}</p>
+              </div>
+            </div>
+          );
+        }
         return (
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-x-auto">
         <div className="flex items-stretch divide-x divide-slate-200 min-w-[720px]">
@@ -1446,7 +1473,7 @@ export function TestReviewPage() {
                     : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                 }`}
               >
-                {getSectionModuleLabel(sa.section.name)}
+                {sectionLabel(sa.section.name)}
               </button>
             ))}
             <button
@@ -1628,7 +1655,7 @@ export function TestReviewPage() {
                               timeChartSectionIdx === idx ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                             }`}
                           >
-                            {getSectionModuleLabel(sec.name)}
+                            {sectionLabel(sec.name)}
                           </button>
                         ))}
                       </div>
@@ -1676,7 +1703,7 @@ export function TestReviewPage() {
               <tbody className="divide-y divide-slate-100 text-slate-600 bg-white">
                 {pacingStats.map((stat, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50">
-                    <td className="px-4 py-3 font-semibold text-slate-800">{getSectionModuleLabel(stat.name)}</td>
+                    <td className="px-4 py-3 font-semibold text-slate-800">{sectionLabel(stat.name)}</td>
                     <td className="px-4 py-3 text-center font-medium">{stat.totalQuestions}</td>
                     <td className="px-4 py-3 text-center">{formatSeconds(stat.totalTime)}</td>
                     <td className="px-4 py-3 text-center font-bold text-slate-900">{stat.avgTime}s</td>
@@ -1728,7 +1755,7 @@ export function TestReviewPage() {
                               timeChartSectionIdx === idx ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                             }`}
                           >
-                            {getSectionModuleLabel(sec.name)}
+                            {sectionLabel(sec.name)}
                           </button>
                         ))}
                       </div>
@@ -1760,7 +1787,7 @@ export function TestReviewPage() {
             <div className="p-6 space-y-5">
               {/* Title */}
               <div className="text-center pb-3 border-b border-slate-100 relative">
-                <h3 className="text-base font-bold text-slate-800 tracking-tight pr-6 pl-6">{getSectionModuleLabel(sections[activeSectionIdx]?.section.name ?? '')}</h3>
+                <h3 className="text-base font-bold text-slate-800 tracking-tight pr-6 pl-6">{sectionLabel(sections[activeSectionIdx]?.section.name ?? '')}</h3>
                 <p className="text-[11px] font-medium text-slate-400 mt-0.5 tracking-wide">Questions</p>
                 <button
                   onClick={() => setQuestionNavigatorOpen(false)}
@@ -2227,7 +2254,7 @@ export function TestReviewPage() {
               >
                 {/* Title */}
                 <div className="text-center pb-3 border-b border-slate-100 relative">
-                  <h3 className="text-base font-bold text-slate-800 tracking-tight pr-6 pl-6">{getSectionModuleLabel(activeSection?.section.name || '')}</h3>
+                  <h3 className="text-base font-bold text-slate-800 tracking-tight pr-6 pl-6">{sectionLabel(activeSection?.section.name || '')}</h3>
                   <p className="text-[11px] font-medium text-slate-400 mt-0.5 tracking-wide">Questions</p>
                   <button
                     onClick={() => setShowFullscreenQuestionNavigator(false)}
