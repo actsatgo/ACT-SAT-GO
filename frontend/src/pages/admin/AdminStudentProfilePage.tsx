@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { fmtSec, formatDate, formatDateTime, localDateTimeToISO, isoToLocalDateTimeInput } from '../../lib/utils';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useUrlString } from '../../lib/urlState';
 import {
   ArrowLeft, BookOpen, Target, TrendingUp, Clock, Phone, School, Calendar,
   User2, Mail, Pencil, Trash2, CheckCircle, X, Save, MessageSquare, PlusCircle,
@@ -403,6 +404,14 @@ function InfoRow({ icon, label, value }: { icon: React.ReactNode; label: string;
   );
 }
 
+/** Short tab label for a module: "RW Module 1", "Math Module 2". */
+function getSectionTabLabel(name: string): string {
+  const isMath = /math/i.test(name);
+  const isRW = /reading|writing|rw|english/i.test(name);
+  if (!isMath && !isRW) return name;
+  return `${isMath ? 'Math' : 'RW'} Module ${/2|two/i.test(name) ? 2 : 1}`;
+}
+
 export function AdminStudentProfilePage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -451,9 +460,26 @@ export function AdminStudentProfilePage() {
   const [copiedPassword, setCopiedPassword] = useState(false);
 
   // Test Analysis state
-  const [expandedAttemptId, setExpandedAttemptId] = useState<string | null>(null);
+  // The opened attempt lives in the URL so the browser Back button closes it.
+  const [expandedAttemptId, setExpandedAttemptId] = useUrlString('attempt');
   const [expandedAttempt, setExpandedAttempt] = useState<TaAttempt | null>(null);
   const [expandedLoading, setExpandedLoading] = useState(false);
+
+  useEffect(() => {
+    if (!expandedAttemptId) { setExpandedAttempt(null); return; }
+    let cancelled = false;
+    setExpandedAttempt(null);
+    setExpandedLoading(true);
+    api.getAttempt(expandedAttemptId)
+      .then(({ attempt }) => { if (!cancelled) setExpandedAttempt(attempt as TaAttempt); })
+      .catch(() => {
+        if (cancelled) return;
+        toast.error('Failed to load test analysis');
+        setExpandedAttemptId('', { replace: true });
+      })
+      .finally(() => { if (!cancelled) setExpandedLoading(false); });
+    return () => { cancelled = true; };
+  }, [expandedAttemptId, setExpandedAttemptId]);
   const [analysisStatus, setAnalysisStatus] = useState<Record<string, 'submitted' | 'not_submitted'>>({});
 
   // Question Wise Report state
@@ -1244,24 +1270,7 @@ export function AdminStudentProfilePage() {
                         className={`flex items-center gap-3 px-5 py-3 cursor-pointer transition-colors ${
                           isExpanded ? 'bg-blue-50/60' : 'hover:bg-slate-50'
                         }`}
-                        onClick={async () => {
-                          if (isExpanded) {
-                            setExpandedAttemptId(null);
-                            setExpandedAttempt(null);
-                            return;
-                          }
-                          setExpandedAttemptId(entry.attemptId);
-                          setExpandedLoading(true);
-                          try {
-                            const { attempt } = await api.getAttempt(entry.attemptId);
-                            setExpandedAttempt(attempt as TaAttempt);
-                          } catch {
-                            toast.error('Failed to load test analysis');
-                            setExpandedAttemptId(null);
-                          } finally {
-                            setExpandedLoading(false);
-                          }
-                        }}
+                        onClick={() => setExpandedAttemptId(isExpanded ? '' : entry.attemptId)}
                       >
                         <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
                           <BookOpen size={13} className="text-blue-500" />
@@ -1495,7 +1504,7 @@ export function AdminStudentProfilePage() {
                                               : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                                           }`}
                                         >
-                                          {sa.category}
+                                          {getSectionTabLabel(sa.name)}
                                         </button>
                                       ))}
                                     </div>
@@ -1603,6 +1612,7 @@ export function AdminStudentProfilePage() {
                                     const options = taOptionsToDisplay(currentTq.question.options);
                                     const userAnswerDisplay = taAnswerToDisplay(studentAnswer?.answerGiven ?? null);
                                     const correctAnswerDisplay = taAnswerToDisplay(currentTq.question.correctAnswer);
+                                    const explText = (currentTq.question.content?.explanation || (currentTq as any).parentPassageExplanation || (currentTq.question as any)?.parentQuestion?.content?.explanation) as string | null | undefined;
 
                                     return (
                                       <div className="flex flex-col gap-4 h-[600px]">
@@ -1672,6 +1682,15 @@ export function AdminStudentProfilePage() {
                                               <div className="flex gap-4 text-sm mb-3 text-left">
                                                 <span className="text-slate-500">Your answer: <strong className={correct ? 'text-blue-600' : 'text-blue-400'}>{studentAnswer?.answerGiven?.text ?? (studentAnswer?.answerGiven?.value !== undefined ? formatNumericDisplay(studentAnswer.answerGiven.value) : null) ?? '—'}</strong></span>
                                                 <span className="text-slate-500">Correct: <strong className="text-blue-600">{(currentTq.question.correctAnswer.displayValues && currentTq.question.correctAnswer.displayValues.length > 0 ? currentTq.question.correctAnswer.displayValues.join(' or ') : (currentTq.question.correctAnswer.value !== undefined ? formatNumericDisplay(currentTq.question.correctAnswer.value) : ''))}</strong></span>
+                                              </div>
+                                            )}
+                                            {/* Explanation (same as fullscreen) */}
+                                            {explText && (
+                                              <div className="mt-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100/80 text-left">
+                                                <h5 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2">Explanation</h5>
+                                                <div className="text-sm text-slate-700 leading-relaxed">
+                                                  <RichContentRenderer content={explText} variant="question" className="prose-sm" />
+                                                </div>
                                               </div>
                                             )}
                                           </div>
@@ -2264,7 +2283,7 @@ export function AdminStudentProfilePage() {
                       onClick={() => { setActiveQuestionSectionIdx(idx); setQuestionFilterBy('all'); setCurrentQuestionIdx(0); }}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow-sm ${activeQuestionSectionIdx === idx ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-700 hover:bg-slate-300'}`}
                     >
-                      {sa.category}
+                      {getSectionTabLabel(sa.name)}
                     </button>
                   ))}
                 </div>
