@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ClipboardList, PlusCircle, X, RotateCcw, Clock, ChevronLeft, ChevronRight,
+  ClipboardList, PlusCircle, X, RotateCcw, Clock, ChevronLeft, ChevronRight, Loader2,
   Calendar, User as UserIcon, Users, CheckCircle2,
 } from 'lucide-react';
 import { Button } from '../../components/common/Button';
@@ -203,18 +203,15 @@ export function AttendancePage() {
   const studentDaysTaught = selected ? new Set(entries.filter(e => e.studentId === selected.studentId).map(e => e.classDate)).size : 0;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="animate-spin h-5 w-5 border-2 border-slate-300 border-t-blue-600 rounded-full" /></div>;
+    return <div className="flex items-center justify-center h-64"><Loader2 size={20} className="animate-spin text-slate-400" /></div>;
   }
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0"><ClipboardList size={18} /></div>
-          <div>
-            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Session Logs</h1>
-            <p className="text-sm text-slate-500">Track and manage all your tutoring sessions in one place.</p>
-          </div>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">Session Logs</h1>
+          <p className="text-sm text-slate-500">Track and manage all your tutoring sessions in one place.</p>
         </div>
         <Button size="sm" icon={<PlusCircle size={14} />} onClick={openLog} disabled={students.length === 0}>
           Log a Session
