@@ -31,7 +31,7 @@ export function SettingsPage() {
     emailDigest: false,
   });
   const [platformSettings, setPlatformSettings] = useState({
-    scoringScale: 'ACT',
+    scoringScale: 'SAT',
     defaultTestDuration: '60',
     tabSwitchLimit: '3',
     autosaveInterval: '30',

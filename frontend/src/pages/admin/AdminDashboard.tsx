@@ -116,7 +116,7 @@ export function AdminDashboard() {
 
   const studentsInSelectedRange = useMemo(() => {
     if (!selectedRange) return [];
-    const buckets = hasSAT && !hasACT ? SAT_BUCKETS : ACT_BUCKETS;
+    const buckets = hasSAT || !hasACT ? SAT_BUCKETS : ACT_BUCKETS;
     const bucket = buckets.find((b) => b.label === selectedRange);
     if (!bucket) return [];
     return studentsWithScore
@@ -225,12 +225,12 @@ export function AdminDashboard() {
   const attemptsToday = activityData.length ? activityData[activityData.length - 1].attempts : 0;
   const mocksCompletedThisWeek = activityData.reduce((a, d) => a + d.completions, 0);
 
-  const trendKey: 'avgSAT' | 'avgACT' = hasSAT && !hasACT ? 'avgSAT' : 'avgACT';
+  const trendKey: 'avgSAT' | 'avgACT' = hasSAT || !hasACT ? 'avgSAT' : 'avgACT';
   const trendLabel = trendKey === 'avgSAT' ? 'Avg SAT Score' : 'Avg ACT Score';
 
   const firstName = (user?.name ?? 'Admin').split(' ')[0];
   const today = new Date();
-  const scoreScaleLabel = hasSAT && !hasACT ? 'out of 1600' : 'out of 36';
+  const scoreScaleLabel = hasSAT || !hasACT ? 'out of 1600' : 'out of 36';
 
   return (
     <div className="space-y-5">

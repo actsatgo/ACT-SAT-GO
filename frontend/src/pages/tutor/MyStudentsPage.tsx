@@ -511,8 +511,8 @@ export function MyStudentsPage() {
 
   const downloadTemplate = () => {
     exportToCsv([
-      { name: 'John Doe', email: 'john@school.edu', grade: '11', targetScore: '32', tutorId: '', phone: '555-0100', parentPhone: '555-0101', dob: '2008-03-15', schoolName: 'Lincoln High School' },
-      { name: 'Jane Smith', email: 'jane@school.edu', grade: '10', targetScore: '30', tutorId: '', phone: '555-0200', parentPhone: '555-0201', dob: '2009-07-22', schoolName: 'Washington Academy' },
+      { name: 'John Doe', email: 'john@school.edu', grade: '11', targetScore: '1400', tutorId: '', phone: '555-0100', parentPhone: '555-0101', dob: '2008-03-15', schoolName: 'Lincoln High School' },
+      { name: 'Jane Smith', email: 'jane@school.edu', grade: '10', targetScore: '1300', tutorId: '', phone: '555-0200', parentPhone: '555-0201', dob: '2009-07-22', schoolName: 'Washington Academy' },
     ], 'student_upload_template.csv');
   };
 
@@ -1383,9 +1383,9 @@ export function MyStudentsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-600 mb-1">Target ACT Score</label>
-                <input type="number" min={1} max={36} value={addForm.targetScore} onChange={(e) => setAddForm(f => ({ ...f, targetScore: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 32" />
+                <label className="block text-xs font-medium text-slate-600 mb-1">Target Score</label>
+                <input type="number" min={1} max={1600} value={addForm.targetScore} onChange={(e) => setAddForm(f => ({ ...f, targetScore: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. 1400" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Assign Tutor(s)</label>

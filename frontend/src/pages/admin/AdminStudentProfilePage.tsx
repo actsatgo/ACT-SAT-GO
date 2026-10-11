@@ -605,7 +605,7 @@ export function AdminStudentProfilePage() {
                   </div>
                   <div>
                     <label className={labelCls}>Target Score</label>
-                    <input type="number" min={1} max={36} className={inputCls} value={editForm.targetScore} onChange={(e) => setEditForm(f => ({ ...f, targetScore: e.target.value }))} placeholder="e.g. 32" />
+                    <input type="number" min={1} max={1600} className={inputCls} value={editForm.targetScore} onChange={(e) => setEditForm(f => ({ ...f, targetScore: e.target.value }))} placeholder="e.g. 1400" />
                   </div>
                 </div>
                 <div>
@@ -674,7 +674,8 @@ export function AdminStudentProfilePage() {
 
           {/* Stat cards */}
           {(() => {
-            const isSATStudent = analytics?.trend.some(d => d.score > 36) ?? false;
+            // ACT only when every recorded score fits the 1-36 scale; new students default to SAT.
+            const isSATStudent = !(analytics && analytics.trend.length > 0 && analytics.trend.every(d => d.score <= 36));
             return (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <StatCard title="Accuracy" value={analytics ? `${analytics.overallAccuracy}%` : '—'} icon={<TrendingUp size={15} />} />
@@ -987,12 +988,6 @@ export function AdminStudentProfilePage() {
                                       </div>
                                     </div>
                                     <div className="flex items-center gap-2 flex-wrap flex-shrink-0">
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); toast.success('Reset functionality coming soon'); }}
-                                        className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm"
-                                      >
-                                        Reset
-                                      </button>
                                       <button
                                         onClick={(e) => {
                                           e.stopPropagation();
