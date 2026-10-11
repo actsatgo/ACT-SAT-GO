@@ -314,6 +314,28 @@ export interface DbTestPackage {
   items: DbTestPackageItem[]
 }
 
+// ── ASG Library ──────────────────────────────────────────────────────────────
+export interface LibraryAssignee {
+  id: string
+  name: string | null
+  email: string
+  role: string
+}
+export interface LibraryDocument {
+  id: string
+  title: string
+  description: string | null
+  fileName: string
+  sizeBytes: number
+  createdAt: string
+  updatedAt: string
+  /** Admin listing only. */
+  uploadedByName?: string | null
+  assignees?: LibraryAssignee[]
+  /** Student/tutor listing only: when it was assigned to them. */
+  assignedAt?: string
+}
+
 export const api = {
   // Users
   getUsersByRole: (role?: string, opts?: { deleted?: boolean }) => {
@@ -767,6 +789,42 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
+
+  // ASG Library — admin uploads PDFs and assigns them; students/tutors read assigned ones.
+  getLibrary: () => request<{ documents: LibraryDocument[] }>('/api/library'),
+  uploadLibraryDocument: async (file: File, meta: { title: string; description?: string }) => {
+    const { path, token } = await request<{ path: string; token: string }>('/api/library/upload-url', {
+      method: 'POST',
+      body: JSON.stringify({ fileName: file.name, sizeBytes: file.size }),
+    })
+    // Straight to the private Storage bucket with the one-time signed URL (no 10MB server limit).
+    const { error } = await supabase.storage.from('library').uploadToSignedUrl(path, token, file, {
+      contentType: 'application/pdf',
+    })
+    if (error) throw new Error(error.message || 'Upload failed')
+    return request<{ document: LibraryDocument }>('/api/library', {
+      method: 'POST',
+      body: JSON.stringify({ title: meta.title, description: meta.description ?? null, path, fileName: file.name }),
+    })
+  },
+  updateLibraryDocument: (documentId: string, body: { title?: string; description?: string | null }) =>
+    request<{ document: LibraryDocument }>(`/api/library/${documentId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  deleteLibraryDocument: (documentId: string) =>
+    request<{ success: boolean }>(`/api/library/${documentId}`, { method: 'DELETE' }),
+  setLibraryAssignees: (documentId: string, userIds: string[]) =>
+    request<{ assignees: LibraryAssignee[] }>(`/api/library/${documentId}/assignments`, {
+      method: 'PUT',
+      body: JSON.stringify({ userIds }),
+    }),
+  /** The PDF bytes for the in-app viewer (access is checked on the server). */
+  getLibraryFile: async (documentId: string): Promise<ArrayBuffer> => {
+    const res = await fetch(`${BASE}/api/library/${documentId}/file`, { headers: { ...(await authHeaders()) } })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }))
+      throw new Error(err.error ?? 'Could not open the document')
+    }
+    return res.arrayBuffer()
+  },
 
   deleteImage: async (path: string) => {
     clearApiCache()
