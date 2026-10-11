@@ -1,4 +1,5 @@
 import { SITE } from './site';
+import { ARTICLES, articlePath } from './data/articles';
 
 // Per-route <title>, meta description and canonical URL. Structured data
 // (JSON-LD) lives in schema.ts, which only the prerenderer loads.
@@ -100,6 +101,7 @@ export const PAGES: PageMeta[] = [
     title: 'Child Safety & Online Sessions | ACT SAT GO',
     description: 'How ACT SAT GO keeps online tutoring sessions safe for students, and how parents stay involved.',
   },
+  ...ARTICLES.map((a) => ({ path: articlePath(a.slug), title: a.metaTitle, description: a.description })),
   {
     path: '/404',
     title: 'Page not found | ACT SAT GO',

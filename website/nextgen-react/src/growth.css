@@ -327,3 +327,64 @@ html:not(.js) .reveal {
 :where(img[width][height]) {
   height: auto;
 }
+
+/* Articles (/resources/:slug) */
+.article-crumbs {
+  font-size: 14px;
+  color: #5b6b80;
+}
+.article-crumbs a {
+  color: inherit;
+}
+.article-tag {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #1c5fa5;
+}
+.article-answer {
+  font-size: 18px;
+  line-height: 1.7;
+  padding: 18px 20px;
+  background: #fff;
+  border-left: 4px solid #1c5fa5;
+  border-radius: 8px;
+}
+.article-table-wrap {
+  overflow-x: auto;
+  margin: 12px 0 8px;
+}
+.article-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  font-size: 15px;
+}
+.article-table th,
+.article-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 10px 12px;
+  border: 1px solid #dde4ee;
+  color: #34445a;
+  line-height: 1.5;
+}
+.article-table thead th {
+  background: #eef3fa;
+  color: #14233a;
+}
+.article-cta {
+  margin-top: 40px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 12px;
+}
+.article-cta .btn {
+  margin: 6px 8px 0 0;
+}
+.article-related {
+  padding-top: 8px;
+}
