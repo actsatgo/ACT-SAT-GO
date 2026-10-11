@@ -281,12 +281,17 @@ function computeTestAnalysis(attempt: TaAttempt): {
     const total = flatQs.length;
     const accuracy = total > 0 ? (correct / total) * 100 : 0;
 
+    // Time on this module = sum of its questions' time (the same numbers Time
+    // Analytics uses). Section start/end stamps are not per-module, so they are
+    // only a fallback for old attempts with no per-question time.
     let timeTaken = '—';
-    if (sa.startedAt && sa.completedAt) {
-      const ms = new Date(sa.completedAt).getTime() - new Date(sa.startedAt).getTime();
-      const mins = Math.floor(ms / 60000);
-      const secs = Math.round((ms % 60000) / 1000);
-      timeTaken = `${mins}:${secs.toString().padStart(2, '0')} Minutes Taken`;
+    let sectionSecs = flatQs.reduce((sum, tq) => sum + (answersMap.get(tq.questionId)?.timeSpentSeconds ?? 0), 0);
+    if (sectionSecs <= 0 && sa.startedAt && sa.completedAt) {
+      sectionSecs = (new Date(sa.completedAt).getTime() - new Date(sa.startedAt).getTime()) / 1000;
+    }
+    if (sectionSecs > 0) {
+      const whole = Math.round(sectionSecs);
+      timeTaken = `${Math.floor(whole / 60)}:${(whole % 60).toString().padStart(2, '0')} Minutes Taken`;
     }
 
     // Classify by section name first; fall back to test title when section name is generic
