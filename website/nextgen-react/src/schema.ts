@@ -2,6 +2,7 @@ import { SITE } from './site';
 import { HOME_FAQ, type FaqItem } from './data/faq';
 import { SAT_PAGE, ACT_PAGE, AP_PAGE, type ProgramPageData } from './data/programs';
 import { PAGES } from './seo';
+import { ARTICLE_BY_SLUG } from './data/articles';
 
 // Schema.org structured data (JSON-LD) for every page in the sitemap, per the
 // "Schema Markup (JSON-LD) Implementation Guide". One @graph per page, written
@@ -218,6 +219,35 @@ function graphFor(path: string): Json[] | null {
         breadcrumb(path, 'Resources'),
       ];
     default: {
+      const article = path.startsWith('/resources/') ? ARTICLE_BY_SLUG[path.slice('/resources/'.length)] : undefined;
+      if (article) {
+        // Published by the organization; no individual author is named.
+        return [
+          webPage('WebPage', path, article.metaTitle, article.description),
+          {
+            '@type': 'Article',
+            '@id': `${url(path)}#article`,
+            headline: article.title,
+            description: article.description,
+            datePublished: article.published,
+            dateModified: article.updated,
+            author: { '@id': ORG_ID },
+            publisher: { '@id': ORG_ID },
+            mainEntityOfPage: { '@id': `${url(path)}#webpage` },
+            image: `${SITE.url}/og-image.jpg`,
+            inLanguage: 'en-US',
+          },
+          {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: url('/') },
+              { '@type': 'ListItem', position: 2, name: 'Resources', item: url('/resources') },
+              { '@type': 'ListItem', position: 3, name: article.title, item: url(path) },
+            ],
+          },
+          faqPageFor(path, article.faq),
+        ];
+      }
       const simple = SIMPLE[path];
       if (!simple) return null;
       return [webPage('WebPage', path, simple.name), breadcrumb(path, simple.crumb)];

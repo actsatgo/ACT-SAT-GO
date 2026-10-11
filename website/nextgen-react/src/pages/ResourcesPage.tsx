@@ -8,6 +8,8 @@ import { AP_GUIDES } from '../data/apGuides';
 import { TestGuidesSection, testGuideMatches } from '../components/TestGuides';
 import { TEST_GUIDES } from '../data/testGuides';
 import { QUERY_API_BASE } from '../config';
+import { Link } from 'react-router-dom';
+import { ARTICLES, articlePath, formatArticleDate } from '../data/articles';
 
 // Image assets
 import heroImg from '../assets/img/resouces-hero.webp';
@@ -508,6 +510,30 @@ export function ResourcesPage() {
 
         {/* AP exam guides — free PDF downloads */}
         {hasApGuides && <ApGuidesSection pageQuery={searchQuery} />}
+
+        {/* Guides & articles — static pages, prerendered for search and AI engines */}
+        <section className="resources-section shell" style={{ paddingTop: '0' }} aria-labelledby="guides-title">
+          <div className="section-header-row">
+            <div className="section-title">
+              <h2 id="guides-title">SAT &amp; ACT Guides</h2>
+              <p>Straight answers to the questions parents and students ask most</p>
+            </div>
+          </div>
+          <div className="blog-grid">
+            {ARTICLES.map((a) => (
+              <article key={a.slug} className="blog-card">
+                <div className="blog-content-area">
+                  <span className="blog-post-tag">{a.tag}</span>
+                  <h3><Link to={articlePath(a.slug)}>{a.title}</Link></h3>
+                  <p>{a.description}</p>
+                  <div className="blog-card-footer">
+                    <span>Updated {formatArticleDate(a.updated)}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
 
         {/* From the Blog */}
         {filteredBlogs.length > 0 && (
