@@ -30,16 +30,6 @@ export function SettingsPage() {
     systemAlerts: true,
     emailDigest: false,
   });
-  const [platformSettings, setPlatformSettings] = useState({
-    scoringScale: 'SAT',
-    defaultTestDuration: '60',
-    tabSwitchLimit: '3',
-    autosaveInterval: '30',
-    allowResumeTests: true,
-    showResultsImmediately: true,
-    requireAgreement: true,
-    enforceFullscreen: false,
-  });
 
   const isSuperAdmin = user?.role === 'super_admin';
 
@@ -243,64 +233,6 @@ export function SettingsPage() {
                   <Button size="sm" onClick={handleSaveNextSatDate} disabled={nextSatDateSaving} variant={nextSatDateSaved ? 'success' : 'primary'}>
                     {nextSatDateSaving ? 'Saving...' : nextSatDateSaved ? 'Saved!' : 'Save'}
                   </Button>
-                </div>
-              </Card>
-              <Card>
-                <h2 className="font-semibold text-slate-900 mb-5">Test Delivery Settings</h2>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Default Scoring Scale</label>
-                      <select value={platformSettings.scoringScale} onChange={(e) => setPlatformSettings((p) => ({ ...p, scoringScale: e.target.value }))}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="ACT">ACT (1–36)</option>
-                        <option value="SAT">SAT (400–1600)</option>
-                        <option value="custom">Custom</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Default Section Duration (min)</label>
-                      <input type="number" value={platformSettings.defaultTestDuration}
-                        onChange={(e) => setPlatformSettings((p) => ({ ...p, defaultTestDuration: e.target.value }))}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Tab Switch Alert Threshold</label>
-                      <input type="number" value={platformSettings.tabSwitchLimit}
-                        onChange={(e) => setPlatformSettings((p) => ({ ...p, tabSwitchLimit: e.target.value }))}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">Autosave Interval (sec)</label>
-                      <input type="number" value={platformSettings.autosaveInterval}
-                        onChange={(e) => setPlatformSettings((p) => ({ ...p, autosaveInterval: e.target.value }))}
-                        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                    </div>
-                  </div>
-                  <div className="space-y-3 pt-2 border-t border-slate-100">
-                    {[
-                      { key: 'allowResumeTests' as const, label: 'Allow Test Resume', desc: 'Students can resume interrupted tests' },
-                      { key: 'showResultsImmediately' as const, label: 'Show Results Immediately', desc: 'Default: show results after submission' },
-                      { key: 'requireAgreement' as const, label: 'Require Academic Agreement', desc: 'Students must agree before starting each test' },
-                      { key: 'enforceFullscreen' as const, label: 'Enforce Fullscreen Mode', desc: 'Require fullscreen during test; warn if exited' },
-                    ].map((item) => (
-                      <div key={item.key} className="flex items-center justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-slate-900">{item.label}</p>
-                          <p className="text-xs text-slate-500">{item.desc}</p>
-                        </div>
-                        <button onClick={() => setPlatformSettings((p) => ({ ...p, [item.key]: !p[item.key] }))}
-                          className={`relative w-10 h-5 rounded-full transition-colors flex-shrink-0 ${platformSettings[item.key] ? 'bg-blue-600' : 'bg-slate-200'}`}>
-                          <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${platformSettings[item.key] ? 'translate-x-5' : 'translate-x-0.5'}`} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-end">
-                    <Button size="sm" onClick={handleSave} variant={saved ? 'success' : 'primary'}>
-                      {saved ? 'Saved!' : 'Save Settings'}
-                    </Button>
-                  </div>
                 </div>
               </Card>
             </div>
