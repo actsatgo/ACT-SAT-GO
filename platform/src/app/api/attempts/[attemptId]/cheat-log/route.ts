@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAttemptAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(
@@ -6,6 +7,8 @@ export async function POST(
   { params }: { params: Promise<{ attemptId: string }> }
 ) {
   const { attemptId } = await params
+  const access = await requireAttemptAccess(request, attemptId)
+  if (access !== true) return access
 
   try {
     const body = await request.json()

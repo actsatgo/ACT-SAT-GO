@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAttemptAccess } from '@/lib/auth'
 import { redis } from '@/lib/redis'
 
 export async function POST(
@@ -6,6 +7,8 @@ export async function POST(
   { params }: { params: Promise<{ attemptId: string }> }
 ) {
   const { attemptId } = await params
+  const access = await requireAttemptAccess(request, attemptId)
+  if (access !== true) return access
 
   try {
     const body = await request.json()
@@ -49,10 +52,12 @@ export async function POST(
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ attemptId: string }> }
 ) {
   const { attemptId } = await params
+  const access = await requireAttemptAccess(request, attemptId)
+  if (access !== true) return access
 
   try {
     const [stateRaw, answersRaw] = await Promise.all([

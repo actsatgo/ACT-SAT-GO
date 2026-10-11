@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireStudentAccess } from '@/lib/auth'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ studentId: string }> }
 ) {
   const { studentId } = await params
+  const access = await requireStudentAccess(request, studentId)
+  if (access !== true) return access
 
   try {
     const attempts = await prisma.testAttempt.findMany({

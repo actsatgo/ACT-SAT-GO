@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAttemptAccess } from '@/lib/auth'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { redis } from '@/lib/redis'
@@ -40,10 +41,12 @@ function satSectionScore(m1: number, m2: number, total: number, isMath: boolean,
 
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ attemptId: string; sectionId: string }> }
 ) {
   const { attemptId, sectionId } = await params
+  const access = await requireAttemptAccess(request, attemptId)
+  if (access !== true) return access
 
   try {
     // 1. Flush Redis answers → PostgreSQL
