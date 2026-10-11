@@ -153,6 +153,17 @@ export function VisitGridChart({
 
   return (
     <div ref={wrapRef} className="relative">
+      {/* Result key sits in its own row above the chart so it never covers bars. */}
+      {large && (
+        <div className="flex flex-wrap justify-end gap-x-4 gap-y-1 px-3 pt-1 text-xs text-slate-800">
+          {(['correct', 'incorrect', 'unanswered'] as TaResult[]).map((r) => (
+            <div key={r} className="flex items-center gap-2">
+              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: VISIT_FILL[r] }} />
+              {VISIT_LABEL[r]}
+            </div>
+          ))}
+        </div>
+      )}
       <svg
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
@@ -249,16 +260,6 @@ export function VisitGridChart({
         })}
       </svg>
 
-      {large && (
-        <div className="absolute right-3 top-10 space-y-1 rounded-md bg-slate-100 px-3 py-2 text-xs text-slate-800">
-          {(['correct', 'incorrect', 'unanswered'] as TaResult[]).map((r) => (
-            <div key={r} className="flex items-center gap-2">
-              <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: VISIT_FILL[r] }} />
-              {VISIT_LABEL[r]}
-            </div>
-          ))}
-        </div>
-      )}
 
       {tip && (
         <div
