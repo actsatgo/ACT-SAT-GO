@@ -31,39 +31,11 @@ export async function getCurrentUser(request: NextRequest): Promise<User | null>
     let user = await prisma.user.findUnique({ where: { id: userId } })
     if (!user && userEmail) {
       user = await prisma.user.findUnique({ where: { email: userEmail } })
-      if (!user && (userEmail.includes('admin') || userEmail.includes('sunanda') || userEmail.includes('staff'))) {
-        try {
-          user = await prisma.user.create({
-            data: {
-              id: userId,
-              email: userEmail,
-              name: userEmail.split('@')[0],
-              role: 'ADMIN',
-            },
-          })
-        } catch {
-          // ignore unique constraint race
-        }
-      }
     }
     if (user?.deletedAt) return null
     if (user) return user
   } catch (dbErr) {
     console.error('Error fetching current user from DB:', dbErr)
-  }
-
-  // If user is authenticated in Supabase with admin identifier
-  if (userEmail && (userEmail.includes('admin') || userEmail.includes('sunanda') || userEmail.includes('staff'))) {
-    return {
-      id: userId,
-      email: userEmail,
-      name: userEmail.split('@')[0],
-      role: 'ADMIN',
-      permissions: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      deletedAt: null,
-    } as User
   }
 
   return null
