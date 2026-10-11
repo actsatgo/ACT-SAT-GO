@@ -71,6 +71,7 @@ const DEMO_ALLOWED = [
   /^\/dashboard$/,
   /^\/analytics$/,
   /^\/settings$/,
+  /^\/profile$/,
   /^\/test-instructions\/[^/]+$/,
   /^\/test\/[^/]+$/,
   /^\/test-review\/[^/]+(\/section\/[^/]+)?$/,
@@ -178,6 +179,8 @@ const router = createBrowserRouter(
         {/* ASG Library — every role; the page shows admins everything, others only what is assigned */}
         <Route path="library" element={<LibraryPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        {/* My Profile — opened by clicking your own name (sidebar or top bar) */}
+        <Route path="profile" element={<SettingsPage mode="profile" />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

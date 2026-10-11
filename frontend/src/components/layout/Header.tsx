@@ -4,6 +4,7 @@ import { useNotificationStore } from '../../store/useNotificationStore';
 import type { Role } from '../../types';
 import { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useNavigate } from 'react-router-dom';
 import { DesmosCalculator } from '../calculator/DesmosCalculator';
 
 const roleLabels: Record<Role, string> = {
@@ -28,6 +29,7 @@ function relativeTime(iso: string): string {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuthStore();
+  const navigate = useNavigate();
   const { notifications, markRead } = useNotificationStore();
   const [notifOpen, setNotifOpen] = useState(false);
   const [desmosOpen, setDesmosOpen] = useState(false);
@@ -112,7 +114,8 @@ export function Header({ onMenuClick }: HeaderProps) {
 
         {/* User */}
         {user && (
-          <div className="flex items-center gap-2 pl-2">
+          <button type="button" onClick={() => navigate('/profile')} title="My Profile"
+            className="flex items-center gap-2 pl-2 pr-1 py-0.5 rounded-lg text-left hover:bg-slate-50 transition-colors">
             <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 text-xs font-semibold flex-shrink-0">
               {user.name.charAt(0)}
             </div>
@@ -120,7 +123,7 @@ export function Header({ onMenuClick }: HeaderProps) {
               <p className="text-xs font-medium text-slate-800 leading-tight">{user.name.split(' ')[0]}</p>
               <p className="text-xs text-slate-400">{user.isDemo ? 'Demo Student' : roleLabels[user.role]}</p>
             </div>
-          </div>
+          </button>
         )}
       </div>
 
