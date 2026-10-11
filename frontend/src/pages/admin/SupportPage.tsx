@@ -27,8 +27,8 @@ const FAQS: { section: string; items: FaqItem[] }[] = [
   {
     section: 'Reports & Analytics',
     items: [
-      { q: 'What data does the Reports page show?', a: 'Select a student to see their score trend across all submitted attempts, section-level performance (accuracy and time used), and a breakdown table showing each section\'s stats.' },
-      { q: 'Can I export data to CSV?', a: 'Yes. Use the "Export CSV" button on the Reports page to download per-student analytics. The "Students CSV" button exports a summary of all students.' },
+      { q: 'What does the Analytics page show?', a: 'Select a student to see their score trend across all submitted attempts, section-level performance (accuracy and time used), and a breakdown of their strongest and weakest skills.' },
+      { q: 'Can I import or export data?', a: 'Students can be added in bulk from a CSV on the Students page using "Bulk Import" (there is a template to download). Each test report can be downloaded from the student\'s test report view with "Download Report".' },
       { q: 'How is the score trend calculated?', a: 'The score trend uses all SUBMITTED test attempts for the selected student, ordered by completion date. Each data point is the total raw score for that attempt.' },
     ],
   },

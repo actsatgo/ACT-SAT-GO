@@ -8,7 +8,7 @@ export function AccuracyBar({ pct }: { pct: number }) {
                 'bg-rose-400';
   return (
     <div className="flex items-center gap-2 min-w-[96px]">
-      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
         <div className={`h-full rounded-full ${color} transition-all duration-500`} style={{ width: `${pct}%` }} />
       </div>
       <span className="text-xs font-bold w-9 text-right text-slate-700">{pct}%</span>
@@ -24,7 +24,7 @@ export function BreakdownTable({
   rows: Array<{ name: string; agg: Agg }>;
 }) {
   return (
-    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
       <div className="px-4 py-3 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100/40 flex items-center gap-2.5">
         <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-[#1b3d6e]">{icon}</span>
         <div>
@@ -45,25 +45,25 @@ export function BreakdownTable({
               <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-blue-800 uppercase tracking-wide w-36">Accuracy</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-50">
+          <tbody className="divide-y divide-slate-50">
             {rows.length === 0 ? (
-              <tr><td colSpan={7} className="px-4 py-8 text-center text-gray-400 text-sm">No data yet</td></tr>
+              <tr><td colSpan={7} className="px-4 py-8 text-center text-slate-400 text-sm">No data yet</td></tr>
             ) : rows.map(({ name, agg }) => {
               const acc = accuracy(agg);
               const empty = agg.total === 0;
               return (
-                <tr key={name} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-gray-900">{name}</td>
+                <tr key={name} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-3 font-medium text-slate-900">{name}</td>
                   <td className="px-3 py-3 text-center font-semibold text-slate-700">
                     <span className="text-emerald-600">{agg.correct}</span>
-                    <span className="text-gray-300"> / </span>
-                    <span className="text-gray-500">{agg.total}</span>
+                    <span className="text-slate-300"> / </span>
+                    <span className="text-slate-500">{agg.total}</span>
                   </td>
                   <td className={`px-3 py-3 text-center ${agg.incorrect > 0 ? 'font-semibold text-rose-500' : 'text-slate-400'}`}>{agg.incorrect}</td>
                   <td className={`px-3 py-3 text-center ${agg.doubts > 0 ? 'font-semibold text-amber-500' : 'text-slate-400'}`}>{agg.doubts}</td>
                   <td className={`px-3 py-3 text-center ${agg.cleared > 0 ? 'font-semibold text-blue-500' : 'text-slate-400'}`}>{agg.cleared}</td>
                   <td className="px-3 py-3 text-center text-xs text-slate-500">{fmtTime(avgTime(agg))}</td>
-                  <td className="px-4 py-3">{empty ? <span className="text-xs text-gray-300">—</span> : <AccuracyBar pct={acc} />}</td>
+                  <td className="px-4 py-3">{empty ? <span className="text-xs text-slate-300">—</span> : <AccuracyBar pct={acc} />}</td>
                 </tr>
               );
             })}

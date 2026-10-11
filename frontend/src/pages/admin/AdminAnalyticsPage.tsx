@@ -49,7 +49,7 @@ function DomainBars({ rows }: { rows: Array<{ name: string; agg: { correct: numb
   })).filter(d => d.total > 0);
 
   if (data.length === 0) return (
-    <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-400">
+    <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-400">
       <BarChart2 size={20} />
       <p className="text-xs">No data yet</p>
     </div>
@@ -65,10 +65,10 @@ function DomainBars({ rows }: { rows: Array<{ name: string; agg: { correct: numb
           if (!active || !payload?.length) return null;
           const d = payload[0].payload;
           return (
-            <div className="bg-white border border-gray-200 rounded-xl px-3 py-2 text-xs shadow-xl">
-              <p className="text-gray-700 font-semibold mb-0.5">{d.fullName}</p>
-              <p className="text-gray-900">Accuracy: <strong>{d.accuracy}%</strong></p>
-              <p className="text-gray-400">{d.correct}/{d.total} correct</p>
+            <div className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs shadow-xl">
+              <p className="text-slate-700 font-semibold mb-0.5">{d.fullName}</p>
+              <p className="text-slate-900">Accuracy: <strong>{d.accuracy}%</strong></p>
+              <p className="text-slate-400">{d.correct}/{d.total} correct</p>
             </div>
           );
         }} />
@@ -163,17 +163,17 @@ function StudentCumulative({ student, onBack }: { student: DbUser; onBack: () =>
       <div className="flex items-center gap-3">
         <button
           onClick={onBack}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
           title="Back to students"
         >
-          <ArrowLeft size={20} className="text-gray-600" />
+          <ArrowLeft size={20} className="text-slate-600" />
         </button>
         <div className="min-w-0">
-          <h1 className="text-xl font-bold text-gray-900">Analytics Overview</h1>
-          <p className="text-gray-400 text-sm">{student.name}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">Analytics Overview</h1>
+          <p className="text-slate-400 text-sm">{student.name}</p>
         </div>
         <div className="ml-auto flex items-center gap-2 flex-shrink-0">
-          <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full font-medium">
+          <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full font-medium">
             {nonDiagAttempts.length} test{nonDiagAttempts.length !== 1 ? 's' : ''}
           </span>
         </div>
@@ -184,10 +184,10 @@ function StudentCumulative({ student, onBack }: { student: DbUser; onBack: () =>
           <Loader2 size={22} className="animate-spin text-[#1b3d6e]" />
         </div>
       ) : nonDiagAttempts.length === 0 ? (
-        <div className="bg-white border border-gray-100 rounded-xl py-16 text-center shadow-sm">
-          <Target size={24} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">No non-diagnostic tests attempted yet</p>
-          <p className="text-gray-400 text-sm mt-1">
+        <div className="bg-white border border-slate-100 rounded-xl py-16 text-center shadow-sm">
+          <Target size={24} className="text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-500 font-medium">No non-diagnostic tests attempted yet</p>
+          <p className="text-slate-400 text-sm mt-1">
             {attempts.length > 0 ? 'This student has only taken diagnostic tests.' : 'This student has not completed any tests.'}
           </p>
         </div>
@@ -206,7 +206,7 @@ function StudentCumulative({ student, onBack }: { student: DbUser; onBack: () =>
 
           {/* ── Subject toggle ───────────────────────────────────────────── */}
           <div className="flex items-center gap-2 pt-1">
-            <span className="text-xs text-gray-500 font-medium">Breakdown for:</span>
+            <span className="text-xs text-slate-500 font-medium">Breakdown for:</span>
             {([['rw', 'Reading & Writing'], ['math', 'Math']] as const).map(([key, label]) => (
               <button
                 key={key}
@@ -214,7 +214,7 @@ function StudentCumulative({ student, onBack }: { student: DbUser; onBack: () =>
                 className={`text-xs px-3.5 py-1.5 rounded-lg font-semibold transition-all ${
                   subject === key
                     ? 'bg-[#1b3d6e] text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                 }`}
               >
                 {label}
@@ -238,7 +238,7 @@ function StudentCumulative({ student, onBack }: { student: DbUser; onBack: () =>
           />
 
           {/* ── Graphs (kept at the bottom) ──────────────────────────────── */}
-          <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-white border border-slate-100 rounded-xl shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-blue-100/40 flex items-center gap-2.5">
               <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 text-[#1b3d6e]"><BarChart2 size={15} /></span>
               <div>
@@ -320,19 +320,19 @@ export function AdminAnalyticsPage({ scope = 'all' }: { scope?: 'all' | 'tutor' 
   return (
     <div className="space-y-5 max-w-3xl">
       <div>
-        <h1 className="text-xl font-bold text-gray-900">Student Analytics</h1>
-        <p className="text-gray-500 text-sm mt-0.5">
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900">Student Analytics</h1>
+        <p className="text-slate-500 text-sm mt-0.5">
           Pick a student to see their cumulative performance &amp; charts (diagnostics excluded).
         </p>
       </div>
 
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by name or email…"
-          className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1b3d6e] shadow-sm"
+          className="w-full pl-9 pr-3 py-2.5 border border-slate-200 rounded-xl text-sm text-slate-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1b3d6e] shadow-sm"
         />
       </div>
 
@@ -341,14 +341,14 @@ export function AdminAnalyticsPage({ scope = 'all' }: { scope?: 'all' | 'tutor' 
           <Loader2 size={22} className="animate-spin text-[#1b3d6e]" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-white border border-gray-100 rounded-xl py-16 text-center shadow-sm">
-          <Users size={24} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">
+        <div className="bg-white border border-slate-100 rounded-xl py-16 text-center shadow-sm">
+          <Users size={24} className="text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-500 font-medium">
             {students.length === 0 ? 'No students found' : 'No students match your search'}
           </p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-xl divide-y divide-gray-50 overflow-hidden shadow-sm">
+        <div className="bg-white border border-slate-100 rounded-xl divide-y divide-slate-50 overflow-hidden shadow-sm">
           {filtered.map(s => (
             <button
               key={s.id}
@@ -359,14 +359,14 @@ export function AdminAnalyticsPage({ scope = 'all' }: { scope?: 'all' | 'tutor' 
                 {s.name.charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-semibold text-gray-900 text-sm truncate group-hover:text-blue-700">{s.name}</p>
+                <p className="font-semibold text-slate-900 text-sm truncate group-hover:text-blue-700">{s.name}</p>
               </div>
               {typeof s.testsAttempted === 'number' && (
-                <span className="text-xs text-gray-400 flex-shrink-0 bg-gray-100 px-2 py-0.5 rounded-full">
+                <span className="text-xs text-slate-400 flex-shrink-0 bg-slate-100 px-2 py-0.5 rounded-full">
                   {s.testsAttempted} test{s.testsAttempted !== 1 ? 's' : ''}
                 </span>
               )}
-              <ChevronRight size={16} className="text-gray-300 group-hover:text-blue-500 flex-shrink-0 transition-colors" />
+              <ChevronRight size={16} className="text-slate-300 group-hover:text-blue-500 flex-shrink-0 transition-colors" />
             </button>
           ))}
         </div>

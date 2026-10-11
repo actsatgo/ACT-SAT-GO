@@ -212,8 +212,8 @@ export function AttendancePage() {
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0"><ClipboardList size={18} /></div>
           <div>
-            <h1 className="text-xl font-semibold text-slate-900">Session Logs</h1>
-            <p className="text-slate-400 text-sm">Track and manage all your tutoring sessions in one place.</p>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Session Logs</h1>
+            <p className="text-sm text-slate-500">Track and manage all your tutoring sessions in one place.</p>
           </div>
         </div>
         <Button size="sm" icon={<PlusCircle size={14} />} onClick={openLog} disabled={students.length === 0}>

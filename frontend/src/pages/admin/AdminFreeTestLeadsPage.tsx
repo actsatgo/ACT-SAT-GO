@@ -304,12 +304,12 @@ export function AdminFreeTestLeadsPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Free Demo Test Leads</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Free Demo Test Leads</h1>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 border border-blue-200">
               <Sparkles size={12} className="mr-1 text-blue-600" /> Website Leads
             </span>

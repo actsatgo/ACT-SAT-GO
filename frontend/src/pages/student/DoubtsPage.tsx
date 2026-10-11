@@ -280,7 +280,7 @@ export function DoubtsView({ studentId, title, subtitle, onBack }: {
   studentId: string | null | undefined;
   title: string;
   subtitle: string;
-  onBack: () => void;
+  onBack?: () => void;
 }) {
   const [doubts, setDoubts] = useState<DoubtItem[]>([]);
   const [subjectFilter, setSubjectFilter] = useState<'all' | 'math' | 'english'>('all');
@@ -395,12 +395,14 @@ export function DoubtsView({ studentId, title, subtitle, onBack }: {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3 mb-4">
-        <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="Go back">
-          <ArrowLeft size={20} className="text-slate-600" />
-        </button>
+        {onBack && (
+          <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="Go back">
+            <ArrowLeft size={20} className="text-slate-600" />
+          </button>
+        )}
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">{title}</h1>
-          <p className="text-slate-400 text-sm mt-0.5">{subtitle}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">{title}</h1>
+          <p className="text-sm text-slate-500 mt-0.5">{subtitle}</p>
         </div>
       </div>
 
@@ -566,14 +568,12 @@ export function DoubtsView({ studentId, title, subtitle, onBack }: {
 // ─── Student entrypoint ──────────────────────────────────────────────────────
 
 export function DoubtsPage() {
-  const navigate = useNavigate();
   const { dbId } = useAuthStore();
   return (
     <DoubtsView
       studentId={dbId}
       title="My Doubts"
       subtitle="Questions you marked as “still a doubt” while reviewing tests"
-      onBack={() => navigate(-1)}
     />
   );
 }

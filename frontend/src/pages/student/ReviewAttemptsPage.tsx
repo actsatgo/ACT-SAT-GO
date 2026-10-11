@@ -86,7 +86,7 @@ export function ReviewAttemptsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Review Attempts</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900">Review Attempts</h1>
         <p className="text-slate-400 text-sm mt-0.5">Your completed test history</p>
       </div>
 

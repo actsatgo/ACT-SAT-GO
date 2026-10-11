@@ -233,7 +233,7 @@ export function SkillsManagementPage() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <BookMarked size={20} className="text-blue-600" />
-            <h1 className="text-xl font-bold text-slate-900">Subdomains &amp; Skills</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900">Subdomains &amp; Skills</h1>
           </div>
           <p className="text-sm text-slate-500">
             Add or remove subdomains within each domain, and skills within each subdomain. The Test Builder's
