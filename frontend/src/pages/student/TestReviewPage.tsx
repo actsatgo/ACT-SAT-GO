@@ -376,7 +376,7 @@ export function TestReviewPage() {
           ) : (
             <>
               <Button variant="secondary" onClick={() => navigate('/dashboard')}>Dashboard</Button>
-              <Button variant="secondary" onClick={() => navigate('/my-tests')}>My Assignments</Button>
+              <Button variant="secondary" onClick={() => navigate('/my-tests')}>My Tests</Button>
             </>
           )}
         </div>

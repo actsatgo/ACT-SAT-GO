@@ -41,7 +41,7 @@ interface NavItem {
 // Student-focused navigation (clean and minimal — diagnostic test flow)
 const studentNavItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} />, roles: ['student'] },
-  { label: 'My Assignments', path: '/my-tests', icon: <ClipboardList size={18} />, roles: ['student'] },
+  { label: 'My Tests', path: '/my-tests', icon: <ClipboardList size={18} />, roles: ['student'] },
   { label: 'My Progress', path: '/my-progress', icon: <TrendingUp size={18} />, roles: ['student'] },
   { label: 'Test Report', path: '/test-report', icon: <FileBarChart2 size={18} />, roles: ['student'] },
   { label: 'My Classes', path: '/attendance', icon: <CalendarCheck size={18} />, roles: ['student'] },

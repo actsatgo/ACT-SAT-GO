@@ -150,7 +150,7 @@ export function StudentDashboard() {
             onClick={() => navigate('/my-tests')}
             className="flex-shrink-0 flex items-center justify-center gap-2 bg-white text-[#1b3d6e] px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-colors"
           >
-            Go to My Assignments →
+            Go to My Tests →
           </button>
         </div>
       </div>
