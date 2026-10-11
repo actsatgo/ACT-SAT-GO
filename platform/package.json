@@ -11,6 +11,7 @@
     "db:reset": "npx tsx scripts/reset.ts"
   },
   "dependencies": {
+    "@napi-rs/canvas": "^0.1.100",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "@supabase/ssr": "^0.10.3",
@@ -23,6 +24,7 @@
     "katex": "^0.16.47",
     "lucide-react": "^1.16.0",
     "next": "16.2.6",
+    "pdfjs-dist": "^5.7.284",
     "pg": "^8.20.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",

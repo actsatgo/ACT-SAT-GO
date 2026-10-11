@@ -52,6 +52,8 @@ const DoubtsPage = lazy(() => import('./pages/student/DoubtsPage').then((m) => (
 const FlashcardsPage = lazy(() => import('./pages/flashcards/FlashcardsPage').then((m) => ({ default: m.FlashcardsPage })));
 const FlashcardStudyPage = lazy(() => import('./pages/flashcards/FlashcardStudyPage').then((m) => ({ default: m.FlashcardStudyPage })));
 const ArticlesPage = lazy(() => import('./pages/articles/ArticlesPage').then((m) => ({ default: m.ArticlesPage })));
+const MaterialsPage = lazy(() => import('./pages/materials/MaterialsPage').then((m) => ({ default: m.MaterialsPage })));
+const MaterialViewerPage = lazy(() => import('./pages/materials/MaterialViewerPage').then((m) => ({ default: m.MaterialViewerPage })));
 const ArticleReadPage = lazy(() => import('./pages/articles/ArticleReadPage').then((m) => ({ default: m.ArticleReadPage })));
 const MyProgressPage = lazy(() => import('./pages/student/MyProgressPage').then((m) => ({ default: m.MyProgressPage })));
 
@@ -183,6 +185,8 @@ const router = createBrowserRouter(
         <Route path="flashcards/:deckId" element={<FlashcardStudyPage />} />
         <Route path="articles" element={<ArticlesPage />} />
         <Route path="articles/:articleId" element={<ArticleReadPage />} />
+        <Route path="materials" element={<MaterialsPage />} />
+        <Route path="materials/:materialId" element={<MaterialViewerPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 

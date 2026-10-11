@@ -1,5 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // pdf.js + the native canvas renderer (protected study materials) must load
+  // from node_modules at runtime, not be bundled.
+  serverExternalPackages: ['pdfjs-dist', '@napi-rs/canvas'],
+  experimental: {
+    // Proxy buffers request bodies; raise the 10 MB default so 20 MB PDF uploads arrive whole.
+    proxyClientMaxBodySize: '25mb',
+  },
   async headers() {
     const origin = process.env.CORS_ORIGIN ?? '*'
     return [

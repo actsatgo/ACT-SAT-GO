@@ -460,6 +460,67 @@ export interface ArticleInput {
   studentIds?: string[]
 }
 
+// ── Protected study materials (view-only PDFs) ───────────────────────────────
+export interface MaterialShareInfo {
+  userId: string
+  name: string
+  role: 'STUDENT' | 'TUTOR' | string
+  sharedAt: string
+  viewedAt: string | null
+  lastPage: number | null
+}
+/** A material the user uploaded (or, for admins, any material). */
+export interface ManagedMaterial {
+  id: string
+  title: string
+  description: string | null
+  subject: string | null
+  fileName: string
+  fileSize: number
+  pageCount: number
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  createdByAdmin: boolean
+  shares: MaterialShareInfo[]
+}
+/** A material someone shared with the user. */
+export interface SharedMaterial {
+  id: string
+  title: string
+  description: string | null
+  subject: string | null
+  pageCount: number
+  updatedAt: string
+  createdByName: string
+  sharedAt: string
+  viewedAt: string | null
+  lastPage: number | null
+  canDownload: boolean
+}
+export interface MaterialDetail {
+  id: string
+  title: string
+  description: string | null
+  subject: string | null
+  /** Only for users who may download it */
+  fileName?: string
+  fileSize: number
+  pageCount: number
+  pageSizes: Array<[number, number]>
+  createdById: string
+  createdByName: string
+  createdAt: string
+  updatedAt: string
+  canManage: boolean
+  canDownload: boolean
+  lastPage: number | null
+  watermark: string
+  /** Manager view only */
+  sharedWith?: string[]
+}
+
 export const api = {
   // Users
   getUsersByRole: (role?: string, opts?: { deleted?: boolean }) => {
@@ -709,6 +770,67 @@ export const api = {
     request<{ status: ArticleStatus }>(`/api/articles/${articleId}/review`, {
       method: 'PUT', body: JSON.stringify({ studentId, decision, feedback }),
     }),
+
+  // Protected study materials
+  getMaterials: () =>
+    request<{ shared: SharedMaterial[]; mine: ManagedMaterial[] }>('/api/materials'),
+  getMaterial: (materialId: string) =>
+    request<{ material: MaterialDetail }>(`/api/materials/${materialId}`),
+  /** Multipart upload with progress (0–1). */
+  uploadMaterial: async (
+    input: { file: File; title: string; description?: string; subject?: string; recipientIds: string[] },
+    onProgress?: (fraction: number) => void,
+  ) => {
+    clearApiCache()
+    const form = new FormData()
+    form.append('file', input.file)
+    form.append('title', input.title)
+    if (input.description) form.append('description', input.description)
+    if (input.subject) form.append('subject', input.subject)
+    form.append('recipientIds', JSON.stringify(input.recipientIds))
+    const headers = await authHeaders()
+    return new Promise<{ id: string; pageCount: number; sharedWith: number }>((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', `${BASE}/api/materials`)
+      for (const [k, v] of Object.entries(headers)) xhr.setRequestHeader(k, v)
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(e.loaded / e.total) }
+      xhr.onload = () => {
+        let body: { error?: string } & Record<string, unknown> = {}
+        try { body = JSON.parse(xhr.responseText) } catch { /* non-JSON error page */ }
+        if (xhr.status >= 200 && xhr.status < 300) resolve(body as unknown as { id: string; pageCount: number; sharedWith: number })
+        else reject(new Error(body.error || (xhr.status === 413 ? 'The PDF is too large' : 'Upload failed')))
+      }
+      xhr.onerror = () => reject(new Error('Upload failed — check your connection'))
+      xhr.send(form)
+    })
+  },
+  updateMaterial: (materialId: string, body: { title: string; description?: string; subject?: string }) =>
+    request<{ id: string }>(`/api/materials/${materialId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteMaterial: (materialId: string) =>
+    request<{ success: boolean }>(`/api/materials/${materialId}`, { method: 'DELETE' }),
+  setMaterialShares: (materialId: string, recipientIds: string[]) =>
+    request<{ added: number; removed: number; total: number }>(`/api/materials/${materialId}/shares`, {
+      method: 'PUT', body: JSON.stringify({ recipientIds }),
+    }),
+  saveMaterialProgress: (materialId: string, page: number) =>
+    request<{ saved: boolean }>(`/api/materials/${materialId}/progress`, { method: 'PUT', body: JSON.stringify({ page }) }),
+  /** One watermarked page image (auth header required, so it is fetched as a blob). */
+  getMaterialPage: async (materialId: string, page: number, width: number, signal?: AbortSignal) => {
+    const res = await fetch(`${BASE}/api/materials/${materialId}/pages/${page}?w=${width}`, { headers: await authHeaders(), signal })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Could not load the page')
+    return res.blob()
+  },
+  /** The original PDF — only allowed for its uploader and admins. */
+  downloadMaterial: async (materialId: string, fileName: string) => {
+    const res = await fetch(`${BASE}/api/materials/${materialId}/file`, { headers: await authHeaders() })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Download failed')
+    const url = URL.createObjectURL(await res.blob())
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 10_000)
+  },
 
   // Visit-level time analytics (see lib/questionTimeTracker.ts)
   getAttemptEventState: (attemptId: string) =>

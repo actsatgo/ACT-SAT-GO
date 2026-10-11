@@ -5,7 +5,7 @@ import {
   LogOut, GraduationCap, ClipboardList, ChevronLeft, ChevronRight, X,
   Activity, UserCheck, Database, LifeBuoy, ChevronDown,
   AlertCircle, HelpCircle, PieChart, BookMarked, CalendarCheck, TrendingUp,
-  FileCheck2, Sparkles, Layers, FileText
+  FileCheck2, Sparkles, Layers, FileText, FileLock2
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -48,6 +48,7 @@ const studentNavItems: NavItem[] = [
   { label: 'Review Mistakes', path: '/mistakes', icon: <AlertCircle size={18} />, roles: ['student'] },
   { label: 'Flashcards', path: '/flashcards', icon: <Layers size={18} />, roles: ['student'] },
   { label: 'Articles', path: '/articles', icon: <FileText size={18} />, roles: ['student'] },
+  { label: 'Study Materials', path: '/materials', icon: <FileLock2 size={18} />, roles: ['student'] },
   { label: 'My Doubts', path: '/doubts', icon: <HelpCircle size={18} />, roles: ['student'] },
   { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['student'] },
 ];
@@ -73,6 +74,7 @@ const adminNavItems: NavItem[] = [
   { label: 'Student Mistakes', path: '/student-mistakes', icon: <AlertCircle size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Flashcards', path: '/flashcards', icon: <Layers size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Articles', path: '/articles', icon: <FileText size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
+  { label: 'Study Materials', path: '/materials', icon: <FileLock2 size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Skills', path: '/skills', icon: <BookMarked size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'Support', path: '/support', icon: <LifeBuoy size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
