@@ -5,7 +5,7 @@ import {
   LogOut, GraduationCap, ClipboardList, ChevronLeft, ChevronRight, X,
   Activity, UserCheck, Database, LifeBuoy, ChevronDown,
   AlertCircle, HelpCircle, PieChart, BookMarked, CalendarCheck, TrendingUp,
-  FileCheck2, Sparkles, Library
+  FileCheck2, Sparkles, Library, FileBarChart2,
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -43,6 +43,7 @@ const studentNavItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} />, roles: ['student'] },
   { label: 'My Assignments', path: '/my-tests', icon: <ClipboardList size={18} />, roles: ['student'] },
   { label: 'My Progress', path: '/my-progress', icon: <TrendingUp size={18} />, roles: ['student'] },
+  { label: 'Test Report', path: '/test-report', icon: <FileBarChart2 size={18} />, roles: ['student'] },
   { label: 'My Classes', path: '/attendance', icon: <CalendarCheck size={18} />, roles: ['student'] },
   { label: 'Analytics', path: '/analytics', icon: <PieChart size={18} />, roles: ['student'] },
   { label: 'Review Mistakes', path: '/mistakes', icon: <AlertCircle size={18} />, roles: ['student'] },
@@ -61,6 +62,7 @@ const adminNavItems: NavItem[] = [
   { label: 'Tutors', path: '/tutors', icon: <UserCheck size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'Test Builder', path: '/tests', icon: <ClipboardList size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'Question Bank', path: '/question-bank', icon: <Database size={18} />, roles: ['super_admin', 'admin'] },
+  { label: 'Test Report', path: '/test-report', icon: <FileBarChart2 size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   {
     label: 'Analytics',
     path: '/analytics',
