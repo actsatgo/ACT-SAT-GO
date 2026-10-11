@@ -13,8 +13,8 @@ export type QuestionTimeStat = {
 };
 
 // Thresholds for flagging pacing problems (seconds)
-const SLOW_THRESHOLD = 90;
-const RUSHED_THRESHOLD = 20;
+export const SLOW_THRESHOLD = 90;
+export const RUSHED_THRESHOLD = 20;
 
 const STATUS_COLOR: Record<string, string> = {
   correct:   '#10b981',  // emerald
