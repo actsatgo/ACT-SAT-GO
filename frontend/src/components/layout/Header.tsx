@@ -1,8 +1,10 @@
-import { Bell, Menu } from 'lucide-react';
+import { Bell, Calculator, Menu } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import { useNotificationStore } from '../../store/useNotificationStore';
 import type { Role } from '../../types';
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { DesmosCalculator } from '../calculator/DesmosCalculator';
 
 const roleLabels: Record<Role, string> = {
   super_admin: 'Super Admin',
@@ -28,6 +30,8 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { user } = useAuthStore();
   const { notifications, markRead } = useNotificationStore();
   const [notifOpen, setNotifOpen] = useState(false);
+  const [desmosOpen, setDesmosOpen] = useState(false);
+  const showDesmos = user?.role === 'student' || user?.role === 'tutor';
   const notifRef = useRef<HTMLDivElement>(null);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -56,6 +60,16 @@ export function Header({ onMenuClick }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-1">
+        {/* Desmos calculator, available on every page for students and tutors */}
+        {showDesmos && (
+          <button onClick={() => setDesmosOpen((o) => !o)} title="Desmos calculator"
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              desmosOpen ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
+            }`}>
+            <Calculator size={16} /> DESMOS
+          </button>
+        )}
+
         {/* Notifications */}
         <div className="relative" ref={notifRef}>
           <button onClick={() => setNotifOpen(!notifOpen)}
@@ -109,6 +123,9 @@ export function Header({ onMenuClick }: HeaderProps) {
           </div>
         )}
       </div>
+
+      {/* Portal to <body> so the panel floats above the page, not inside the header's stacking layer */}
+      {showDesmos && createPortal(<DesmosCalculator open={desmosOpen} onClose={() => setDesmosOpen(false)} />, document.body)}
     </header>
   );
 }
