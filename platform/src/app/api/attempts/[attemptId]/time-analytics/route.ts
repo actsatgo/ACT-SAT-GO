@@ -89,6 +89,15 @@ export async function GET(
     }
 
     await ensureAttemptEventsTable()
+    // Attempts without visit data (all attempts before 8 Oct 2026) need none of
+    // the heavy question/answer-key query below, so answer them straight away.
+    const anyEvent = await withTimeout(
+      prisma.attemptEvent.findFirst({ where: { attemptId }, select: { id: true } }),
+      45_000,
+      'time-analytics event check',
+    )
+    if (!anyEvent) return NextResponse.json({ hasEvents: false, sections: [] })
+
     // Bounded so a stuck query gives the page an error (it then shows the
     // per-question chart with a Retry button) instead of an endless spinner.
     const [events, allSections] = await withTimeout(Promise.all([
