@@ -9,6 +9,7 @@ import { Modal } from '../common/Modal';
 import { RichContentRenderer } from '../admin/RichContentRenderer';
 import { OptionRenderer } from '../admin/OptionRenderer';
 import { ExplanationDoubtBar } from '../admin/ExplanationDoubtBar';
+import { QuestionVisitTimes } from './QuestionVisitTimes';
 import { AttemptTimeAnalyticsGrid } from '../dashboard/AttemptTimeAnalyticsGrid';
 import { type QuestionTimeStat } from '../dashboard/QuestionTimeChart';
 import { api } from '../../lib/api';
@@ -1002,6 +1003,10 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                                       {showAnswerFeedback && (<span className="text-slate-500">Correct: <strong className="text-blue-600">{(currentTq.question.correctAnswer.displayValues && currentTq.question.correctAnswer.displayValues.length > 0 ? currentTq.question.correctAnswer.displayValues.join(' or ') : (currentTq.question.correctAnswer.value !== undefined ? formatNumericDisplay(currentTq.question.correctAnswer.value) : ''))}</strong></span>)}
                                     </div>
                                   )}
+                                  {/* This question's own time: total and each visit */}
+                                  {testAnalysisAttempt && (
+                                    <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
+                                  )}
                                   {/* Explanation dropdown + Still Doubt / Cleared */}
                                   {testAnalysisAttempt && (
                                     <ExplanationDoubtBar
@@ -1084,6 +1089,10 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                                     <span className="text-slate-500">Your answer: <strong className={!showAnswerFeedback ? 'text-slate-900' : correct ? 'text-blue-600' : 'text-blue-400'}>{studentAnswer?.answerGiven?.text ?? (studentAnswer?.answerGiven?.value !== undefined ? formatNumericDisplay(studentAnswer.answerGiven.value) : null) ?? '—'}</strong></span>
                                     {showAnswerFeedback && (<span className="text-slate-500">Correct: <strong className="text-blue-600">{(currentTq.question.correctAnswer.displayValues && currentTq.question.correctAnswer.displayValues.length > 0 ? currentTq.question.correctAnswer.displayValues.join(' or ') : (currentTq.question.correctAnswer.value !== undefined ? formatNumericDisplay(currentTq.question.correctAnswer.value) : ''))}</strong></span>)}
                                   </div>
+                                )}
+                                {/* This question's own time: total and each visit */}
+                                {testAnalysisAttempt && (
+                                  <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
                                 )}
                                 {/* Explanation dropdown + Still Doubt / Cleared */}
                                 {testAnalysisAttempt && (
@@ -1468,6 +1477,10 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                       )
                     )}
 
+                    {/* This question's own time: total and each visit */}
+                    {testAnalysisAttempt && currentTq && (
+                      <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
+                    )}
                     {/* Explanation dropdown + Still Doubt / Cleared (same bar as the inline report) */}
                     {testAnalysisAttempt && currentTq && (
                       <div className="select-text">
@@ -1559,6 +1572,10 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                       )
                     )}
 
+                    {/* This question's own time: total and each visit */}
+                    {testAnalysisAttempt && currentTq && (
+                      <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
+                    )}
                     {/* Explanation dropdown + Still Doubt / Cleared (same bar as the inline report) */}
                     {testAnalysisAttempt && currentTq && (
                       <div className="select-text">
