@@ -2139,6 +2139,7 @@ export function MyStudentsPage() {
                     const options = taOptionsToDisplay(currentTq.question.options);
                     const userAnswerDisplay = taAnswerToDisplay(studentAnswer?.answerGiven ?? null);
                     const correctAnswerDisplay = taAnswerToDisplay(currentTq.question.correctAnswer);
+                    const explText = (currentTq.question.content?.explanation || (currentTq as any).parentPassageExplanation || (currentTq.question as any)?.parentQuestion?.content?.explanation) as string | null | undefined;
 
                     return (
                       <div className="flex flex-col gap-4 h-[600px]">
@@ -2236,6 +2237,15 @@ export function MyStudentsPage() {
                                       <span className="text-slate-500">Correct: <strong className="text-blue-600">{(currentTq.question.correctAnswer.displayValues && currentTq.question.correctAnswer.displayValues.length > 0 ? currentTq.question.correctAnswer.displayValues.join(' or ') : (currentTq.question.correctAnswer.value !== undefined ? formatNumericDisplay(currentTq.question.correctAnswer.value) : ''))}</strong></span>
                                     </div>
                                   )}
+                                  {/* Explanation (same as fullscreen) */}
+                                  {explText && (
+                                    <div className="mt-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100/80 text-left">
+                                      <h5 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2">Explanation</h5>
+                                      <div className="text-sm text-slate-700 leading-relaxed">
+                                        <RichContentRenderer content={explText} variant="question" className="prose-sm" />
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -2305,6 +2315,15 @@ export function MyStudentsPage() {
                                   <div className="flex gap-4 text-sm mb-3 text-left">
                                     <span className="text-slate-500">Your answer: <strong className={correct ? 'text-blue-600' : 'text-blue-400'}>{studentAnswer?.answerGiven?.text ?? (studentAnswer?.answerGiven?.value !== undefined ? formatNumericDisplay(studentAnswer.answerGiven.value) : null) ?? '—'}</strong></span>
                                     <span className="text-slate-500">Correct: <strong className="text-blue-600">{(currentTq.question.correctAnswer.displayValues && currentTq.question.correctAnswer.displayValues.length > 0 ? currentTq.question.correctAnswer.displayValues.join(' or ') : (currentTq.question.correctAnswer.value !== undefined ? formatNumericDisplay(currentTq.question.correctAnswer.value) : ''))}</strong></span>
+                                  </div>
+                                )}
+                                {/* Explanation (same as fullscreen) */}
+                                {explText && (
+                                  <div className="mt-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100/80 text-left">
+                                    <h5 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2">Explanation</h5>
+                                    <div className="text-sm text-slate-700 leading-relaxed">
+                                      <RichContentRenderer content={explText} variant="question" className="prose-sm" />
+                                    </div>
                                   </div>
                                 )}
                               </div>
