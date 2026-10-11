@@ -1463,13 +1463,16 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                       )
                     )}
 
-                    {/* Explanation */}
-                    {explText && (
-                      <div className="mt-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100/80">
-                        <h5 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2">Explanation</h5>
-                        <div className="text-sm text-slate-700 leading-relaxed">
-                          <RichContentRenderer content={explText} variant="question" className="prose-sm" />
-                        </div>
+                    {/* Explanation dropdown + Still Doubt / Cleared (same bar as the inline report) */}
+                    {testAnalysisAttempt && currentTq && (
+                      <div className="select-text">
+                        <ExplanationDoubtBar
+                          attemptId={testAnalysisAttempt.id}
+                          questionId={currentTq.questionId}
+                          explanation={explText}
+                          doubtStatus={studentAnswer?.doubtStatus ?? null}
+                          onDoubtChange={handleDoubtChange}
+                        />
                       </div>
                     )}
                   </div>
@@ -1549,13 +1552,16 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                       )
                     )}
 
-                    {/* Explanation */}
-                    {explText && (
-                      <div className="mt-4 p-4 bg-blue-50/50 rounded-xl border border-blue-100/80">
-                        <h5 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-2">Explanation</h5>
-                        <div className="text-sm text-slate-700 leading-relaxed">
-                          <RichContentRenderer content={explText} variant="question" className="prose-sm" />
-                        </div>
+                    {/* Explanation dropdown + Still Doubt / Cleared (same bar as the inline report) */}
+                    {testAnalysisAttempt && currentTq && (
+                      <div className="select-text">
+                        <ExplanationDoubtBar
+                          attemptId={testAnalysisAttempt.id}
+                          questionId={currentTq.questionId}
+                          explanation={explText}
+                          doubtStatus={studentAnswer?.doubtStatus ?? null}
+                          onDoubtChange={handleDoubtChange}
+                        />
                       </div>
                     )}
                   </div>

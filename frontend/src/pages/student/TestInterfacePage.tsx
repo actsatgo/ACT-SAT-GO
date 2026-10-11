@@ -131,7 +131,7 @@ function BluebookOption({
       {/* Option body */}
       <div
         onClick={isEliminated ? undefined : onClick}
-        className={`group flex-1 flex items-start gap-3 px-4 py-3 rounded-xl border transition-all select-none
+        className={`group flex-1 flex items-center gap-3 px-4 py-3 rounded-xl border transition-all select-none
           ${isEliminated
             ? 'border-gray-200 bg-white cursor-default'
             : isSelected
@@ -139,7 +139,7 @@ function BluebookOption({
               : 'border-gray-300 hover:border-gray-400 bg-white cursor-pointer'}`}
       >
         {/* Letter circle */}
-        <div className={`flex-shrink-0 mt-0.5 w-7 h-7 rounded-full border flex items-center justify-center text-sm font-bold transition-all
+        <div className={`flex-shrink-0 w-7 h-7 rounded-full border flex items-center justify-center text-sm font-bold transition-all
           ${isEliminated
             ? 'border-gray-300 bg-white text-gray-400'
             : isSelected
@@ -147,7 +147,7 @@ function BluebookOption({
               : 'bg-white border-gray-500 text-gray-700'}`}>
           <span className={isEliminated ? 'line-through decoration-gray-400' : ''}>{label}</span>
         </div>
-        <div className={`flex-1 text-[15px] leading-relaxed pt-0.5 transition-all
+        <div className={`flex-1 text-[15px] leading-relaxed transition-all
           ${isEliminated ? 'line-through text-gray-400 decoration-gray-400' : 'text-gray-900'}`}>
           <RichContentRenderer content={text} variant="option" />
         </div>
