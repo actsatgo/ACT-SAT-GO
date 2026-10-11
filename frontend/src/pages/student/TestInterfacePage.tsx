@@ -249,8 +249,8 @@ export function TestInterfacePage() {
   const highlightPendingRef = useRef<{ container: HTMLDivElement; key: string; range: Range } | null>(null);
   const [restoring, setRestoring] = useState(Boolean(searchParams.get('attemptId')));
   const [restoreError, setRestoreError] = useState<string | null>(null);
-  // SPR split view: question panel width in %. The question half can only grow
-  // (50-85%); the directions panel can shrink below half.
+  // SPR split view (directions left, question right): question panel width in %.
+  // The question half can only grow (50-85%); the directions panel can shrink below half.
   const [sprQuestionPct, setSprQuestionPct] = useState(50);
   const sprSplitRef = useRef<HTMLDivElement>(null);
 
@@ -1470,9 +1470,38 @@ export function TestInterfacePage() {
             </div>
           </div>
         ) : currentQuestion.type === 'numeric' ? (
-          /* SPR layout (Bluebook): question on the left, directions on the right, draggable divider */
+          /* SPR layout (Bluebook): directions on the left, question on the right, draggable divider */
           <div ref={sprSplitRef} className="flex h-full min-h-full">
-            <div className="overflow-y-auto px-8 py-10 bg-white" style={{ width: `${sprQuestionPct}%` }}>
+            <div className="flex-1 min-w-0 overflow-y-auto px-6 py-10 bg-gray-50">
+              <SprDirections />
+            </div>
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize directions panel"
+              title="Drag to resize"
+              className="relative w-2 flex-shrink-0 cursor-col-resize bg-gray-200 hover:bg-[#1b3d6e]/40 transition-colors touch-none select-none"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                const box = sprSplitRef.current?.getBoundingClientRect();
+                if (!box) return;
+                const onMove = (ev: PointerEvent) => {
+                  const pct = 100 - ((ev.clientX - box.left) / box.width) * 100;
+                  setSprQuestionPct(Math.min(85, Math.max(50, pct)));
+                };
+                const onUp = () => {
+                  window.removeEventListener('pointermove', onMove);
+                  window.removeEventListener('pointerup', onUp);
+                  document.body.style.cursor = '';
+                };
+                document.body.style.cursor = 'col-resize';
+                window.addEventListener('pointermove', onMove);
+                window.addEventListener('pointerup', onUp);
+              }}
+            >
+              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-1 rounded-full bg-gray-400" />
+            </div>
+            <div className="flex-none overflow-y-auto px-8 py-10 bg-white" style={{ width: `${sprQuestionPct}%` }}>
               <div className="max-w-3xl mx-auto">
                 {questionHeaderBar}
                 {questionHighlights[`text:${currentQuestion.id}`] ? (
@@ -1498,35 +1527,6 @@ export function TestInterfacePage() {
                   <p className="text-xs text-gray-400 mt-1.5">You can enter a fraction (e.g. 7/10) or a decimal. Up to 5 digits (6 if negative).</p>
                 </div>
               </div>
-            </div>
-            <div
-              role="separator"
-              aria-orientation="vertical"
-              aria-label="Resize directions panel"
-              title="Drag to resize"
-              className="relative w-2 flex-shrink-0 cursor-col-resize bg-gray-200 hover:bg-[#1b3d6e]/40 transition-colors touch-none select-none"
-              onPointerDown={(e) => {
-                e.preventDefault();
-                const box = sprSplitRef.current?.getBoundingClientRect();
-                if (!box) return;
-                const onMove = (ev: PointerEvent) => {
-                  const pct = ((ev.clientX - box.left) / box.width) * 100;
-                  setSprQuestionPct(Math.min(85, Math.max(50, pct)));
-                };
-                const onUp = () => {
-                  window.removeEventListener('pointermove', onMove);
-                  window.removeEventListener('pointerup', onUp);
-                  document.body.style.cursor = '';
-                };
-                document.body.style.cursor = 'col-resize';
-                window.addEventListener('pointermove', onMove);
-                window.addEventListener('pointerup', onUp);
-              }}
-            >
-              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-1 rounded-full bg-gray-400" />
-            </div>
-            <div className="flex-1 min-w-0 overflow-y-auto px-6 py-10 bg-gray-50">
-              <SprDirections />
             </div>
           </div>
         ) : (
