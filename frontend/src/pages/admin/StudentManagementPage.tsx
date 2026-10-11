@@ -360,6 +360,14 @@ function getSectionModuleLabel(name: string): string {
   return `Section ${sectionNum}, Module ${moduleNum}: ${subjectName}`;
 }
 
+/** Short tab label for a module: "RW Module 1", "Math Module 2". */
+function getSectionTabLabel(name: string): string {
+  const isMath = /math/i.test(name);
+  const isRW = /reading|writing|rw|english/i.test(name);
+  if (!isMath && !isRW) return name;
+  return `${isMath ? 'Math' : 'RW'} Module ${/2|two/i.test(name) ? 2 : 1}`;
+}
+
 // stage badge helper removed as the student table was consolidated
 
 // Test Builder tags homework as subCategory "{Subject}-Homework" (e.g. "Math-Homework"),
@@ -1929,13 +1937,16 @@ export function StudentManagementPage() {
                               : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                           }`}
                         >
-                          {getSectionModuleLabel(sa.name)}
+                          {getSectionTabLabel(sa.name)}
                         </button>
                       ))}
                       <button
                         onClick={() => { setQuestionFilterBy(questionFilterBy === 'doubt' ? 'all' : 'doubt'); setCurrentQuestionIdx(0); }}
+                        disabled={showTimeGrid}
                         className={`px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-sm ${
-                          questionFilterBy === 'doubt'
+                          showTimeGrid
+                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                            : questionFilterBy === 'doubt'
                             ? 'bg-amber-500 text-white'
                             : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                         }`}
@@ -1944,8 +1955,11 @@ export function StudentManagementPage() {
                       </button>
                       <button
                         onClick={() => { setQuestionFilterBy(questionFilterBy === 'cleared' ? 'all' : 'cleared'); setCurrentQuestionIdx(0); }}
+                        disabled={showTimeGrid}
                         className={`px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-sm ${
-                          questionFilterBy === 'cleared'
+                          showTimeGrid
+                            ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                            : questionFilterBy === 'cleared'
                             ? 'bg-green-600 text-white'
                             : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                         }`}
@@ -3022,7 +3036,7 @@ export function StudentManagementPage() {
                           : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                       }`}
                     >
-                      {getSectionModuleLabel(sa.name)}
+                      {getSectionTabLabel(sa.name)}
                     </button>
                   ))}
                 </div>

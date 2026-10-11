@@ -425,6 +425,14 @@ function getSectionModuleLabel(name: string): string {
   return `Section ${sectionNum}, Module ${moduleNum}: ${subjectName}`;
 }
 
+/** Short tab label for a module: "RW Module 1", "Math Module 2". */
+function getSectionTabLabel(name: string): string {
+  const isMath = /math/i.test(name);
+  const isRW = /reading|writing|rw|english/i.test(name);
+  if (!isMath && !isRW) return name;
+  return `${isMath ? 'Math' : 'RW'} Module ${/2|two/i.test(name) ? 2 : 1}`;
+}
+
 function formatSeconds(sec: number | undefined): string {
   if (sec === undefined || sec === null) return '0 Seconds';
   if (sec < 60) return `${sec} Seconds`;
@@ -1410,7 +1418,7 @@ export function TestReviewPage() {
                     : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                 }`}
               >
-                {getSectionModuleLabel(sa.section.name)}
+                {getSectionTabLabel(sa.section.name)}
               </button>
             ))}
             <button
