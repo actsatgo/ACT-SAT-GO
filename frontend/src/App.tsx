@@ -24,6 +24,7 @@ const QuestionBankPage = lazy(() => import('./pages/admin/QuestionBankPage').the
 const SupportPage = lazy(() => import('./pages/admin/SupportPage').then((m) => ({ default: m.SupportPage })));
 const StudentDoubtsAdminPage = lazy(() => import('./pages/admin/StudentDoubtsAdminPage').then((m) => ({ default: m.StudentDoubtsAdminPage })));
 const StudentMistakesPage = lazy(() => import('./pages/admin/StudentMistakesPage').then((m) => ({ default: m.StudentMistakesPage })));
+const TestReportPage = lazy(() => import('./pages/TestReportPage').then((m) => ({ default: m.TestReportPage })));
 const SkillsManagementPage = lazy(() => import('./pages/admin/SkillsManagementPage').then((m) => ({ default: m.SkillsManagementPage })));
 const AdminAttendancePage = lazy(() => import('./pages/admin/AdminAttendancePage').then((m) => ({ default: m.AdminAttendancePage })));
 const AdminFreeTestLeadsPage = lazy(() => import('./pages/admin/AdminFreeTestLeadsPage').then((m) => ({ default: m.AdminFreeTestLeadsPage })));
@@ -170,6 +171,7 @@ const router = createBrowserRouter(
         <Route path="test-review/:attemptId" element={<TestReviewPage />} />
         <Route path="test-review/:attemptId/section/:sectionIdx" element={<SectionReviewPage />} />
         <Route path="mistakes" element={<MistakesPage />} />
+        <Route path="test-report" element={<TestReportPage />} />
         <Route path="doubts" element={<DoubtsPage />} />
 
         {/* Shared */}
