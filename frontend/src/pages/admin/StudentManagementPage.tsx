@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { fmtSec, localDateTimeToISO, isoToLocalDateTimeInput, formatDate, formatDateTime } from '../../lib/utils';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { useUrlString, useUrlFlag } from '../../lib/urlState';
 import { Plus, Upload, UserPlus, CheckCircle, AlertCircle, FileText, Download, Pencil, Trash2, Trash, Copy, KeyRound, Phone, School, User2, Loader2, Clock, ChevronLeft, ChevronRight, XCircle, Maximize2, X, ChevronDown, ChevronUp, Info, BookOpen, Boxes, Bookmark, TrendingUp, CalendarClock, UserMinus, Eye } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { Button } from '../../components/common/Button';
@@ -382,7 +383,9 @@ export function StudentManagementPage() {
   const navigate = useNavigate();
 
   // ── Main view state ───────────────────────────────────────────────────────
-  const [mainView, setMainView] = useState<MainViewTab>('analysis');
+  // Kept in the URL so the browser Back button steps back through screens.
+  const [mainViewParam, setMainView] = useUrlString('view', 'analysis');
+  const mainView = mainViewParam as MainViewTab;
 
   // ── Existing state ────────────────────────────────────────────────────────
   const [students, setStudents] = useState<DbUser[]>([]);
@@ -446,9 +449,9 @@ export function StudentManagementPage() {
   const [activityFilter, setActivityFilter] = useState<'all' | 'active' | 'inactive' | 'pending'>('all');
 
   // ── Detailed Test Analysis state ─────────────────────────────────────────
-  const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [selectedStudentId, setSelectedStudentId] = useUrlString('student');
   const [studentAttempts, setStudentAttempts] = useState<Array<{ id: string; status: string; totalScore: number | null; completedAt: string | null; startedAt: string; test: { title: string } }>>([]);
-  const [selectedAttemptId, setSelectedAttemptId] = useState('');
+  const [selectedAttemptId, setSelectedAttemptId] = useUrlString('attempt');
   const [testAnalysisLoading, setTestAnalysisLoading] = useState(false);
   const [testAnalysisAttempt, setTestAnalysisAttempt] = useState<TaAttempt | null>(null);
 
@@ -496,7 +499,7 @@ export function StudentManagementPage() {
   }, [fullscreenQuestionReportOpen]);
   const [knowledgeSkillsOpen, setKnowledgeSkillsOpen] = useState(false);
   // Question Wise Report: true shows "View Time Analytics" (all modules' charts) instead of a module's questions.
-  const [showTimeGrid, setShowTimeGrid] = useState(false);
+  const [showTimeGrid, setShowTimeGrid] = useUrlFlag('timegrid');
   const [showQuestionNavigator, setShowQuestionNavigator] = useState(false);
   const [showAnswerFeedback, setShowAnswerFeedback] = useState(false);
 
@@ -516,7 +519,7 @@ export function StudentManagementPage() {
   useEffect(() => {
     if (mainView !== 'test_analysis' || !selectedStudentId) {
       setStudentAttempts([]);
-      setSelectedAttemptId('');
+      setSelectedAttemptId('', { replace: true });
       setTestAnalysisAttempt(null);
       return;
     }
@@ -524,14 +527,9 @@ export function StudentManagementPage() {
       .then((r) => {
         const submitted = ((r.attempts as any[]) ?? []).filter((a) => a.status === 'SUBMITTED');
         setStudentAttempts(submitted);
-        // Land on the report list (no attempt pre-selected) so the table shows first.
-        setSelectedAttemptId('');
-        setTestAnalysisAttempt(null);
       })
       .catch(() => {
         setStudentAttempts([]);
-        setSelectedAttemptId('');
-        setTestAnalysisAttempt(null);
       });
   }, [mainView, selectedStudentId]);
 
@@ -1273,6 +1271,7 @@ export function StudentManagementPage() {
                             onClick={() => {
                               setSelectedStudentId(row.studentId);
                               setSelectedAttemptId('');
+                              setShowTimeGrid(false);
                               setReportFilter('all');
                               setMainView('test_analysis');
                             }}
@@ -1312,14 +1311,14 @@ export function StudentManagementPage() {
           {/* Back navigation */}
           <div className="flex items-center gap-4">
             <button
-              onClick={() => { setMainView('analysis'); setSelectedStudentId(''); setSelectedAttemptId(''); setTestAnalysisAttempt(null); }}
+              onClick={() => { setMainView('analysis'); setSelectedStudentId(''); setSelectedAttemptId(''); setShowTimeGrid(false); setTestAnalysisAttempt(null); }}
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700"
             >
               <ChevronLeft size={15} /> Back to Students
             </button>
             {selectedAttemptId && (
               <button
-                onClick={() => setSelectedAttemptId('')}
+                onClick={() => { setSelectedAttemptId(''); setShowTimeGrid(false); }}
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700"
               >
                 <ChevronLeft size={15} /> Back to Test Report
@@ -1442,7 +1441,7 @@ export function StudentManagementPage() {
                     <div className="flex items-center gap-3 self-start">
                       <select
                         value={selectedAttemptId}
-                        onChange={e => setSelectedAttemptId(e.target.value)}
+                        onChange={e => { setSelectedAttemptId(e.target.value); setShowTimeGrid(false); }}
                         className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white min-w-[220px] max-w-[300px]"
                       >
                         <option value="">Search attempt…</option>
@@ -1595,7 +1594,7 @@ export function StudentManagementPage() {
                           {filteredRows.map((r, i) => {
                             const analysed = r.isAnalysed;
                             return (
-                              <tr key={r.id} onClick={() => setSelectedAttemptId(r.id)}
+                              <tr key={r.id} onClick={() => { setSelectedAttemptId(r.id); setShowTimeGrid(false); }}
                                 className={`border-b border-slate-200 hover:bg-blue-50/60 cursor-pointer transition-colors ${i % 2 === 1 ? 'bg-slate-50/70' : ''}`}>
                                 <td className="px-4 py-4 text-slate-500 whitespace-nowrap border-r border-slate-100">{i + 1}</td>
                                 <td className="px-4 py-4 font-semibold text-blue-700 hover:underline whitespace-nowrap border-r border-slate-100">{r.title}</td>

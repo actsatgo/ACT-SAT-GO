@@ -1,6 +1,7 @@
 import { fmtSec, formatDate } from '../../lib/utils';
 import { createPortal } from 'react-dom';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useUrlFlag } from '../../lib/urlState';
 import { ArrowLeft, CheckCircle, XCircle, Clock, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Loader2, Info, Bookmark, AlertCircle, Maximize2, X, HelpCircle, Calculator } from 'lucide-react';
 import { DesmosCalculator } from '../../components/calculator/DesmosCalculator';
 import { useState, useEffect } from 'react';
@@ -943,7 +944,8 @@ export function TestReviewPage() {
   const [showCalculator, setShowCalculator] = useState(false);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   // Question Wise Report: true shows "View Time Analytics" (all modules' charts) instead of a module's questions.
-  const [showTimeGrid, setShowTimeGrid] = useState(false);
+  // Kept in the URL so the browser Back button returns from a question to the charts.
+  const [showTimeGrid, setShowTimeGrid] = useUrlFlag('timegrid');
   const [attempt, setAttempt] = useState<DbAttempt | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
