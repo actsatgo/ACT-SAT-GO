@@ -240,7 +240,7 @@ export function AnalyticsPage() {
           onClick={() => navigate('/my-tests')}
           className="px-5 py-2.5 bg-[#1b3d6e] text-white rounded-xl text-sm font-semibold hover:bg-[#15305a] transition-colors shadow-sm"
         >
-          Go to My Assignments
+          Go to My Tests
         </button>
       </div>
     );
