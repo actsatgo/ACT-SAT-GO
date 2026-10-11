@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { AlertTriangle, Clock, Loader2, Zap } from 'lucide-react';
+import { fmtSec } from '../../lib/utils';
 import { api, type TimeAnalyticsResponse } from '../../lib/api';
-import type { QuestionTimeStat } from './QuestionTimeChart';
+import { RUSHED_THRESHOLD, SLOW_THRESHOLD, type QuestionTimeStat } from './QuestionTimeChart';
 import { VisitGridCard, VisitGridModal, gridFromTotals, gridFromVisits, type GridSection } from './VisitGridChart';
 
 export interface TimeGridModule {
@@ -72,6 +73,7 @@ export function AttemptTimeAnalyticsGrid({
         {sections.map((s) => (
           <div key={s.sectionId} className="space-y-1.5">
             <div className="px-1 text-xs font-semibold text-slate-600">{s.title}</div>
+            <PacingCounts section={s} />
             <VisitGridCard
               section={s}
               onExpand={() => setExpandedId(s.sectionId)}
@@ -99,6 +101,31 @@ export function AttemptTimeAnalyticsGrid({
           onQuestionClick={onQuestionClick ? (qi) => { setExpandedId(null); onQuestionClick(expanded.sectionId, qi); } : undefined}
         />
       )}
+    </div>
+  );
+}
+
+/** ASG's pacing counts for one module, kept above its chart: average time per question, slow and rushed questions. */
+function PacingCounts({ section }: { section: GridSection }) {
+  const n = section.rowSeconds.length;
+  if (n === 0) return null;
+  const avg = Math.round(section.rowSeconds.reduce((a, t) => a + t, 0) / n);
+  const slow = section.rowSeconds.filter((t) => t >= SLOW_THRESHOLD).length;
+  const rushed = section.rowSeconds.filter((t, i) => t < RUSHED_THRESHOLD && section.rowAnswered[i]).length;
+  return (
+    <div className="flex flex-wrap gap-2 px-1">
+      <span className="flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[11px] text-gray-500">
+        <Clock size={12} className="text-gray-400" />
+        <b className="text-gray-900">{fmtSec(avg)}</b> avg / question
+      </span>
+      <span className="flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50/50 px-2.5 py-1 text-[11px] text-red-500">
+        <AlertTriangle size={12} className="text-red-600" />
+        <b className="text-red-600">{slow}</b> slow &ge; {fmtSec(SLOW_THRESHOLD)}
+      </span>
+      <span className="flex items-center gap-1.5 rounded-lg border border-amber-100 bg-amber-50/50 px-2.5 py-1 text-[11px] text-amber-500">
+        <Zap size={12} className="text-amber-600" />
+        <b className="text-amber-600">{rushed}</b> rushed &lt; {fmtSec(RUSHED_THRESHOLD)}
+      </span>
     </div>
   );
 }

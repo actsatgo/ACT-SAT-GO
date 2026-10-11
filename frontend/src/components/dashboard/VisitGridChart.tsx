@@ -37,18 +37,29 @@ export interface GridSection {
   title: string;
   rowCount: number;
   bars: GridBar[];
+  /** Total time on each question (row), in seconds, for the pacing counts. */
+  rowSeconds: number[];
+  /** Whether each question ended up answered (rushed counts only answered ones). */
+  rowAnswered: boolean[];
 }
 
 /** Visit data from the time-analytics endpoint → chart bars (times relative to the module start). */
 export function gridFromVisits(section: TaSection, title: string): GridSection {
   const rowOf = new Map(section.questionIds.map((q, i) => [q, i]));
   const bars: GridBar[] = [];
+  const rowMs = section.questionIds.map(() => 0);
+  const rowAnswered = section.questionIds.map(() => false);
   for (const v of section.visits) {
     const row = rowOf.get(v.questionId);
     if (row === undefined) continue;
     bars.push({ row, visitNo: v.visitNo, start: v.start - section.offsetMs, end: v.end - section.offsetMs, result: v.exitResult });
+    rowMs[row] += v.activeMs;
+    rowAnswered[row] = v.exitResult !== 'unanswered'; // visits arrive in time order, so the last one wins
   }
-  return { sectionId: section.sectionId, title, rowCount: section.questionIds.length, bars };
+  return {
+    sectionId: section.sectionId, title, rowCount: section.questionIds.length, bars,
+    rowSeconds: rowMs.map((ms) => Math.round(ms / 1000)), rowAnswered,
+  };
 }
 
 /**
@@ -64,7 +75,10 @@ export function gridFromTotals(sectionId: string, title: string, stats: Question
     const result: TaResult = q.status === 'skipped' ? 'unanswered' : q.status;
     return { row: i, visitNo: 1, start, end: cursor, result };
   });
-  return { sectionId, title, rowCount: stats.length, bars };
+  return {
+    sectionId, title, rowCount: stats.length, bars,
+    rowSeconds: stats.map((q) => q.timeSpentSeconds), rowAnswered: stats.map((q) => q.status !== 'skipped'),
+  };
 }
 
 interface Tip { x: number; y: number; title: string; body: string }
