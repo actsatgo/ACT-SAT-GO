@@ -1,16 +1,10 @@
-import { randomUUID } from 'crypto'
-import { NextResponse } from 'next/server'
-import type { User } from '@prisma/client'
-import { prisma } from '@/lib/prisma'
-import { redis } from '@/lib/redis'
+import { allowedStudentIds, canAuthor, canManage, isAdmin, json, notifyUsers } from '@/lib/studentSharing'
 
-// Flashcards — shared rules for the /api/flashcards routes.
-//
-// Who can do what:
-//  - TUTOR: create decks; edit/delete/share only their own decks; share only
-//    with students assigned to them.
-//  - ADMIN / SUPER_ADMIN: everything, with any student.
-//  - STUDENT: read decks shared with them and save their own study progress.
+// Flashcards — rules for the /api/flashcards routes. Who-can-do-what lives in
+// lib/studentSharing.ts (shared with articles).
+
+export { allowedStudentIds, canAuthor, isAdmin, json }
+export const canManageDeck = canManage
 
 export const LIMITS = {
   title: 120,
@@ -20,15 +14,6 @@ export const LIMITS = {
   cardText: 2000,
   cards: 200,
 }
-
-export const isAdmin = (u: User) => u.role === 'ADMIN' || u.role === 'SUPER_ADMIN'
-export const canAuthor = (u: User) => isAdmin(u) || u.role === 'TUTOR'
-
-export function canManageDeck(u: User, deck: { createdById: string }) {
-  return isAdmin(u) || deck.createdById === u.id
-}
-
-export const json = (body: unknown, status = 200) => NextResponse.json(body, { status })
 
 export interface CardInput { front: string; back: string }
 export interface DeckInput {
@@ -73,54 +58,17 @@ export function parseDeckInput(body: unknown): { error: string } | { value: Deck
   return { value: { title, topic, description, subject, cards } }
 }
 
-/**
- * Keeps only the student ids this user may share with: any active student for
- * admins, the tutor's assigned students for tutors.
- */
-export async function allowedStudentIds(u: User, requested: unknown): Promise<string[]> {
-  const ids = Array.isArray(requested) ? [...new Set(requested.filter((x): x is string => typeof x === 'string'))] : []
-  if (ids.length === 0) return []
-  if (isAdmin(u)) {
-    const rows = await prisma.user.findMany({
-      where: { id: { in: ids }, role: 'STUDENT', deletedAt: null },
-      select: { id: true },
-    })
-    return rows.map((r) => r.id)
-  }
-  const rows = await prisma.tutorAssignment.findMany({
-    where: { tutorId: u.id, studentId: { in: ids }, student: { deletedAt: null } },
-    select: { studentId: true },
-  })
-  return rows.map((r) => r.studentId)
-}
-
-/** In-app notification (same Redis list the notification bell reads) + durable DB copy. */
+/** Notifies students that a deck was shared with them (links to the deck). */
 export async function notifyStudentsOfDeck(
   studentIds: string[],
   deck: { id: string; title: string; topic: string; cardCount: number },
   sharedBy: string,
 ) {
-  const title = 'New flashcards to study'
-  const body = `${sharedBy} shared "${deck.title}" (${deck.cardCount} card${deck.cardCount === 1 ? '' : 's'} on ${deck.topic}).`
-  await Promise.all(
-    studentIds.map(async (userId) => {
-      try {
-        await prisma.notification.create({
-          data: { userId, type: 'TUTOR_ANNOUNCEMENT', title, body, link: `/flashcards/${deck.id}`, read: false },
-        })
-      } catch (e) {
-        console.error('[flashcards] DB notification failed', e)
-      }
-      try {
-        const notifId = randomUUID()
-        const n = { id: notifId, userId, type: 'TUTOR_ANNOUNCEMENT', title, body, link: `/flashcards/${deck.id}`, read: false, createdAt: new Date().toISOString() }
-        await redis.set(`notif:${notifId}`, JSON.stringify(n), { ex: 2_592_000 }) // 30 days
-        await redis.lpush(`user_notifs:${userId}`, notifId)
-      } catch (e) {
-        console.error('[flashcards] in-app notification failed', e)
-      }
-    }),
-  )
+  await notifyUsers(studentIds, {
+    title: 'New flashcards to study',
+    body: `${sharedBy} shared "${deck.title}" (${deck.cardCount} card${deck.cardCount === 1 ? '' : 's'} on ${deck.topic}).`,
+    link: `/flashcards/${deck.id}`,
+  })
 }
 
 export function knownCount(known: unknown, cardIds: Set<string>): number {

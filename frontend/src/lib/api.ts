@@ -365,6 +365,101 @@ export interface FlashcardDeckInput {
   studentIds?: string[]
 }
 
+// ── Articles ─────────────────────────────────────────────────────────────────
+export type ArticleStatus = 'ASSIGNED' | 'SUBMITTED' | 'NEEDS_REVISION' | 'APPROVED'
+/** One student's assignment as a tutor/admin sees it. */
+export interface ArticleAssignmentInfo {
+  studentId: string
+  studentName: string
+  status: ArticleStatus
+  assignedAt: string
+  dueAt: string | null
+  openedAt: string | null
+  submittedAt: string | null
+  reviewedAt: string | null
+  summaryWordCount: number
+  copiedRatio: number | null
+  /** Detail view only — null until the student submits. */
+  summary?: string | null
+  submissionCount?: number
+  feedback?: string | null
+  reviewedByName?: string | null
+}
+export interface ArticleSummary {
+  id: string
+  title: string
+  topic: string | null
+  subject: string | null
+  sourceUrl: string | null
+  minSummaryWords: number
+  readMinutes: number
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  assignments: ArticleAssignmentInfo[]
+}
+export interface StudentArticle {
+  id: string
+  title: string
+  topic: string | null
+  subject: string | null
+  readMinutes: number
+  minSummaryWords: number
+  createdByName: string
+  status: ArticleStatus
+  assignedAt: string
+  dueAt: string | null
+  openedAt: string | null
+  submittedAt: string | null
+  reviewedAt: string | null
+  summaryWordCount: number
+  hasFeedback: boolean
+}
+export interface MyArticleAssignment {
+  status: ArticleStatus
+  assignedAt: string
+  dueAt: string | null
+  openedAt: string
+  summary: string | null
+  summaryWordCount: number
+  submittedAt: string | null
+  submissionCount: number
+  feedback: string | null
+  reviewedAt: string | null
+  reviewedByName: string | null
+}
+export interface ArticleDetail {
+  id: string
+  title: string
+  topic: string | null
+  subject: string | null
+  body: string
+  sourceUrl: string | null
+  minSummaryWords: number
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  readMinutes: number
+  maxCopiedRatio: number
+  canEdit: boolean
+  /** Manager view only */
+  assignments?: ArticleAssignmentInfo[]
+  /** Student view only */
+  assignment?: MyArticleAssignment
+}
+export interface ArticleInput {
+  title: string
+  topic?: string
+  subject?: string
+  body: string
+  sourceUrl?: string
+  minSummaryWords?: number
+  dueAt?: string | null
+  studentIds?: string[]
+}
+
 export const api = {
   // Users
   getUsersByRole: (role?: string, opts?: { deleted?: boolean }) => {
@@ -589,6 +684,30 @@ export const api = {
   saveFlashcardProgress: (deckId: string, knownCardIds: string[]) =>
     request<{ knownCount: number; cardCount: number }>(`/api/flashcards/${deckId}/progress`, {
       method: 'PUT', body: JSON.stringify({ knownCardIds }),
+    }),
+
+  // Articles
+  getArticles: () =>
+    request<{ articles: ArticleSummary[] | StudentArticle[] }>('/api/articles'),
+  getArticle: (articleId: string) =>
+    request<{ article: ArticleDetail }>(`/api/articles/${articleId}`),
+  createArticle: (body: ArticleInput) =>
+    request<{ id: string; assignedTo: number }>('/api/articles', { method: 'POST', body: JSON.stringify(body) }),
+  updateArticle: (articleId: string, body: ArticleInput) =>
+    request<{ id: string }>(`/api/articles/${articleId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteArticle: (articleId: string) =>
+    request<{ success: boolean }>(`/api/articles/${articleId}`, { method: 'DELETE' }),
+  setArticleAssignments: (articleId: string, studentIds: string[], dueAt?: string | null) =>
+    request<{ added: number; removed: number; total: number }>(`/api/articles/${articleId}/assignments`, {
+      method: 'PUT', body: JSON.stringify({ studentIds, dueAt }),
+    }),
+  saveArticleSummary: (articleId: string, summary: string, submit: boolean) =>
+    request<{ status: ArticleStatus; summaryWordCount: number; copiedRatio?: number }>(`/api/articles/${articleId}/summary`, {
+      method: 'PUT', body: JSON.stringify({ summary, submit }),
+    }),
+  reviewArticleSummary: (articleId: string, studentId: string, decision: 'approve' | 'revise', feedback?: string) =>
+    request<{ status: ArticleStatus }>(`/api/articles/${articleId}/review`, {
+      method: 'PUT', body: JSON.stringify({ studentId, decision, feedback }),
     }),
 
   // Visit-level time analytics (see lib/questionTimeTracker.ts)

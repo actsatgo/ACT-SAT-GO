@@ -77,6 +77,11 @@ model User {
   // Flashcards: decks a tutor/admin created, and decks shared with a student
   flashcardDecks  FlashcardDeck[]  @relation("FlashcardDecksCreated")
   flashcardShares FlashcardShare[] @relation("FlashcardSharesReceived")
+
+  // Articles: ones a tutor/admin wrote, ones assigned to a student, reviews given
+  articlesCreated    Article[]           @relation("ArticlesCreated")
+  articleAssignments ArticleAssignment[] @relation("ArticleAssignmentsReceived")
+  articleReviews     ArticleAssignment[] @relation("ArticleAssignmentsReviewed")
 }
 
 model TutorAssignment {
@@ -373,5 +378,53 @@ model FlashcardShare {
   student User          @relation("FlashcardSharesReceived", fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([deckId, studentId])
+  @@index([studentId])
+}
+
+// ── Articles ─────────────────────────────────────────────────────────────────
+// A tutor (or admin) assigns an article to read; the student proves they read
+// it by writing a summary in their own words, which the tutor approves or
+// sends back for revision.
+
+model Article {
+  id              String   @id @default(uuid())
+  title           String
+  topic           String?
+  subject         String?
+  body            String   // plain text; blank lines separate paragraphs, "## " starts a heading, "- " a bullet
+  sourceUrl       String?
+  minSummaryWords Int      @default(50)
+  createdById     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  createdBy   User                @relation("ArticlesCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  assignments ArticleAssignment[]
+
+  @@index([createdById])
+}
+
+model ArticleAssignment {
+  id               String    @id @default(uuid())
+  articleId        String
+  studentId        String
+  assignedAt       DateTime  @default(now())
+  dueAt            DateTime?
+  openedAt         DateTime? // first time the student opened the article
+  status           String    @default("ASSIGNED") @db.VarChar(16) // ASSIGNED | SUBMITTED | NEEDS_REVISION | APPROVED
+  summary          String?   // draft or submitted summary
+  summaryWordCount Int       @default(0)
+  copiedRatio      Float?    // share of the summary copied word-for-word from the article (0–1)
+  submittedAt      DateTime?
+  submissionCount  Int       @default(0)
+  feedback         String?   // tutor's feedback on the latest review
+  reviewedAt       DateTime?
+  reviewedById     String?
+
+  article    Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  student    User    @relation("ArticleAssignmentsReceived", fields: [studentId], references: [id], onDelete: Cascade)
+  reviewedBy User?   @relation("ArticleAssignmentsReviewed", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([articleId, studentId])
   @@index([studentId])
 }

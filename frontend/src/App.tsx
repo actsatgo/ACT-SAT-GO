@@ -51,6 +51,8 @@ const MistakesPage = lazy(() => import('./pages/student/MistakesPage').then((m) 
 const DoubtsPage = lazy(() => import('./pages/student/DoubtsPage').then((m) => ({ default: m.DoubtsPage })));
 const FlashcardsPage = lazy(() => import('./pages/flashcards/FlashcardsPage').then((m) => ({ default: m.FlashcardsPage })));
 const FlashcardStudyPage = lazy(() => import('./pages/flashcards/FlashcardStudyPage').then((m) => ({ default: m.FlashcardStudyPage })));
+const ArticlesPage = lazy(() => import('./pages/articles/ArticlesPage').then((m) => ({ default: m.ArticlesPage })));
+const ArticleReadPage = lazy(() => import('./pages/articles/ArticleReadPage').then((m) => ({ default: m.ArticleReadPage })));
 const MyProgressPage = lazy(() => import('./pages/student/MyProgressPage').then((m) => ({ default: m.MyProgressPage })));
 
 function PageFallback() {
@@ -179,6 +181,8 @@ const router = createBrowserRouter(
         {/* Shared */}
         <Route path="flashcards" element={<FlashcardsPage />} />
         <Route path="flashcards/:deckId" element={<FlashcardStudyPage />} />
+        <Route path="articles" element={<ArticlesPage />} />
+        <Route path="articles/:articleId" element={<ArticleReadPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
