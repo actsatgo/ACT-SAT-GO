@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { AlertTriangle, Clock, Loader2, Zap } from 'lucide-react';
 import { fmtSec } from '../../lib/utils';
 import { api, type TimeAnalyticsResponse } from '../../lib/api';
+import { useUrlString } from '../../lib/urlState';
 import { RUSHED_THRESHOLD, SLOW_THRESHOLD, type QuestionTimeStat } from './QuestionTimeChart';
 import { VisitGridCard, VisitGridModal, gridFromTotals, gridFromVisits, type GridSection } from './VisitGridChart';
 
@@ -33,7 +34,8 @@ export function AttemptTimeAnalyticsGrid({
   const [data, setData] = useState<TimeAnalyticsResponse | null>(null);
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  // The zoomed module lives in the URL, so Back from a question reopens it.
+  const [expandedId, setExpandedId] = useUrlString('zoom');
 
   useEffect(() => {
     let cancelled = false;
@@ -97,8 +99,8 @@ export function AttemptTimeAnalyticsGrid({
       {expanded && (
         <VisitGridModal
           section={expanded}
-          onClose={() => setExpandedId(null)}
-          onQuestionClick={onQuestionClick ? (qi) => { setExpandedId(null); onQuestionClick(expanded.sectionId, qi); } : undefined}
+          onClose={() => setExpandedId('')}
+          onQuestionClick={onQuestionClick ? (qi) => { setExpandedId(''); onQuestionClick(expanded.sectionId, qi); } : undefined}
         />
       )}
     </div>
