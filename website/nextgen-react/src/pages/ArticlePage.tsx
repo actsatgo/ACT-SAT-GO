@@ -57,6 +57,17 @@ export function ArticlePage() {
             </section>
           ))}
 
+          {article.sources && article.sources.length > 0 && (
+            <section className="article-sources">
+              <h2>Sources</h2>
+              <ul>
+                {article.sources.map((src) => (
+                  <li key={src.url}><a href={src.url} target="_blank" rel="noopener noreferrer">{src.name}</a></li>
+                ))}
+              </ul>
+            </section>
+          )}
+
           <aside className="article-cta">
             <p>Not sure where your child stands? Start with a free diagnostic lesson or a free timed practice test.</p>
             <p>

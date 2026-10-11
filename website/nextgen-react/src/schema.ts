@@ -236,6 +236,7 @@ function graphFor(path: string): Json[] | null {
             mainEntityOfPage: { '@id': `${url(path)}#webpage` },
             image: `${SITE.url}/og-image.jpg`,
             inLanguage: 'en-US',
+            ...(article.sources?.length ? { citation: article.sources.map((src) => src.url) } : {}),
           },
           {
             '@type': 'BreadcrumbList',
