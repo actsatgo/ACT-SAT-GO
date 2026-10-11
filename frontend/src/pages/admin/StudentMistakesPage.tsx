@@ -194,7 +194,7 @@ export function StudentMistakesPage() {
             </div>
           </div>
 
-          <MistakesView studentId={selectedStudent.id} canEditDoubt />
+          <MistakesView studentId={selectedStudent.id} canEditDoubt={user?.role !== 'tutor'} />
         </div>
       )}
     </div>

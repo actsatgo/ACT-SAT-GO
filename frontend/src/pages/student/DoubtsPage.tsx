@@ -133,10 +133,11 @@ function getSubject(item: DoubtItem): 'math' | 'english' | 'other' {
 
 // ─── Doubt card ──────────────────────────────────────────────────────────────
 
-function DoubtItemComponent({ item, index, onCleared }: {
+function DoubtItemComponent({ item, index, onCleared, canClear }: {
   item: DoubtItem
   index: number
   onCleared: (attemptId: string, questionId: string) => void
+  canClear: boolean
 }) {
   const navigate = useNavigate();
   const [showExplanation, setShowExplanation] = useState(false);
@@ -214,7 +215,8 @@ function DoubtItemComponent({ item, index, onCleared }: {
         );
       })()}
 
-      {/* Mark cleared — removes from doubts */}
+      {/* Mark cleared — removes from doubts. Students and admins only; tutors view. */}
+      {canClear && (
       <div className="mt-3 pt-3 border-t border-slate-100 flex justify-end">
         <button
           onClick={handleClear}
@@ -224,6 +226,7 @@ function DoubtItemComponent({ item, index, onCleared }: {
           {clearing ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />} Mark Cleared
         </button>
       </div>
+      )}
     </div>
   );
 
@@ -282,6 +285,8 @@ export function DoubtsView({ studentId, title, subtitle, onBack }: {
   subtitle: string;
   onBack?: () => void;
 }) {
+  // Tutors can see a student's doubts but only the student or an admin may clear them.
+  const canClear = useAuthStore((s) => s.user?.role) !== 'tutor';
   const [doubts, setDoubts] = useState<DoubtItem[]>([]);
   const [subjectFilter, setSubjectFilter] = useState<'all' | 'math' | 'english'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'wrong' | 'unattempted'>('all');
@@ -548,6 +553,7 @@ export function DoubtsView({ studentId, title, subtitle, onBack }: {
                 item={item}
                 index={idx}
                 onCleared={handleCleared}
+                canClear={canClear}
               />
             ))}
           </div>
