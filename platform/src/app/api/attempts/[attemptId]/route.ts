@@ -50,7 +50,9 @@ export async function GET(
         sectionAttempts: {
           orderBy: { section: { orderIndex: 'asc' } },
         },
-        answers: { include: { question: true } },
+        // Question rows are already in test.sections above; repeating them on
+        // every answer nearly doubled the response and nothing reads them.
+        answers: true,
         cheatingLogs: { orderBy: { createdAt: 'asc' } },
       },
     })
