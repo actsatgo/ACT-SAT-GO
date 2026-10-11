@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/useAuthStore';
 import {
   Loader2, Search, ChevronRight, ArrowLeft, Users, Target,
   Wrench, Layers,
@@ -268,7 +269,12 @@ function StudentCumulative({ student, onBack }: { student: DbUser; onBack: () =>
 }
 
 // ── Student picker ────────────────────────────────────────────────────────────
-export function AdminAnalyticsPage() {
+/**
+ * Staff analytics, shared by admin and tutor. Admins pick from every student;
+ * tutors only from the students assigned to them. The screen is otherwise the same.
+ */
+export function AdminAnalyticsPage({ scope = 'all' }: { scope?: 'all' | 'tutor' }) {
+  const { dbId } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const studentIdParam = searchParams.get('studentId');
 
@@ -278,13 +284,18 @@ export function AdminAnalyticsPage() {
   const [selected, setSelected] = useState<DbUser | null>(null);
 
   useEffect(() => {
+    if (scope === 'tutor' && !dbId) return;
     let cancelled = false;
-    api.getUsersByRole('STUDENT')
-      .then(r => { if (!cancelled) setStudents(r.users ?? []); })
+    setLoading(true);
+    const load = scope === 'tutor'
+      ? api.getTutorAssignments({ tutorId: dbId! }).then(r => r.assignments.map(a => a.student as DbUser))
+      : api.getUsersByRole('STUDENT').then(r => r.users ?? []);
+    load
+      .then(list => { if (!cancelled) setStudents(list); })
       .catch(() => {})
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, []);
+  }, [scope, dbId]);
 
   useEffect(() => {
     if (students.length > 0) {

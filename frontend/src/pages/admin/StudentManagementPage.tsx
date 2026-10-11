@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { localDateTimeToISO, isoToLocalDateTimeInput, formatDate, formatDateTime } from '../../lib/utils';
+import { useAuthStore } from '../../store/useAuthStore';
 import { useNavigate } from 'react-router-dom';
 import { useUrlString, useUrlFlag } from '../../lib/urlState';
 import { Plus, Upload, UserPlus, CheckCircle, AlertCircle, FileText, Download, Pencil, Trash2, Trash, Copy, KeyRound, Phone, School, User2, Loader2, ChevronLeft, BookOpen, Boxes, TrendingUp, CalendarClock, UserMinus, Eye } from 'lucide-react';
@@ -14,6 +15,7 @@ import { api, type DbUser, type DbTestPackage } from '../../lib/api';
 import { studentStatusFromDecision } from '../../lib/studentStatus';
 import { practiceSubjectOf } from '../../lib/testCategorize';
 import { parseCSV, exportToCsv } from '../../utils/exportCsv';
+import { toLines } from '../../lib/sessionLog';
 
 type MainViewTab = 'analysis' | 'test_analysis';
 
@@ -53,8 +55,16 @@ const isMath = (test: any): boolean => {
          /math|algebra|geometry|calc/.test(t);
 };
 
+/**
+ * Students list and test reports, shared by admin (every student) and tutor
+ * (assigned students only). The screen is the same; only the data scope and
+ * a few tutor-only side effects differ.
+ */
 export function StudentManagementPage() {
   const navigate = useNavigate();
+  const { user, dbId } = useAuthStore();
+  const isTutor = user?.role === 'tutor';
+  const analysisCacheKey = isTutor ? 'tutorAnalysisCache_v3' : 'adminAnalysisCache_v3';
 
   // ── Main view state ───────────────────────────────────────────────────────
   // Kept in the URL so the browser Back button steps back through screens.
@@ -279,12 +289,15 @@ export function StudentManagementPage() {
 
   // ── Data fetching ─────────────────────────────────────────────────────────
   const reload = () => {
+    if (isTutor && !dbId) return;
     Promise.all([
-      api.getUsersByRole('STUDENT').then((r) => setStudents(r.users ?? [])),
+      (isTutor
+        ? api.getTutorAssignments({ tutorId: dbId! }).then((r) => setStudents(r.assignments.map((a) => a.student as DbUser)))
+        : api.getUsersByRole('STUDENT').then((r) => setStudents(r.users ?? []))),
       api.getUsersByRole('TUTOR').then((r) => setTutors(r.users ?? [])),
     ]);
   };
-  useEffect(() => { reload(); }, []);
+  useEffect(() => { reload(); }, [dbId, isTutor]);
   useEffect(() => {
     api.getPublishedTests().then((r) => setPublishedTests((r.tests as DbTest[]).filter((t) => t.status === 'PUBLISHED'))).catch(() => {});
     api.getTestPackages().then((r) => setPackages(r.packages)).catch(() => {});
@@ -437,7 +450,7 @@ export function StudentManagementPage() {
 
       setStudentAnalysisData(allStudentData);
       try {
-        sessionStorage.setItem('adminAnalysisCache_v3', JSON.stringify({ data: allStudentData, ts: Date.now() }));
+        sessionStorage.setItem(analysisCacheKey, JSON.stringify({ data: allStudentData, ts: Date.now() }));
       } catch {}
     } finally {
       setAnalysisLoading(false);
@@ -450,7 +463,7 @@ export function StudentManagementPage() {
   useEffect(() => {
     if (mainView !== 'analysis' || students.length === 0 || studentAnalysisData.length > 0) return;
     try {
-      const cached = JSON.parse(sessionStorage.getItem('adminAnalysisCache_v3') ?? 'null');
+      const cached = JSON.parse(sessionStorage.getItem(analysisCacheKey) ?? 'null');
       if (cached && Date.now() - cached.ts < 5 * 60 * 1000) {
         setStudentAnalysisData(cached.data);
         return;
@@ -549,7 +562,7 @@ export function StudentManagementPage() {
           grade: addForm.grade || undefined,
           targetScore: addForm.targetScore ? Number(addForm.targetScore) : undefined,
           targetDate: addForm.targetDate || undefined,
-          tutorIds: addForm.tutorIds,
+          tutorIds: addForm.tutorIds.length > 0 ? addForm.tutorIds : (isTutor && dbId ? [dbId] : []),
           phone: addForm.phone || undefined,
           parentPhone: addForm.parentPhone || undefined,
           dob: addForm.dob || undefined,
@@ -838,7 +851,7 @@ export function StudentManagementPage() {
                         <td className={`px-4 py-3 sticky left-0 transition-colors z-10 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} group-hover/row:bg-blue-50`}>
                           <button
                             type="button"
-                            onClick={() => navigate(`/students/${row.studentId}`)}
+                            onClick={() => navigate(isTutor ? `/student/${row.studentId}` : `/students/${row.studentId}`)}
                             className="flex items-center gap-2 text-left group"
                             title="View student details"
                           >
@@ -926,6 +939,20 @@ export function StudentManagementPage() {
                               className="px-2.5 py-1 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors whitespace-nowrap"
                             >
                               Assign
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedStudentId(row.studentId);
+                                setSelectedAttemptId('');
+                                setShowTimeGrid(false);
+                                setReportFilter('all');
+                                setReportViewMode('assigned');
+                                setMainView('test_analysis');
+                              }}
+                              className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition-colors border border-slate-200 whitespace-nowrap flex items-center gap-1"
+                              title="View assigned homework and tests"
+                            >
+                              <CalendarClock size={12} /> Assigned
                             </button>
                           </div>
                         </td>
@@ -1820,7 +1847,32 @@ export function StudentManagementPage() {
                         );
                         const titles = assignSelectedTestIds
                           .map((id) => publishedTests.find((t) => t.id === id)?.title)
-                          .filter(Boolean);
+                          .filter((t): t is string => Boolean(t));
+
+                        if (isTutor && dbId && titles.length > 0) {
+                          try {
+                            const today = new Date().toISOString().split('T')[0];
+                            const { entries: existing } = await api.getClassProgress(dbId, assignStudentId);
+                            const todayEntry = existing.find((e) => e.classDate === today);
+                            if (todayEntry) {
+                              const existingLines = toLines(todayEntry.homework);
+                              const combined = Array.from(new Set([...existingLines, ...titles])).join('\n');
+                              await api.updateClassProgress(dbId, assignStudentId, todayEntry.id, { homework: combined });
+                            } else {
+                              await api.addClassProgress(dbId, assignStudentId, {
+                                topic: 'Homework Assigned',
+                                homework: titles.join('\n'),
+                                classDate: today,
+                                author: user?.name ?? 'Tutor',
+                                status: 'Completed',
+                                subject: 'Other',
+                              });
+                            }
+                          } catch (e) {
+                            console.error('Failed to log homework progress:', e);
+                          }
+                        }
+
                         toast.success(
                           titles.length > 1
                             ? `${titles.length} tests assigned successfully`
