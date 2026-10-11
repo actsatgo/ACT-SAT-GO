@@ -30,9 +30,7 @@ const AdminFreeTestLeadsPage = lazy(() => import('./pages/admin/AdminFreeTestLea
 
 // Tutor pages
 const TutorDashboard = lazy(() => import('./pages/tutor/TutorDashboard').then((m) => ({ default: m.TutorDashboard })));
-const MyStudentsPage = lazy(() => import('./pages/tutor/MyStudentsPage').then((m) => ({ default: m.MyStudentsPage })));
 const StudentDetailPage = lazy(() => import('./pages/tutor/StudentDetailPage').then((m) => ({ default: m.StudentDetailPage })));
-const TutorAnalyticsPage = lazy(() => import('./pages/tutor/TutorAnalyticsPage').then((m) => ({ default: m.TutorAnalyticsPage })));
 const AttendancePage = lazy(() => import('./pages/tutor/AttendancePage').then((m) => ({ default: m.AttendancePage })));
 
 // Student pages
@@ -101,8 +99,8 @@ function AnalyticsRouter() {
   const { user } = useAuthStore();
   if (!user) return null;
   if (user.role === 'student') return <AnalyticsPage />;
-  if (user.role === 'tutor') return <TutorAnalyticsPage />;
-  return <AdminAnalyticsPage />;
+  if (user.role === 'tutor') return <AdminAnalyticsPage scope="tutor" />;
+  return <AdminAnalyticsPage scope="all" />;
 }
 
 function AttendanceRouter() {
@@ -161,7 +159,7 @@ const router = createBrowserRouter(
         <Route path="user-management" element={<SuperAdminDashboard />} />
 
         {/* Tutor */}
-        <Route path="my-students" element={<MyStudentsPage />} />
+        <Route path="my-students" element={<StudentManagementPage />} />
         <Route path="student/:id" element={<StudentDetailPage />} />
         <Route path="analytics" element={<AnalyticsRouter />} />
         <Route path="attendance" element={<AttendanceRouter />} />
