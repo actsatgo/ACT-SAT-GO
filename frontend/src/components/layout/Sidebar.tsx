@@ -49,7 +49,6 @@ const studentNavItems: NavItem[] = [
   { label: 'Review Mistakes', path: '/mistakes', icon: <AlertCircle size={18} />, roles: ['student'] },
   { label: 'My Doubts', path: '/doubts', icon: <HelpCircle size={18} />, roles: ['student'] },
   { label: 'ASG Library', path: '/library', icon: <Library size={18} />, roles: ['student'] },
-  { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['student'] },
 ];
 
 // Admin/Tutor navigation
@@ -75,7 +74,7 @@ const adminNavItems: NavItem[] = [
   { label: 'Skills', path: '/skills', icon: <BookMarked size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'ASG Library', path: '/library', icon: <Library size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Support', path: '/support', icon: <LifeBuoy size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
-  { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
+  { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['super_admin', 'admin'] },
 ];
 
 // Free Demo Test accounts (website signups) get a deliberately tiny portal:
@@ -83,7 +82,6 @@ const adminNavItems: NavItem[] = [
 const demoNavItems: NavItem[] = [
   { label: 'My Demo Test', path: '/dashboard', icon: <Sparkles size={18} />, roles: ['student'] },
   { label: 'Score Analytics', path: '/analytics', icon: <PieChart size={18} />, roles: ['student'] },
-  { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['student'] },
 ];
 
 const navItems: NavItem[] = [...studentNavItems, ...adminNavItems];
@@ -295,7 +293,8 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
         )}
 
         {user && (
-          <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 ${collapsed ? 'justify-center px-0' : ''}`}>
+          <button type="button" onClick={() => { navigate('/profile'); setMobileOpen(false); }} title="My Profile"
+            className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 hover:bg-white/5 transition-colors ${collapsed ? 'justify-center px-0' : ''}`}>
             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
               {user.name.charAt(0)}
             </div>
@@ -305,7 +304,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
                 <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">{user.isDemo ? 'Demo Student' : roleLabels[user.role]}</p>
               </div>
             )}
-          </div>
+          </button>
         )}
 
         <button

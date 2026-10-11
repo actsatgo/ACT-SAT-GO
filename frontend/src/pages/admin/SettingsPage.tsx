@@ -9,7 +9,8 @@ import { supabase } from '../../lib/supabase';
 
 type TabKey = 'profile' | 'notifications' | 'platform' | 'security';
 
-export function SettingsPage() {
+export function SettingsPage({ mode = 'settings' }: { mode?: 'settings' | 'profile' }) {
+  const isProfile = mode === 'profile';
   const { user, updateUser } = useAuthStore();
   const [tab, setTab] = useState<TabKey>('profile');
   const [saved, setSaved] = useState(false);
@@ -112,13 +113,14 @@ export function SettingsPage() {
     { key: 'security', label: 'Security', icon: <Lock size={15} /> },
   ];
 
-  const visibleTabs = tabs.filter((t) => !t.superAdminOnly || isSuperAdmin);
+  // My Profile shows only your details and password; full Settings stays for admins.
+  const visibleTabs = tabs.filter((t) => (!t.superAdminOnly || isSuperAdmin) && (!isProfile || t.key === 'profile' || t.key === 'security'));
 
   return (
     <div className="space-y-4 md:space-y-6 max-w-4xl">
       <div>
-        <h1 className="text-xl md:text-2xl font-bold text-slate-900">Settings</h1>
-        <p className="text-slate-500 text-sm mt-0.5">Manage your account and platform preferences</p>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900">{isProfile ? 'My Profile' : 'Settings'}</h1>
+        <p className="text-slate-500 text-sm mt-0.5">{isProfile ? 'Your account details and password' : 'Manage your account and platform preferences'}</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 md:gap-6">
