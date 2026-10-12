@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, BarChart3, Settings,
@@ -102,6 +103,18 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: SidebarProps) {
+  // Collapsed sidebar: hovering an icon shows the tab's name in a small label
+  // to its right (portalled so the narrow sidebar never clips it).
+  const [tip, setTip] = React.useState<{ label: string; top: number; left: number } | null>(null);
+  const tipProps = (label: string) => collapsed ? {
+    onMouseEnter: (e: React.MouseEvent<HTMLElement>) => {
+      const r = e.currentTarget.getBoundingClientRect();
+      setTip({ label, top: r.top + r.height / 2, left: r.right + 10 });
+    },
+    onMouseLeave: () => setTip(null),
+  } : {};
+  React.useEffect(() => { if (!collapsed) setTip(null); }, [collapsed]);
+
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>({});
@@ -170,7 +183,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
                     : 'text-slate-300 hover:text-white hover:bg-white/5'
                 } ${collapsed ? 'justify-center' : ''}`
               }
-              title={collapsed ? item.label : undefined}
+              {...tipProps(item.label)}
             >
               {({ isActive }) => (
                 <>
@@ -293,7 +306,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
         )}
 
         {user && (
-          <button type="button" onClick={() => { navigate('/profile'); setMobileOpen(false); }} title="My Profile"
+          <button type="button" onClick={() => { navigate('/profile'); setMobileOpen(false); }} title={collapsed ? undefined : 'My Profile'} {...tipProps('My Profile')}
             className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 hover:bg-white/5 transition-colors ${collapsed ? 'justify-center px-0' : ''}`}>
             <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
               {user.name.charAt(0)}
@@ -310,12 +323,21 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
         <button
           onClick={handleLogout}
           className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 text-sm font-medium group ${collapsed ? 'justify-center' : ''}`}
-          title={collapsed ? "Sign Out" : undefined}
+          {...tipProps('Sign Out')}
         >
           <LogOut size={18} className="flex-shrink-0 group-hover:-translate-x-1 transition-transform" />
           {!collapsed && <span>Sign Out</span>}
         </button>
       </div>
+      {tip && createPortal(
+        <div
+          className="asg-fade-in pointer-events-none fixed z-[200] -translate-y-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2.5 py-1 text-xs font-semibold text-white shadow-lg ring-1 ring-white/10"
+          style={{ top: tip.top, left: tip.left }}
+        >
+          {tip.label}
+        </div>,
+        document.body,
+      )}
     </div>
   );
 
