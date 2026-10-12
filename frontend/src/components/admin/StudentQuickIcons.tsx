@@ -1,8 +1,29 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Eye, Info } from 'lucide-react';
 import type { DbUser } from '../../lib/api';
+
+/**
+ * Keeps a fixed popup fully on screen: after it renders, measures its height
+ * and, when it would run past the bottom of the window, moves it up (above the
+ * row for 'below' popups, or shifted up for 'beside' ones).
+ */
+function useOnScreenTop(popupRef: RefObject<HTMLDivElement | null>, anchor: DOMRect | null, mode: 'below' | 'beside') {
+  const [top, setTop] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    if (!anchor) { setTop(null); return; }
+    const h = popupRef.current?.offsetHeight ?? 0;
+    const maxTop = window.innerHeight - h - 8;
+    if (mode === 'below') {
+      const below = anchor.bottom + 6;
+      setTop(below <= maxTop ? below : Math.max(8, anchor.top - h - 6));
+    } else {
+      setTop(Math.max(8, Math.min(anchor.top + anchor.height / 2 - h / 2, maxTop)));
+    }
+  }, [anchor, mode, popupRef]);
+  return top;
+}
 
 /**
  * The two small icons in the student list's Name column (admin and tutor), like
@@ -17,13 +38,14 @@ export function StudentQuickIcons({ studentId, name, email, student }: {
 }) {
   const navigate = useNavigate();
   const infoRef = useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [anchor, setAnchor] = useState<DOMRect | null>(null);
+  const top = useOnScreenTop(popupRef, anchor, 'below');
+  const pos = anchor ? { top: top ?? anchor.bottom + 6, left: Math.max(8, Math.min(anchor.left - 12, window.innerWidth - 260 - 8)) } : null;
 
   const open = () => {
     const r = infoRef.current?.getBoundingClientRect();
-    if (!r) return;
-    const width = 260;
-    setPos({ top: r.bottom + 6, left: Math.max(8, Math.min(r.left - 12, window.innerWidth - width - 8)) });
+    if (r) setAnchor(r);
   };
 
   const rows: [string, string | number | null | undefined][] = [
@@ -46,8 +68,8 @@ export function StudentQuickIcons({ studentId, name, email, student }: {
         className={btn}
         aria-label={`Details for ${name}`}
         onMouseEnter={open}
-        onMouseLeave={() => setPos(null)}
-        onClick={() => (pos ? setPos(null) : open())}
+        onMouseLeave={() => setAnchor(null)}
+        onClick={() => (pos ? setAnchor(null) : open())}
       >
         <Info size={15} />
       </button>
@@ -57,7 +79,8 @@ export function StudentQuickIcons({ studentId, name, email, student }: {
 
       {pos && createPortal(
         <div
-          className="fixed z-[100] w-[260px] rounded-xl border border-slate-200 bg-white p-3 text-left shadow-lg"
+          ref={popupRef}
+          className="asg-fade-in fixed z-[100] w-[260px] rounded-xl border border-slate-200 bg-white p-3 text-left shadow-lg"
           style={{ top: pos.top, left: pos.left }}
         >
           <p className="mb-2 text-sm font-semibold text-slate-900">{name}</p>
@@ -89,16 +112,16 @@ export function StudentNameHover({ name, targetDate, scores, children }: {
   children: ReactNode;
 }) {
   const ref = useRef<HTMLSpanElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const popupRef = useRef<HTMLDivElement>(null);
+  const [anchor, setAnchor] = useState<{ rect: DOMRect; left: number } | null>(null);
+  const top = useOnScreenTop(popupRef, anchor?.rect ?? null, 'beside');
+  const pos = anchor ? { top: top ?? anchor.rect.top, left: anchor.left } : null;
 
   const open = () => {
     const el = ref.current;
     if (!el) return;
     const cell = (el.closest('td') ?? el).getBoundingClientRect();
-    const r = el.getBoundingClientRect();
-    const width = 220;
-    const left = Math.min(cell.right + 8, window.innerWidth - width - 8);
-    setPos({ top: Math.max(8, Math.min(r.top + r.height / 2 - 60, window.innerHeight - 140)), left });
+    setAnchor({ rect: el.getBoundingClientRect(), left: Math.min(cell.right + 8, window.innerWidth - 220 - 8) });
   };
 
   const month = (() => {
@@ -108,10 +131,11 @@ export function StudentNameHover({ name, targetDate, scores, children }: {
   })();
 
   return (
-    <span ref={ref} className="min-w-0" onMouseEnter={open} onMouseLeave={() => setPos(null)}>
+    <span ref={ref} className="min-w-0" onMouseEnter={open} onMouseLeave={() => setAnchor(null)}>
       {children}
       {pos && createPortal(
         <div
+          ref={popupRef}
           className="asg-fade-in pointer-events-none fixed z-[100] w-[220px] rounded-xl border border-slate-200 bg-white p-3 text-left shadow-lg"
           style={{ top: pos.top, left: pos.left }}
         >

@@ -124,6 +124,20 @@ export function StudentManagementPage() {
 
   // Diagnostic Total / RW / Math for the name hover card: computed score first,
   // else the manually entered one (marked M), else a dash.
+  // The student table fills the window down to the bottom edge (no empty band
+  // under it); its own scrollbars handle the rest.
+  const tableBoxRef = useRef<HTMLDivElement>(null);
+  const [tableMaxH, setTableMaxH] = useState(576);
+  useEffect(() => {
+    const fit = () => {
+      const el = tableBoxRef.current;
+      if (el) setTableMaxH(Math.max(320, window.innerHeight - el.getBoundingClientRect().top - 12));
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  });
+
   const diagScores = (row: { studentId: string; scaledScoreTotal: number | null; scaledScoreEnglish: number | null; scaledScoreMath: number | null }) => {
     const st = students.find((x) => x.id === row.studentId);
     const pick = (computed: number | null, manual: number | null | undefined) =>
@@ -819,11 +833,11 @@ export function StudentManagementPage() {
 
         {/* Analysis Table */}
         <Card padding="none">
-          <div className="overflow-auto max-h-[36rem]">
+          <div ref={tableBoxRef} className="overflow-auto" style={{ maxHeight: tableMaxH }}>
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-white z-20">
                 <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                  <th className="px-4 py-2 text-left text-[15px] font-bold text-blue-950 whitespace-nowrap sticky left-0 bg-blue-50 bg-none z-30" rowSpan={2}>Name</th>
+                  <th className="px-4 py-2 text-center align-middle text-[15px] font-bold text-blue-950 whitespace-nowrap sticky left-0 bg-blue-50 bg-none z-30" rowSpan={2}>Students</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" colSpan={6}>Total Assessment</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" rowSpan={2}>Test Report</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap" rowSpan={2}>Performance</th>
