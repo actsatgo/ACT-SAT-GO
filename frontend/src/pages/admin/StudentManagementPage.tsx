@@ -22,16 +22,6 @@ type MainViewTab = 'analysis' | 'test_analysis';
 
 interface DbTest { id: string; title: string; status: string; category?: string; sections: unknown[] }
 
-const formatTargetDate = (dateStr: string | null) => {
-  if (!dateStr) return '—';
-  const cleanStr = dateStr.includes('T') ? dateStr : dateStr.replace(/-/g, '/');
-  const date = new Date(cleanStr);
-  return isNaN(date.getTime())
-    ? '—'
-    : formatDate(cleanStr);
-};
-
-
 // stage badge helper removed as the student table was consolidated
 
 // Test Builder tags homework as subCategory "{Subject}-Homework" (e.g. "Math-Homework"),
@@ -821,7 +811,6 @@ export function StudentManagementPage() {
               <thead className="sticky top-0 bg-white z-20">
                 <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
                   <th className="px-4 py-2 text-left text-[15px] font-bold text-blue-950 whitespace-nowrap sticky left-0 bg-blue-50 bg-none z-30" rowSpan={2}>Name</th>
-                  <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap" rowSpan={2}>Target Date</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" colSpan={6}>Total Assessment</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" rowSpan={2}>Test Report</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap" rowSpan={2}>Performance</th>
@@ -838,9 +827,9 @@ export function StudentManagementPage() {
               </thead>
               <tbody>
                 {analysisLoading ? (
-                  <tr><td colSpan={11} className="py-8 text-center text-slate-400">Loading...</td></tr>
+                  <tr><td colSpan={10} className="py-8 text-center text-slate-400">Loading...</td></tr>
                 ) : studentAnalysisData.length === 0 ? (
-                  <tr><td colSpan={11} className="py-8 text-center text-slate-400">No students found</td></tr>
+                  <tr><td colSpan={10} className="py-8 text-center text-slate-400">No students found</td></tr>
                 ) : studentAnalysisData
                     .filter((s) => {
                        if (activityFilter !== 'all') {
@@ -890,9 +879,6 @@ export function StudentManagementPage() {
                             student={students.find((s) => s.id === row.studentId)}
                           />
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-center text-sm text-slate-600 whitespace-nowrap">
-                          {formatTargetDate(row.targetDate)}
                         </td>
                         <td className="px-3 py-3 text-center text-sm text-slate-600 border-l border-blue-100">
                           {row.mockTests || '—'}
