@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Expand, X } from 'lucide-react';
 import type { TaSection, TaResult } from '../../lib/api';
 import type { QuestionTimeStat } from './QuestionTimeChart';
+import { fmtMmSs } from '../../lib/utils';
 
 // Visit-level pacing chart, drawn to match Zuperscore's "Time Analytics":
 // a horizontal floating-bar chart with one bar per *visit* to a question,
@@ -144,7 +145,7 @@ export function VisitGridChart({
       x: e.clientX - host.left,
       y: e.clientY - host.top,
       title: `Q${b.row + 1}`,
-      body: `Visit ${b.visitNo}: [${(b.start / 60_000).toFixed(2)}, ${(b.end / 60_000).toFixed(2)}]`,
+      body: `Visit ${b.visitNo}: ${fmtMmSs(b.start / 1000)} – ${fmtMmSs(b.end / 1000)} (${fmtMmSs((b.end - b.start) / 1000)})`,
     });
   };
 

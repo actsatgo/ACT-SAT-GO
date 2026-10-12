@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Clock } from 'lucide-react';
+import { fmtMmSs } from '../../lib/utils';
 import { api, type TimeAnalyticsResponse, type TaResult, type TaVisit } from '../../lib/api';
 
 /**
@@ -9,6 +10,7 @@ import { api, type TimeAnalyticsResponse, type TaResult, type TaVisit } from '..
  * answer the student left at the end of that visit. Uses the same cached
  * time-analytics response as the charts, so opening questions adds no requests.
  * Attempts taken before visit tracking existed show the total time only.
+ * Shown in the top-right of each question's header.
  */
 
 const ordinal = (n: number) => {
@@ -17,10 +19,7 @@ const ordinal = (n: number) => {
   return `${n}${s[(v - 20) % 10] || s[v] || s[0]}`;
 };
 
-const fmt = (ms: number) => {
-  const secs = Math.max(0, Math.round(ms / 1000));
-  return `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
-};
+const fmt = (ms: number) => fmtMmSs(ms / 1000);
 
 const RESULT_STYLE: Record<TaResult, { dot: string; label: string }> = {
   correct: { dot: 'bg-emerald-500', label: 'answer correct' },
@@ -58,40 +57,32 @@ export function QuestionVisitTimes({ attemptId, questionId, fallbackSeconds }: {
     ? data.sections.flatMap((s) => s.visits.filter((v) => v.questionId === questionId)).sort((a, b) => a.visitNo - b.visitNo)
     : [];
   const totalMs = visits.length > 0 ? visits.reduce((sum, v) => sum + v.activeMs, 0) : fallbackSeconds * 1000;
+  const legacy = data !== undefined && visits.length === 0;
 
+  // Compact strip for the top-right of the question header: total time, then
+  // one chip per visit (1st attempt, 2nd attempt, …).
   return (
-    <div className="mt-3 rounded-lg border border-slate-200 bg-slate-50/60 px-3 py-2.5 text-left">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
-        <span className="flex items-center gap-1 font-semibold text-slate-700">
-          <Clock size={12} /> Time on this question: {fmt(totalMs)}
-        </span>
-        {visits.length > 0 && (
-          <span className="text-slate-500">{visits.length} {visits.length === 1 ? 'visit' : 'visits'}</span>
-        )}
-      </div>
-
-      {data === undefined ? (
-        <p className="mt-1.5 text-xs text-slate-400">Loading visit times…</p>
-      ) : visits.length > 0 ? (
-        <ul className="mt-2 flex flex-wrap gap-2">
-          {visits.map((v) => {
-            const style = RESULT_STYLE[v.exitResult] ?? RESULT_STYLE.unanswered;
-            return (
-              <li
-                key={v.visitNo}
-                title={`${ordinal(v.visitNo)} attempt: ${fmt(v.activeMs)}, ${style.label} when leaving`}
-                className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs"
-              >
-                <span className={`h-2 w-2 rounded-full ${style.dot}`} />
-                <span className="text-slate-500">{ordinal(v.visitNo)} attempt</span>
-                <span className="font-semibold text-slate-800 tabular-nums">{fmt(v.activeMs)}</span>
-              </li>
-            );
-          })}
-        </ul>
-      ) : (
-        <p className="mt-1.5 text-xs text-slate-400">Visit-by-visit times were not recorded for this test.</p>
-      )}
-    </div>
+    <span className="inline-flex flex-wrap items-center justify-end gap-1.5 text-xs">
+      <span
+        className="inline-flex items-center gap-1 font-semibold text-slate-700 tabular-nums"
+        title={legacy ? 'Total time on this question. Visit-by-visit times were not recorded for this test.' : 'Total time on this question'}
+      >
+        <Clock size={11} /> {fmt(totalMs)}
+      </span>
+      {visits.map((v) => {
+        const style = RESULT_STYLE[v.exitResult] ?? RESULT_STYLE.unanswered;
+        return (
+          <span
+            key={v.visitNo}
+            title={`${ordinal(v.visitNo)} attempt: ${fmt(v.activeMs)}, ${style.label} when leaving`}
+            className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-1.5 py-0.5"
+          >
+            <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+            <span className="text-slate-500">{ordinal(v.visitNo)} attempt</span>
+            <span className="font-semibold text-slate-800 tabular-nums">{fmt(v.activeMs)}</span>
+          </span>
+        );
+      })}
+    </span>
   );
 }

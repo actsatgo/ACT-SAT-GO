@@ -1,8 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { fmtSec } from '../../lib/utils';
 import { useUrlFlag } from '../../lib/urlState';
-import { CheckCircle, Loader2, Clock, ChevronLeft, ChevronRight, XCircle, Maximize2, X, ChevronDown, ChevronUp, Info, Bookmark } from 'lucide-react';
+import { CheckCircle, Loader2, ChevronLeft, ChevronRight, XCircle, Maximize2, X, ChevronDown, ChevronUp, Info, Bookmark } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { Card } from '../common/Card';
 import { Modal } from '../common/Modal';
@@ -943,16 +942,11 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                                     </div>
                                     {correct ? <CheckCircle size={14} className="text-blue-600" /> : <XCircle size={14} className={skipped ? 'text-slate-400' : 'text-blue-400'} />}
                                   </div>
-                                  <div className="flex-1">
-                                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Question</div>
-                                    <div className="text-sm text-slate-800 leading-relaxed font-medium">
-                                      <RichContentRenderer content={currentTq.question.content.text || `Question`} variant="question" className="prose-sm" />
-                                    </div>
-                                  </div>
+                                  <div className="flex-1" />
                                   <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end">
-                                    {studentAnswer?.timeSpentSeconds ? (
-                                      <span className="text-xs text-slate-500 flex items-center gap-1"><Clock size={9} />{fmtSec(studentAnswer.timeSpentSeconds)}</span>
-                                    ) : null}
+                                    {testAnalysisAttempt && (
+                                      <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
+                                    )}
                                     {correct ? (
                                       <Badge variant="info" className="bg-blue-600 text-white border-none font-semibold">Correct</Badge>
                                     ) : skipped ? (
@@ -972,6 +966,10 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                                   </div>
                                 </div>
                                 <div className="space-y-2 flex-1 overflow-y-auto">
+                                  {/* Question text sits below the header, not inside it (same as Math) */}
+                                  <div className="text-sm text-slate-800 leading-relaxed text-left font-medium mb-3">
+                                    <RichContentRenderer content={currentTq.question.content.text || `Question`} variant="question" className="prose-sm" />
+                                  </div>
                                   <div className="flex justify-start mb-2">
                                     <button onClick={() => setShowAnswerFeedback(v => !v)} className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all border ${showAnswerFeedback ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-300 hover:border-blue-400'}`}>
                                       {showAnswerFeedback ? 'Hide Answer' : 'Show Answer'}
@@ -1003,10 +1001,6 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                                       {showAnswerFeedback && (<span className="text-slate-500">Correct: <strong className="text-blue-600">{(currentTq.question.correctAnswer.displayValues && currentTq.question.correctAnswer.displayValues.length > 0 ? currentTq.question.correctAnswer.displayValues.join(' or ') : (currentTq.question.correctAnswer.value !== undefined ? formatNumericDisplay(currentTq.question.correctAnswer.value) : ''))}</strong></span>)}
                                     </div>
                                   )}
-                                  {/* This question's own time: total and each visit */}
-                                  {testAnalysisAttempt && (
-                                    <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
-                                  )}
                                   {/* Explanation dropdown + Still Doubt / Cleared */}
                                   {testAnalysisAttempt && (
                                     <ExplanationDoubtBar
@@ -1032,9 +1026,9 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                                 </div>
                                 <div className="flex-1" />
                                 <div className="flex items-center gap-1.5 flex-shrink-0 flex-wrap justify-end">
-                                  {studentAnswer?.timeSpentSeconds ? (
-                                    <span className="text-xs text-slate-500 flex items-center gap-1"><Clock size={9} />{fmtSec(studentAnswer.timeSpentSeconds)}</span>
-                                  ) : null}
+                                  {testAnalysisAttempt && (
+                                    <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
+                                  )}
                                   {correct ? (
                                     <Badge variant="info" className="bg-blue-600 text-white border-none font-semibold">Correct</Badge>
                                   ) : skipped ? (
@@ -1089,10 +1083,6 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                                     <span className="text-slate-500">Your answer: <strong className={!showAnswerFeedback ? 'text-slate-900' : correct ? 'text-blue-600' : 'text-blue-400'}>{studentAnswer?.answerGiven?.text ?? (studentAnswer?.answerGiven?.value !== undefined ? formatNumericDisplay(studentAnswer.answerGiven.value) : null) ?? '—'}</strong></span>
                                     {showAnswerFeedback && (<span className="text-slate-500">Correct: <strong className="text-blue-600">{(currentTq.question.correctAnswer.displayValues && currentTq.question.correctAnswer.displayValues.length > 0 ? currentTq.question.correctAnswer.displayValues.join(' or ') : (currentTq.question.correctAnswer.value !== undefined ? formatNumericDisplay(currentTq.question.correctAnswer.value) : ''))}</strong></span>)}
                                   </div>
-                                )}
-                                {/* This question's own time: total and each visit */}
-                                {testAnalysisAttempt && (
-                                  <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
                                 )}
                                 {/* Explanation dropdown + Still Doubt / Cleared */}
                                 {testAnalysisAttempt && (
@@ -1417,12 +1407,7 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                             <Bookmark size={11} fill="currentColor" /> Bookmarked
                           </span>
                         )}
-                        {studentAnswer?.timeSpentSeconds ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-full text-xs font-semibold text-blue-700">
-                            <Clock size={11} />
-                            Time Spent: {fmtSec(studentAnswer.timeSpentSeconds)}
-                          </span>
-                        ) : null}
+                        <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
                       </div>
                     </div>
 
@@ -1477,10 +1462,6 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                       )
                     )}
 
-                    {/* This question's own time: total and each visit */}
-                    {testAnalysisAttempt && currentTq && (
-                      <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
-                    )}
                     {/* Explanation dropdown + Still Doubt / Cleared (same bar as the inline report) */}
                     {testAnalysisAttempt && currentTq && (
                       <div className="select-text">
@@ -1512,12 +1493,7 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                             <Bookmark size={11} fill="currentColor" /> Bookmarked
                           </span>
                         )}
-                        {studentAnswer?.timeSpentSeconds ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-blue-50 border border-blue-200 rounded-full text-xs font-semibold text-blue-700">
-                            <Clock size={11} />
-                            Time Spent: {fmtSec(studentAnswer.timeSpentSeconds)}
-                          </span>
-                        ) : null}
+                        <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
                       </div>
                     </div>
 
@@ -1572,10 +1548,6 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                       )
                     )}
 
-                    {/* This question's own time: total and each visit */}
-                    {testAnalysisAttempt && currentTq && (
-                      <QuestionVisitTimes attemptId={testAnalysisAttempt.id} questionId={currentTq.questionId} fallbackSeconds={studentAnswer?.timeSpentSeconds ?? 0} />
-                    )}
                     {/* Explanation dropdown + Still Doubt / Cleared (same bar as the inline report) */}
                     {testAnalysisAttempt && currentTq && (
                       <div className="select-text">
