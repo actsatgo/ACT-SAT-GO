@@ -168,7 +168,7 @@ export function MyTestsPage() {
   const expiredVisible = tab === 'todo' ? visiblePool.filter(t => t.status === 'Expired') : [];
 
   return (
-    <div className="max-w-5xl space-y-5">
+    <div className="space-y-5">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-slate-900">My Tests</h1>

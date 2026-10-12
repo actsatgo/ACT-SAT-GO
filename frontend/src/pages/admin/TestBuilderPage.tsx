@@ -2657,7 +2657,7 @@ export function TestBuilderPage() {
 
         {/* Real-time Mock Exam Preview Panel */}
         {previewMode === 'full' && (
-          <div className="space-y-4 w-full max-w-5xl mx-auto animate-fade-in">
+          <div className="space-y-4 w-full animate-fade-in">
             <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Viewport:</span>

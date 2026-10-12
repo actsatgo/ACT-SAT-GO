@@ -70,7 +70,7 @@ function FaqAccordion({ items }: { items: FaqItem[] }) {
 
 export function SupportPage() {
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6">
       <div>
         <h1 className="text-xl md:text-2xl font-bold text-slate-900">Help & Support</h1>
         <p className="text-slate-500 text-sm mt-0.5">Frequently asked questions and contact options</p>

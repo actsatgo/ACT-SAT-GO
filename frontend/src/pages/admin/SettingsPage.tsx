@@ -117,7 +117,7 @@ export function SettingsPage({ mode = 'settings' }: { mode?: 'settings' | 'profi
   const visibleTabs = tabs.filter((t) => (!t.superAdminOnly || isSuperAdmin) && (!isProfile || t.key === 'profile' || t.key === 'security'));
 
   return (
-    <div className="space-y-4 md:space-y-6 max-w-4xl">
+    <div className="space-y-4 md:space-y-6">
       <div>
         <h1 className="text-xl md:text-2xl font-bold text-slate-900">{isProfile ? 'My Profile' : 'Settings'}</h1>
         <p className="text-slate-500 text-sm mt-0.5">{isProfile ? 'Your account details and password' : 'Manage your account and platform preferences'}</p>
