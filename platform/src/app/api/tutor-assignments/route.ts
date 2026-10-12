@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
             grade: sp.grade ?? null,
             targetScore: sp.targetScore ?? null,
             specialization: sp.specialization ?? [],
+            timezone: sp.timezone ?? null,
             testsAttempted,
             avgScore: avgScore !== null ? Math.round(avgScore * 10) / 10 : null,
             lastActive: studentAttempts[0]?.completedAt ?? null,

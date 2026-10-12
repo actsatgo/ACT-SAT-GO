@@ -11,7 +11,8 @@ import { Modal } from '../../components/common/Modal';
 import { AttemptAnalysis, computeTestAnalysis, type TaAttempt } from '../../components/report/AttemptAnalysis';
 import { TutorMultiSelect } from '../../components/common/TutorMultiSelect';
 import { TrashModal } from '../../components/common/TrashModal';
-import { StudentNameHover, StudentQuickIcons } from '../../components/admin/StudentQuickIcons';
+import { StudentNameHover } from '../../components/admin/StudentNameHover';
+import { SubjectPicker } from '../../components/admin/SubjectPicker';
 import { api, type DbUser, type DbTestPackage } from '../../lib/api';
 import { studentStatusFromDecision } from '../../lib/studentStatus';
 import { practiceSubjectOf } from '../../lib/testCategorize';
@@ -55,7 +56,7 @@ export function StudentManagementPage() {
   const navigate = useNavigate();
   const { user, dbId } = useAuthStore();
   const isTutor = user?.role === 'tutor';
-  const analysisCacheKey = isTutor ? 'tutorAnalysisCache_v4' : 'adminAnalysisCache_v4';
+  const analysisCacheKey = isTutor ? 'tutorAnalysisCache_v5' : 'adminAnalysisCache_v5';
 
   // ── Main view state ───────────────────────────────────────────────────────
   // Kept in the URL so the browser Back button steps back through screens.
@@ -76,7 +77,7 @@ export function StudentManagementPage() {
   const [csvError, setCsvError] = useState('');
   const [csvSuccess, setCsvSuccess] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [addForm, setAddForm] = useState({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [] as string[], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '' });
+  const [addForm, setAddForm] = useState({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [] as string[], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '', subjects: [] as string[] });
   const [addError, setAddError] = useState('');
   const [addLoading, setAddLoading] = useState(false);
   const [createdPassword, setCreatedPassword] = useState<{ name: string; email: string; password: string } | null>(null);
@@ -98,6 +99,7 @@ export function StudentManagementPage() {
     diagnosticsEnglish: number | null;
     diagnosticsMath: number | null;
     mockTests: number;
+    avgMockScore?: number | null;
     diagnosticCount: number;
     sectionalTests: number;
     hwCount: number;
@@ -138,17 +140,12 @@ export function StudentManagementPage() {
     return () => window.removeEventListener('resize', fit);
   });
 
-  const diagScores = (row: { studentId: string; scaledScoreTotal: number | null; scaledScoreEnglish: number | null; scaledScoreMath: number | null }) => {
-    const st = students.find((x) => x.id === row.studentId);
-    const pick = (computed: number | null, manual: number | null | undefined) =>
-      computed != null ? computed
-        : manual != null ? <span title="Manually entered score" className="text-violet-700">{manual}<sup className="text-[9px] ml-0.5">M</sup></span>
-        : '—';
-    return [
-      { label: 'Total', value: pick(row.scaledScoreTotal, st?.manualDiagTotal) },
-      { label: 'RW', value: pick(row.scaledScoreEnglish, st?.manualDiagRW) },
-      { label: 'Math', value: pick(row.scaledScoreMath, st?.manualDiagMath) },
-    ];
+  // Whose Session Logs to read for a student's no-show / reschedule counts:
+  // a tutor reads their own; admins read every tutor the student has.
+  const studentTutorIds = (studentId: string) => {
+    if (isTutor) return dbId ? [dbId] : [];
+    const st = students.find((x) => x.id === studentId);
+    return st?.tutors?.map((t) => t.id) ?? (st?.tutorId ? [st.tutorId] : []);
   };
   const [activityFilter, setActivityFilter] = useState<'all' | 'active' | 'inactive' | 'pending'>('all');
 
@@ -439,6 +436,10 @@ export function StudentManagementPage() {
               diagnosticsEnglish,
               diagnosticsMath,
               mockTests: completed('mock'),
+              avgMockScore: (() => {
+                const scores = studentAttempts.filter((a: any) => typeOf(a) === 'mock' && a.totalScore != null).map((a: any) => Number(a.totalScore));
+                return scores.length ? Math.round(scores.reduce((x: number, y: number) => x + y, 0) / scores.length) : null;
+              })(),
               diagnosticCount: studentAttempts.filter((a: any) => (a.test?.title ?? '').toLowerCase().includes('diagnostic')).length,
               sectionalTests: completed('sectional'),
               hwCount: completed('hw'),
@@ -467,7 +468,7 @@ export function StudentManagementPage() {
               studentEmail: student.email,
               targetDate: student.targetDate || null,
               diagnosticsEnglish: null, diagnosticsMath: null,
-              mockTests: 0, diagnosticCount: 0, sectionalTests: 0,
+              mockTests: 0, avgMockScore: null, diagnosticCount: 0, sectionalTests: 0,
               hwCount: 0, hwRW: 0, hwMath: 0, cwCount: 0,
               practiceSheets: 0, practiceRW: 0, practiceMath: 0,
               totalAssessments: 0,
@@ -585,9 +586,10 @@ export function StudentManagementPage() {
           manualDiagTotal: addForm.manualDiagTotal ? Number(addForm.manualDiagTotal) : null,
           manualDiagRW: addForm.manualDiagRW ? Number(addForm.manualDiagRW) : null,
           manualDiagMath: addForm.manualDiagMath ? Number(addForm.manualDiagMath) : null,
+          specialization: addForm.subjects,
         });
         setShowAddModal(false); setIsEditing(false); setEditingStudentId(null);
-        setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '' });
+        setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '', subjects: [] as string[] });
         reload();
       } else {
         const res = await api.createUser({
@@ -611,9 +613,10 @@ export function StudentManagementPage() {
           manualDiagTotal: addForm.manualDiagTotal ? Number(addForm.manualDiagTotal) : null,
           manualDiagRW: addForm.manualDiagRW ? Number(addForm.manualDiagRW) : null,
           manualDiagMath: addForm.manualDiagMath ? Number(addForm.manualDiagMath) : null,
+          specialization: addForm.subjects,
         });
         setShowAddModal(false);
-        setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '' });
+        setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '', subjects: [] as string[] });
         reload();
         if (res.tempPassword) setCreatedPassword({ name: fullName, email: addForm.email, password: res.tempPassword });
       }
@@ -650,6 +653,7 @@ export function StudentManagementPage() {
       manualDiagTotal: student.manualDiagTotal != null ? String(student.manualDiagTotal) : '',
       manualDiagRW: student.manualDiagRW != null ? String(student.manualDiagRW) : '',
       manualDiagMath: student.manualDiagMath != null ? String(student.manualDiagMath) : '',
+      subjects: student.specialization ?? [],
     });
     setIsEditing(true);
     setEditingStudentId(student.id);
@@ -877,11 +881,13 @@ export function StudentManagementPage() {
                     .map((row, idx) => (
                       <tr key={row.studentId} className={`group/row border-b border-slate-100 hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
                         <td className={`px-4 py-3 sticky left-0 transition-colors z-10 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} group-hover/row:bg-blue-50`}>
-                          <div className="flex items-center justify-between gap-3 min-w-[230px]">
+                          <div className="flex items-center gap-3 min-w-[200px]">
                           <StudentNameHover
+                            studentId={row.studentId}
                             name={row.studentName}
-                            targetDate={row.targetDate}
-                            scores={diagScores(row)}
+                            timezone={students.find((s) => s.id === row.studentId)?.timezone}
+                            avgMockScore={row.avgMockScore ?? null}
+                            tutorIds={studentTutorIds(row.studentId)}
                           >
                           <button
                             type="button"
@@ -899,12 +905,6 @@ export function StudentManagementPage() {
                             </div>
                           </button>
                           </StudentNameHover>
-                          <StudentQuickIcons
-                            studentId={row.studentId}
-                            name={row.studentName}
-                            email={row.studentEmail}
-                            student={students.find((s) => s.id === row.studentId)}
-                          />
                           </div>
                         </td>
                         <td className="px-3 py-3 text-center text-sm text-slate-600 border-l border-blue-100">
@@ -1367,6 +1367,10 @@ export function StudentManagementPage() {
                     className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="e.g. Asia/Kolkata" />
                 </div>
               </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-600 mb-1">Subjects to be taught</label>
+                <SubjectPicker value={addForm.subjects} onChange={(subjects) => setAddForm(f => ({ ...f, subjects }))} />
+              </div>
             </div>
           </div>
 
@@ -1534,7 +1538,7 @@ export function StudentManagementPage() {
               onClick={() => {
                 setIsEditing(false);
                 setEditingStudentId(null);
-                setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '' });
+                setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '', subjects: [] as string[] });
                 setShowManageModal(false);
                 setShowAddModal(true);
               }}

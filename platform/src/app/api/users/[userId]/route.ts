@@ -68,6 +68,7 @@ export async function GET(
         grade: perms.grade ?? null,
         targetScore: perms.targetScore ?? null,
         targetDate: perms.targetDate ?? null,
+        specialization: perms.specialization ?? [],
         ...(canSeeHourlyRate ? {
           hourlyRate: perms.hourlyRate ?? null,
           salarySettlements: perms.salarySettlements ?? [],

@@ -9,13 +9,16 @@ import { DataTable } from '../../components/common/DataTable';
 import { SearchableSelect } from '../../components/common/SearchableSelect';
 import { TrashModal } from '../../components/common/TrashModal';
 import { api, type DbUser } from '../../lib/api';
+import { TUTOR_SUBJECTS } from '../../lib/sessionLog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { AdminTeacherSalaryPage } from './AdminTeacherSalaryPage';
 
 // Scores above 36 are on the SAT scale (400-1600); the rest on the ACT scale (1-36).
 const isWeakScore = (score: number) => score > 0 && (score > 36 ? score < 1160 : score < 24);
 
-const SPECIALIZATIONS = ['Math', 'English', 'Reading', 'Science', 'Writing', 'ACT Prep', 'SAT Prep'];
+// Each tutor teaches exactly one subject; the Session Log takes a session's
+// subject from it (see sessionSubject in lib/sessionLog).
+const SPECIALIZATIONS = TUTOR_SUBJECTS;
 
 type TabKey = 'all' | 'active' | 'inactive';
 
@@ -99,20 +102,10 @@ export function TutorManagementPage() {
   useEffect(() => { reload(); }, []);
 
   const toggleSpec = (spec: string) =>
-    setAddForm((f) => ({
-      ...f,
-      specializations: f.specializations.includes(spec)
-        ? f.specializations.filter((s) => s !== spec)
-        : [...f.specializations, spec],
-    }));
+    setAddForm((f) => ({ ...f, specializations: f.specializations.includes(spec) ? [] : [spec] }));
 
   const toggleEditSpec = (spec: string) =>
-    setEditForm((f) => ({
-      ...f,
-      specializations: f.specializations.includes(spec)
-        ? f.specializations.filter((s) => s !== spec)
-        : [...f.specializations, spec],
-    }));
+    setEditForm((f) => ({ ...f, specializations: f.specializations.includes(spec) ? [] : [spec] }));
 
   const openEditModal = (tutor: DbUser) => {
     const parts = tutor.name.split(' ');
@@ -689,7 +682,7 @@ export function TutorManagementPage() {
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Specializations</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Subject taught (one per tutor)</label>
             <div className="flex flex-wrap gap-2">
               {SPECIALIZATIONS.map((s) => (
                 <button key={s} type="button" onClick={() => toggleSpec(s)}
@@ -746,7 +739,7 @@ export function TutorManagementPage() {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Specializations</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Subject taught (one per tutor)</label>
               <div className="flex flex-wrap gap-2">
                 {SPECIALIZATIONS.map((s) => (
                   <button key={s} type="button" onClick={() => toggleEditSpec(s)}
