@@ -158,7 +158,7 @@ function StudentCumulative({ student, onBack }: { student: DbUser; onBack: () =>
   };
 
   return (
-    <div className="space-y-5 max-w-5xl">
+    <div className="space-y-5">
       {/* ── Header ─────────────────────────────────────────────────────── */}
       <div className="flex items-center gap-3">
         <button
@@ -318,7 +318,7 @@ export function AdminAnalyticsPage({ scope = 'all' }: { scope?: 'all' | 'tutor' 
   });
 
   return (
-    <div className="space-y-5 max-w-3xl">
+    <div className="space-y-5">
       <div>
         <h1 className="text-xl md:text-2xl font-bold text-slate-900">Student Analytics</h1>
         <p className="text-slate-500 text-sm mt-0.5">

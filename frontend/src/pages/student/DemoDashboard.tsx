@@ -92,7 +92,7 @@ export function DemoDashboard() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6">
       {/* Hero */}
       <div className="rounded-2xl bg-gradient-to-br from-[#0B1E36] via-[#12305a] to-[#1b3d6e] text-white p-6 md:p-8 shadow-lg">
         <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider bg-amber-400/15 text-amber-300 px-2.5 py-1 rounded-full">

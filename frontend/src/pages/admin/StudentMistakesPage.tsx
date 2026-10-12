@@ -67,7 +67,7 @@ export function StudentMistakesPage() {
     <div className="w-full pb-10">
       {!selectedStudent ? (
         /* STUDENT LIST */
-        <div className="space-y-5 max-w-4xl mx-auto">
+        <div className="space-y-5">
           {/* Header */}
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-slate-900">Student Mistakes</h1>

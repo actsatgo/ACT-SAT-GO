@@ -247,7 +247,7 @@ export function AnalyticsPage() {
   }
 
   return (
-    <div className="space-y-5 max-w-5xl">
+    <div className="space-y-5">
       <AnalyticsOverviewHeader
         title="Analytics Overview"
         subtitle="Track your performance and focus on what matters most."

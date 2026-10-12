@@ -225,7 +225,7 @@ export function SkillsManagementPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-10">
+    <div className="space-y-6 pb-10">
       <Toaster position="top-right" />
 
       {/* Header */}
