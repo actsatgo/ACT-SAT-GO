@@ -837,7 +837,7 @@ export function StudentManagementPage() {
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-white z-20">
                 <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                  <th className="px-4 py-2 text-left text-[15px] font-bold text-blue-950 whitespace-nowrap sticky left-0 bg-blue-50 bg-none z-30" rowSpan={2}>Name</th>
+                  <th className="px-4 py-2 text-center align-middle text-[15px] font-bold text-blue-950 whitespace-nowrap sticky left-0 bg-blue-50 bg-none z-30" rowSpan={2}>Students</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" colSpan={6}>Total Assessment</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" rowSpan={2}>Test Report</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap" rowSpan={2}>Performance</th>
