@@ -7,7 +7,7 @@ import { useAuthStore } from '../../store/useAuthStore';
 type DoubtStatus = 'doubt' | 'cleared' | null;
 
 /**
- * Collapsed "Explanation" dropdown with Still Doubt / Cleared beside it, for the
+ * Collapsed "Explanation" dropdown; Still Doubt / Cleared show below it once it is opened. For the
  * inline (non-fullscreen) Question Wise Report. Works for every question
  * (correct, incorrect or omitted); the choice is saved on the attempt so it
  * shows up under the Still Doubt / Cleared filters and in My Doubts.
@@ -64,6 +64,23 @@ export function ExplanationDoubtBar({
           {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
           Explanation
         </button>
+      </div>
+
+      {open && (
+        <div className="mt-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100/80">
+          {explanation ? (
+            <div className="text-sm text-slate-700 leading-relaxed">
+              <RichContentRenderer content={explanation} variant="question" className="prose-sm" />
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500 italic">No explanation available for this question.</p>
+          )}
+        </div>
+      )}
+
+      {/* Still Doubt / Cleared appear only once the explanation is opened */}
+      {open && (
+      <div className="mt-3 flex flex-wrap items-center gap-2">
         {(!readOnly || status === 'doubt') && (
         <button
           type="button"
@@ -91,17 +108,6 @@ export function ExplanationDoubtBar({
         </button>
         )}
       </div>
-
-      {open && (
-        <div className="mt-3 p-4 bg-blue-50/50 rounded-xl border border-blue-100/80">
-          {explanation ? (
-            <div className="text-sm text-slate-700 leading-relaxed">
-              <RichContentRenderer content={explanation} variant="question" className="prose-sm" />
-            </div>
-          ) : (
-            <p className="text-sm text-slate-500 italic">No explanation available for this question.</p>
-          )}
-        </div>
       )}
     </div>
   );

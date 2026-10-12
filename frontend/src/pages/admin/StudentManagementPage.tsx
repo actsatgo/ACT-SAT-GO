@@ -11,6 +11,7 @@ import { Modal } from '../../components/common/Modal';
 import { AttemptAnalysis, computeTestAnalysis, type TaAttempt } from '../../components/report/AttemptAnalysis';
 import { TutorMultiSelect } from '../../components/common/TutorMultiSelect';
 import { TrashModal } from '../../components/common/TrashModal';
+import { StudentQuickIcons } from '../../components/admin/StudentQuickIcons';
 import { api, type DbUser, type DbTestPackage } from '../../lib/api';
 import { studentStatusFromDecision } from '../../lib/studentStatus';
 import { practiceSubjectOf } from '../../lib/testCategorize';
@@ -849,6 +850,7 @@ export function StudentManagementPage() {
                     .map((row, idx) => (
                       <tr key={row.studentId} className={`group/row border-b border-slate-100 hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
                         <td className={`px-4 py-3 sticky left-0 transition-colors z-10 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} group-hover/row:bg-blue-50`}>
+                          <div className="flex items-center gap-2">
                           <button
                             type="button"
                             onClick={() => navigate(isTutor ? `/student/${row.studentId}` : `/students/${row.studentId}`)}
@@ -864,6 +866,13 @@ export function StudentManagementPage() {
                               </div>
                             </div>
                           </button>
+                          <StudentQuickIcons
+                            studentId={row.studentId}
+                            name={row.studentName}
+                            email={row.studentEmail}
+                            student={students.find((s) => s.id === row.studentId)}
+                          />
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-center text-sm text-slate-600 whitespace-nowrap">
                           {formatTargetDate(row.targetDate)}
