@@ -17,6 +17,7 @@ import { TutorMultiSelect } from '../../components/common/TutorMultiSelect';
 import { AttemptAnalysis } from '../../components/report/AttemptAnalysis';
 import { api, type DbUser } from '../../lib/api';
 import { toLines } from '../../lib/sessionLog';
+import { SubjectPicker } from '../../components/admin/SubjectPicker';
 import { useAuthStore } from '../../store/useAuthStore';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
@@ -157,7 +158,7 @@ export function AdminStudentProfilePage() {
   const [unassignSaving, setUnassignSaving] = useState(false);
 
   const [editing, setEditing] = useState(false);
-  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', phone: '', parentPhone: '', dob: '', schoolName: '', grade: '', targetScore: '', targetDate: '', tutorIds: [] as string[] });
+  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', phone: '', parentPhone: '', dob: '', schoolName: '', grade: '', targetScore: '', targetDate: '', tutorIds: [] as string[], subjects: [] as string[] });
   const [editSaving, setEditSaving] = useState(false);
 
   const [assignOpen, setAssignOpen] = useState(false);
@@ -223,6 +224,7 @@ export function AdminStudentProfilePage() {
         targetScore: s.targetScore ? String(s.targetScore) : '',
         targetDate: s.targetDate || '',
         tutorIds: s.tutors?.length ? s.tutors.map((t) => t.id) : (s.tutorId ? [s.tutorId] : []),
+        subjects: s.specialization ?? [],
       });
     }).catch(() => toast.error('Failed to load student')).finally(() => setLoading(false));
 
@@ -405,6 +407,7 @@ export function AdminStudentProfilePage() {
         parentPhone: editForm.parentPhone || undefined,
         dob: editForm.dob || undefined,
         schoolName: editForm.schoolName || undefined,
+        specialization: editForm.subjects,
       });
       setStudent(updated.user);
       setEditing(false);
@@ -572,6 +575,7 @@ export function AdminStudentProfilePage() {
                 <InfoRow icon={<School size={13} />} label="School" value={student.schoolName} />
                 <InfoRow icon={<BookOpen size={13} />} label="Board" value={student.board} />
                 <InfoRow icon={<Clock size={13} />} label="Timezone" value={student.timezone} />
+                <InfoRow icon={<BookOpen size={13} />} label="Subjects" value={student.specialization?.length ? student.specialization.join(', ') : null} />
                 <div className="border-t-2 border-slate-200 my-2" />
                 <InfoRow icon={<Target size={13} />} label="Target Test Date"
                   value={student.targetDate ? formatDate(student.targetDate) : null} />
@@ -644,6 +648,10 @@ export function AdminStudentProfilePage() {
                     value={editForm.tutorIds}
                     onChange={(ids) => setEditForm(f => ({ ...f, tutorIds: ids }))}
                   />
+                </div>
+                <div>
+                  <label className={labelCls}>Subjects to be taught</label>
+                  <SubjectPicker value={editForm.subjects} onChange={(subjects) => setEditForm(f => ({ ...f, subjects }))} />
                 </div>
               </div>
             )}

@@ -102,6 +102,7 @@ export async function GET(request: NextRequest) {
           schoolName: perms.schoolName ?? null,
           board: perms.board ?? null,
           timezone: perms.timezone ?? null,
+          specialization: perms.specialization ?? [],
           firstClassDate: perms.firstClassDate ?? null,
           programVariant: perms.programVariant ?? null,
           mockVariant: perms.mockVariant ?? null,
