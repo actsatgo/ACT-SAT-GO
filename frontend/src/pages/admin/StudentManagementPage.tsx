@@ -11,7 +11,7 @@ import { Modal } from '../../components/common/Modal';
 import { AttemptAnalysis, computeTestAnalysis, type TaAttempt } from '../../components/report/AttemptAnalysis';
 import { TutorMultiSelect } from '../../components/common/TutorMultiSelect';
 import { TrashModal } from '../../components/common/TrashModal';
-import { StudentQuickIcons } from '../../components/admin/StudentQuickIcons';
+import { StudentNameHover, StudentQuickIcons } from '../../components/admin/StudentQuickIcons';
 import { api, type DbUser, type DbTestPackage } from '../../lib/api';
 import { studentStatusFromDecision } from '../../lib/studentStatus';
 import { practiceSubjectOf } from '../../lib/testCategorize';
@@ -131,6 +131,21 @@ export function StudentManagementPage() {
   }>>([]);
   const [analysisSearchTerm, setAnalysisSearchTerm] = useState('');
   const [analysisSortBy, setAnalysisSortBy] = useState<'name' | 'diagnostics' | 'attempts'>('name');
+
+  // Diagnostic Total / RW / Math for the name hover card: computed score first,
+  // else the manually entered one (marked M), else a dash.
+  const diagScores = (row: { studentId: string; scaledScoreTotal: number | null; scaledScoreEnglish: number | null; scaledScoreMath: number | null }) => {
+    const st = students.find((x) => x.id === row.studentId);
+    const pick = (computed: number | null, manual: number | null | undefined) =>
+      computed != null ? computed
+        : manual != null ? <span title="Manually entered score" className="text-violet-700">{manual}<sup className="text-[9px] ml-0.5">M</sup></span>
+        : '—';
+    return [
+      { label: 'Total', value: pick(row.scaledScoreTotal, st?.manualDiagTotal) },
+      { label: 'RW', value: pick(row.scaledScoreEnglish, st?.manualDiagRW) },
+      { label: 'Math', value: pick(row.scaledScoreMath, st?.manualDiagMath) },
+    ];
+  };
   const [activityFilter, setActivityFilter] = useState<'all' | 'active' | 'inactive' | 'pending'>('all');
 
   // ── Detailed Test Analysis state ─────────────────────────────────────────
@@ -807,16 +822,12 @@ export function StudentManagementPage() {
                 <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
                   <th className="px-4 py-2 text-left text-[15px] font-bold text-blue-950 whitespace-nowrap sticky left-0 bg-blue-50 bg-none z-30" rowSpan={2}>Name</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap" rowSpan={2}>Target Date</th>
-                  <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" colSpan={3}>Diagnostic Score</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" colSpan={6}>Total Assessment</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" rowSpan={2}>Test Report</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap" rowSpan={2}>Performance</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap" rowSpan={2}>Actions</th>
                 </tr>
                 <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-b-2 border-blue-200">
-                  <th className="px-3 py-1.5 text-center text-[13px] font-semibold text-blue-800 whitespace-nowrap border-l border-blue-200">Total SS</th>
-                  <th className="px-3 py-1.5 text-center text-[13px] font-semibold text-blue-800 whitespace-nowrap">RW SS</th>
-                  <th className="px-3 py-1.5 text-center text-[13px] font-semibold text-blue-800 whitespace-nowrap">Math SS</th>
                   <th className="px-3 py-1.5 text-center text-[13px] font-semibold text-blue-800 whitespace-nowrap border-l border-blue-200">Mock</th>
                   <th className="px-3 py-1.5 text-center text-[13px] font-semibold text-blue-800 whitespace-nowrap">Sectional</th>
                   <th className="px-3 py-1.5 text-center text-[13px] font-semibold text-blue-800 whitespace-nowrap border-l border-blue-100">HW R&amp;W</th>
@@ -827,9 +838,9 @@ export function StudentManagementPage() {
               </thead>
               <tbody>
                 {analysisLoading ? (
-                  <tr><td colSpan={14} className="py-8 text-center text-slate-400">Loading...</td></tr>
+                  <tr><td colSpan={11} className="py-8 text-center text-slate-400">Loading...</td></tr>
                 ) : studentAnalysisData.length === 0 ? (
-                  <tr><td colSpan={14} className="py-8 text-center text-slate-400">No students found</td></tr>
+                  <tr><td colSpan={11} className="py-8 text-center text-slate-400">No students found</td></tr>
                 ) : studentAnalysisData
                     .filter((s) => {
                        if (activityFilter !== 'all') {
@@ -850,7 +861,12 @@ export function StudentManagementPage() {
                     .map((row, idx) => (
                       <tr key={row.studentId} className={`group/row border-b border-slate-100 hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
                         <td className={`px-4 py-3 sticky left-0 transition-colors z-10 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} group-hover/row:bg-blue-50`}>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-between gap-3 min-w-[230px]">
+                          <StudentNameHover
+                            name={row.studentName}
+                            targetDate={row.targetDate}
+                            scores={diagScores(row)}
+                          >
                           <button
                             type="button"
                             onClick={() => navigate(isTutor ? `/student/${row.studentId}` : `/students/${row.studentId}`)}
@@ -866,6 +882,7 @@ export function StudentManagementPage() {
                               </div>
                             </div>
                           </button>
+                          </StudentNameHover>
                           <StudentQuickIcons
                             studentId={row.studentId}
                             name={row.studentName}
@@ -876,33 +893,6 @@ export function StudentManagementPage() {
                         </td>
                         <td className="px-4 py-3 text-center text-sm text-slate-600 whitespace-nowrap">
                           {formatTargetDate(row.targetDate)}
-                        </td>
-                        <td className="px-3 py-3 text-center font-semibold text-blue-900 border-l border-blue-100">
-                          {(() => {
-                            const computed = row.scaledScoreTotal;
-                            const manual = students.find(s => s.id === row.studentId)?.manualDiagTotal;
-                            if (computed != null) return computed;
-                            if (manual != null) return <span title="Manually entered score" className="text-violet-700">{manual}<sup className="text-[9px] ml-0.5">M</sup></span>;
-                            return '—';
-                          })()}
-                        </td>
-                        <td className="px-3 py-3 text-center text-sm font-semibold text-blue-700">
-                          {(() => {
-                            const computed = row.scaledScoreEnglish;
-                            const manual = students.find(s => s.id === row.studentId)?.manualDiagRW;
-                            if (computed != null) return computed;
-                            if (manual != null) return <span title="Manually entered score" className="text-violet-700">{manual}<sup className="text-[9px] ml-0.5">M</sup></span>;
-                            return '—';
-                          })()}
-                        </td>
-                        <td className="px-3 py-3 text-center text-sm font-semibold text-blue-700">
-                          {(() => {
-                            const computed = row.scaledScoreMath;
-                            const manual = students.find(s => s.id === row.studentId)?.manualDiagMath;
-                            if (computed != null) return computed;
-                            if (manual != null) return <span title="Manually entered score" className="text-violet-700">{manual}<sup className="text-[9px] ml-0.5">M</sup></span>;
-                            return '—';
-                          })()}
                         </td>
                         <td className="px-3 py-3 text-center text-sm text-slate-600 border-l border-blue-100">
                           {row.mockTests || '—'}
