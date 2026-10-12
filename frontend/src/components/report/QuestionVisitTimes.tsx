@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Clock } from 'lucide-react';
+import { ChevronRight, Clock } from 'lucide-react';
 import { fmtMmSs } from '../../lib/utils';
 import { api, type TimeAnalyticsResponse, type TaResult, type TaVisit } from '../../lib/api';
 
@@ -57,32 +57,51 @@ export function QuestionVisitTimes({ attemptId, questionId, fallbackSeconds }: {
     ? data.sections.flatMap((s) => s.visits.filter((v) => v.questionId === questionId)).sort((a, b) => a.visitNo - b.visitNo)
     : [];
   const totalMs = visits.length > 0 ? visits.reduce((sum, v) => sum + v.activeMs, 0) : fallbackSeconds * 1000;
-  const legacy = data !== undefined && visits.length === 0;
+  const [open, setOpen] = useState(false);
+  // A new question starts collapsed.
+  useEffect(() => { setOpen(false); }, [questionId]);
 
-  // Compact strip for the top-right of the question header: total time, then
-  // one chip per visit (1st attempt, 2nd attempt, …).
+  // "Time Taken" pill for the top-right of the question header. Clicking it
+  // slides open one chip per visit (1st attempt, 2nd attempt, …) in MM:SS.
   return (
-    <span className="inline-flex flex-wrap items-center justify-end gap-1.5 text-xs">
+    <span className="inline-flex items-center justify-end gap-1.5 text-xs">
       <span
-        className="inline-flex items-center gap-1 font-semibold text-slate-700 tabular-nums"
-        title={legacy ? 'Total time on this question. Visit-by-visit times were not recorded for this test.' : 'Total time on this question'}
+        className={`inline-flex items-center gap-1.5 overflow-hidden transition-all duration-300 ease-out ${
+          open ? 'max-w-[640px] opacity-100' : 'max-w-0 opacity-0'
+        }`}
+        aria-hidden={!open}
       >
-        <Clock size={11} /> {fmt(totalMs)}
-      </span>
-      {visits.map((v) => {
-        const style = RESULT_STYLE[v.exitResult] ?? RESULT_STYLE.unanswered;
-        return (
-          <span
-            key={v.visitNo}
-            title={`${ordinal(v.visitNo)} attempt: ${fmt(v.activeMs)}, ${style.label} when leaving`}
-            className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-1.5 py-0.5"
-          >
-            <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
-            <span className="text-slate-500">{ordinal(v.visitNo)} attempt</span>
-            <span className="font-semibold text-slate-800 tabular-nums">{fmt(v.activeMs)}</span>
+        {visits.length > 0 ? visits.map((v) => {
+          const style = RESULT_STYLE[v.exitResult] ?? RESULT_STYLE.unanswered;
+          return (
+            <span
+              key={v.visitNo}
+              title={`${ordinal(v.visitNo)} attempt: ${fmt(v.activeMs)}, ${style.label} when leaving`}
+              className="inline-flex flex-shrink-0 items-center gap-1 whitespace-nowrap rounded-md border border-slate-200 bg-white px-1.5 py-0.5"
+            >
+              <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+              <span className="text-slate-500">{ordinal(v.visitNo)} attempt</span>
+              <span className="font-semibold text-slate-800 tabular-nums">{fmt(v.activeMs)}</span>
+            </span>
+          );
+        }) : (
+          <span className="whitespace-nowrap text-slate-400">
+            {data === undefined ? 'Loading…' : 'Attempt times not recorded for this test'}
           </span>
-        );
-      })}
+        )}
+      </span>
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        title={open ? 'Hide time for each attempt' : 'Show time for each attempt'}
+        className={`inline-flex flex-shrink-0 items-center gap-1 whitespace-nowrap rounded-md border px-2 py-0.5 font-semibold tabular-nums transition-colors ${
+          open ? 'border-blue-300 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:text-blue-700'
+        }`}
+      >
+        <Clock size={11} /> Time Taken {fmt(totalMs)}
+        <ChevronRight size={12} className={`transition-transform duration-300 ${open ? 'rotate-180' : ''}`} />
+      </button>
     </span>
   );
 }
