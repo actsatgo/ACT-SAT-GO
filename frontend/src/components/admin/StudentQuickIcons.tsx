@@ -26,7 +26,6 @@ export function StudentQuickIcons({ studentId, name, email, student }: {
     setPos({ top: r.bottom + 6, left: Math.max(8, Math.min(r.left - 12, window.innerWidth - width - 8)) });
   };
 
-  const fmtDate = (d?: string | null) => (d ? new Date(d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' }) : null);
   const rows: [string, string | number | null | undefined][] = [
     ['Email', email],
     ['Phone', student?.phone],
@@ -34,7 +33,6 @@ export function StudentQuickIcons({ studentId, name, email, student }: {
     ['School', student?.schoolName],
     ['Grade', student?.grade],
     ['Target score', student?.targetScore],
-    ['Target date', fmtDate(student?.targetDate)],
     ['Tutors', student?.tutors?.map((t) => t.name).join(', ') || student?.tutorName],
   ];
 
@@ -118,7 +116,7 @@ export function StudentNameHover({ name, targetDate, scores, children }: {
           style={{ top: pos.top, left: pos.left }}
         >
           <p className="text-sm font-semibold text-slate-900">{name}</p>
-          <p className="mt-0.5 text-xs text-slate-500">Target test: <span className="font-medium text-slate-800">{month ?? 'Not set'}</span></p>
+          <p className="mt-0.5 text-xs text-slate-500">Target Date: <span className="font-medium text-slate-800">{month ?? 'Not set'}</span></p>
           <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Diagnostic score</p>
           <div className="mt-1 grid grid-cols-3 gap-1.5">
             {scores.map((sc) => (
