@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader2, ClipboardCheck } from 'lucide-react';
+import { Loader2, ClipboardCheck, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { api, type PtmReport, type PtmStudent } from '../../lib/api';
 import { Modal } from '../common/Modal';
@@ -64,8 +64,46 @@ export function PrepStatusBadge({ status }: { status: string }) {
   );
 }
 
+/** WhatsApp wants digits only with the country code; a bare 10-digit number is taken as Indian (+91). */
+function waNumber(phone: string | null | undefined): string {
+  const raw = (phone ?? '').trim();
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  if (!raw.startsWith('+') && digits.length === 10) return `91${digits}`;
+  return digits.replace(/^00/, '');
+}
+
+/** The parent message for one PTM report. */
+export function ptmWhatsAppText(studentName: string, r: PtmReport): string {
+  return [
+    'Dear Parent,',
+    '',
+    `PTM update for ${studentName} (${fmtDate(r.ptmDate)}):`,
+    `Prep status: ${r.prepStatus}`,
+    `Target test date: ${fmtDate(r.targetTestDate)}`,
+    `Mocks completed: ${r.mocksCompleted}`,
+    ...(r.remarks ? ['', `Remarks: ${r.remarks}`] : []),
+    '',
+    'Regards,',
+    'ACT SAT GO',
+  ].join('\n');
+}
+
+/** Opens WhatsApp with the PTM message ready for the parent; the admin presses Send. */
+export function WhatsAppShareButton({ phone, text }: { phone?: string | null; text: string }) {
+  const num = waNumber(phone);
+  const href = `https://wa.me/${num}?text=${encodeURIComponent(text)}`;
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer"
+      title={num ? 'Send to the parent on WhatsApp' : 'No parent phone saved; choose the contact in WhatsApp'}
+      className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100">
+      <MessageCircle size={14} /> Share on WhatsApp
+    </a>
+  );
+}
+
 /** One PTM entry: date, prep status, target test date, mocks completed, remarks. */
-export function PtmReportItem({ report, latest }: { report: PtmReport; latest?: boolean }) {
+export function PtmReportItem({ report, latest, share }: { report: PtmReport; latest?: boolean; share?: { name: string; phone?: string | null } }) {
   return (
     <div className={`rounded-xl border p-4 ${latest ? 'border-blue-200 bg-blue-50/40' : 'border-slate-200 bg-white'}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -73,7 +111,10 @@ export function PtmReportItem({ report, latest }: { report: PtmReport; latest?: 
           PTM on {fmtDate(report.ptmDate)}
           {latest && <span className="ml-2 text-xs font-medium text-blue-600">Latest</span>}
         </p>
-        <PrepStatusBadge status={report.prepStatus} />
+        <div className="flex items-center gap-2">
+          {share && <WhatsAppShareButton phone={share.phone} text={ptmWhatsAppText(share.name, report)} />}
+          <PrepStatusBadge status={report.prepStatus} />
+        </div>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
         <div>
@@ -96,11 +137,11 @@ export function PtmReportItem({ report, latest }: { report: PtmReport; latest?: 
 }
 
 /** Every PTM report of one student, latest first. */
-export function PtmReportList({ reports, empty = 'No PTM report yet.' }: { reports: PtmReport[]; empty?: string }) {
+export function PtmReportList({ reports, empty = 'No PTM report yet.', share }: { reports: PtmReport[]; empty?: string; share?: { name: string; phone?: string | null } }) {
   if (reports.length === 0) return <p className="py-6 text-center text-sm text-slate-400">{empty}</p>;
   return (
     <div className="space-y-3">
-      {reports.map((r, i) => <PtmReportItem key={r.id} report={r} latest={i === 0} />)}
+      {reports.map((r, i) => <PtmReportItem key={r.id} report={r} latest={i === 0} share={share} />)}
     </div>
   );
 }
