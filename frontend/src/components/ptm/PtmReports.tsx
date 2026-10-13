@@ -80,13 +80,18 @@ export function UpdatePtmModal({ student, onClose, onSaved }: {
   const [prepStatus, setPrepStatus] = useState<string>('');
   const [remarks, setRemarks] = useState('');
   const [saving, setSaving] = useState(false);
+  const [satDates, setSatDates] = useState<string[]>([]);
+
+  useEffect(() => {
+    api.getSatDates().then((r) => setSatDates(r.dates)).catch(() => setSatDates([]));
+  }, []);
 
   useEffect(() => {
     if (!student) return;
     setPtmDate(today);
     // Prefill from the latest PTM, else the student's target date (kept as yyyy-mm-dd).
-    const prev = student.reports[0]?.targetTestDate ?? student.targetDate ?? '';
-    setTargetTestDate(/^\d{4}-\d{2}-\d{2}/.test(prev) ? prev.slice(0, 10) : '');
+    const prev = (student.reports[0]?.targetTestDate ?? student.targetDate ?? '').slice(0, 10);
+    setTargetTestDate(/^\d{4}-\d{2}-\d{2}$/.test(prev) ? prev : '');
     setPrepStatus('');
     setRemarks('');
   }, [student?.id]);
@@ -95,7 +100,7 @@ export function UpdatePtmModal({ student, onClose, onSaved }: {
     if (!student || !ptmDate || !prepStatus) return;
     setSaving(true);
     try {
-      const r = await api.addPtmReport({ studentId: student.id, ptmDate, targetTestDate: targetTestDate || undefined, prepStatus, remarks });
+      const r = await api.addPtmReport({ studentId: student.id, ptmDate, targetTestDate: satDates.includes(targetTestDate) ? targetTestDate : undefined, prepStatus, remarks });
       toast.success('PTM report saved');
       onSaved(student.id, r.reports);
       onClose();
@@ -125,8 +130,12 @@ export function UpdatePtmModal({ student, onClose, onSaved }: {
             <input type="date" value={ptmDate} onChange={(e) => setPtmDate(e.target.value)} className={input} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Target test date</label>
-            <input type="date" value={targetTestDate} onChange={(e) => setTargetTestDate(e.target.value)} className={input} />
+            <label className="block text-xs font-medium text-slate-600 mb-1">Target test date (official SAT dates)</label>
+            <select value={satDates.includes(targetTestDate) ? targetTestDate : ''}
+              onChange={(e) => setTargetTestDate(e.target.value)} className={input}>
+              <option value="">Select SAT date…</option>
+              {satDates.map((d) => <option key={d} value={d}>{fmtDate(d)}</option>)}
+            </select>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
