@@ -5,6 +5,18 @@ import { api, type PtmReport, type PtmStudent } from '../../lib/api';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
 
+// Official SAT Weekend dates published by College Board (checked 13 Oct 2026),
+// shown when the server's live College Board list isn't available.
+const PUBLISHED_SAT_DATES = [
+  '2026-10-03', '2026-11-07', '2026-12-05', '2027-03-06', '2027-05-01', '2027-06-05',
+  '2027-08-28', '2027-09-18', '2027-10-09', '2027-11-06', '2027-12-04',
+  '2028-03-04', '2028-05-06', '2028-06-03',
+];
+const upcoming = (dates: string[]) => {
+  const today = new Date().toISOString().slice(0, 10);
+  return dates.filter((d) => d >= today).sort();
+};
+
 export const PREP_STATUSES = ['On track', 'Slightly Delayed', 'Needs attention'] as const;
 
 const STATUS_STYLE: Record<string, string> = {
@@ -80,10 +92,10 @@ export function UpdatePtmModal({ student, onClose, onSaved }: {
   const [prepStatus, setPrepStatus] = useState<string>('');
   const [remarks, setRemarks] = useState('');
   const [saving, setSaving] = useState(false);
-  const [satDates, setSatDates] = useState<string[]>([]);
+  const [satDates, setSatDates] = useState<string[]>(() => upcoming(PUBLISHED_SAT_DATES));
 
   useEffect(() => {
-    api.getSatDates().then((r) => setSatDates(r.dates)).catch(() => setSatDates([]));
+    api.getSatDates().then((r) => { if (r.dates?.length) setSatDates(upcoming(r.dates)); }).catch(() => {});
   }, []);
 
   useEffect(() => {
