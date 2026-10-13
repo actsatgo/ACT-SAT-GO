@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { requireUser } from '@/lib/auth'
 import { isHomeworkTest } from '@/lib/testCategorize'
+import { notifyParentPtm } from '@/lib/whatsapp'
 
 export const dynamic = 'force-dynamic'
 
@@ -140,6 +141,8 @@ export async function POST(request: NextRequest) {
       where: { id: studentId },
       data: { permissions: { ...perms, ptmReports: reports } as unknown as Prisma.InputJsonValue },
     })
+    // Tell the parent on WhatsApp (no-op until WhatsApp is configured; never blocks the save).
+    void notifyParentPtm(studentId, report)
     return NextResponse.json({ report, reports })
   } catch (error) {
     console.error('POST /api/ptm-reports:', error)
