@@ -805,6 +805,9 @@ export const api = {
   endLiveClass: (roomId: string) =>
     request<{ success: boolean }>(`/api/live-class?roomId=${encodeURIComponent(roomId)}`, { method: 'DELETE' }),
 
+  // Upcoming official SAT test dates (read from College Board by the server).
+  getSatDates: () => cachedGet<{ dates: string[]; source: string }>('/api/sat-dates', LONG_TTL),
+
   // PTM reports: admins write; tutors read their students'; students read their own.
   getPtmReports: (studentId?: string) =>
     request<{ students: PtmStudent[] }>(`/api/ptm-reports${studentId ? `?studentId=${encodeURIComponent(studentId)}` : ''}`),
