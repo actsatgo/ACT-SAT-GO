@@ -270,6 +270,17 @@ export interface ClassProgressEntry {
   nextSessionAt?: string
 }
 
+export interface LiveClass {
+  roomId: string
+  studentId: string
+  studentName: string
+  tutorId: string
+  tutorName: string
+  startedAt: string
+  joinUrl: string
+  canEnd: boolean
+}
+
 export interface ClassProgressInput {
   topic: string
   homework?: string
@@ -766,6 +777,13 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ tutorId, studentId, entryId, ...body }),
     }),
+
+  // Live classes (100ms): one room per class; each caller gets their own join link.
+  getLiveClasses: () => request<{ configured: boolean; classes: LiveClass[] }>('/api/live-class'),
+  startLiveClass: (studentId: string, tutorId?: string) =>
+    request<{ class: LiveClass }>('/api/live-class', { method: 'POST', body: JSON.stringify({ studentId, tutorId }) }),
+  endLiveClass: (roomId: string) =>
+    request<{ success: boolean }>(`/api/live-class?roomId=${encodeURIComponent(roomId)}`, { method: 'DELETE' }),
 
   // Platform-wide settings (e.g. the "Next SAT Date" shown in admin/tutor sidebars,
   // and the full official test-date calendar shown in the super admin console)

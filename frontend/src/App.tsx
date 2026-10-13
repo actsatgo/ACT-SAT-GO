@@ -47,6 +47,7 @@ const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage')
 const ReviewAttemptsPage = lazy(() => import('./pages/student/ReviewAttemptsPage').then((m) => ({ default: m.ReviewAttemptsPage })));
 const MistakesPage = lazy(() => import('./pages/student/MistakesPage').then((m) => ({ default: m.MistakesPage })));
 const DoubtsPage = lazy(() => import('./pages/student/DoubtsPage').then((m) => ({ default: m.DoubtsPage })));
+const LiveClassPage = lazy(() => import('./pages/LiveClassPage').then((m) => ({ default: m.LiveClassPage })));
 const LibraryPage = lazy(() => import('./pages/LibraryPage').then((m) => ({ default: m.LibraryPage })));
 const MyProgressPage = lazy(() => import('./pages/student/MyProgressPage').then((m) => ({ default: m.MyProgressPage })));
 
@@ -178,6 +179,8 @@ const router = createBrowserRouter(
         {/* Shared */}
         {/* ASG Library — every role; the page shows admins everything, others only what is assigned */}
         <Route path="library" element={<LibraryPage />} />
+        {/* Live Class — tutors and admins start a class, the student joins it */}
+        <Route path="live-class" element={<LiveClassPage />} />
         <Route path="settings" element={<SettingsPage />} />
         {/* My Profile — opened by clicking your own name (sidebar or top bar) */}
         <Route path="profile" element={<SettingsPage mode="profile" />} />
