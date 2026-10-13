@@ -19,6 +19,7 @@ import { practiceSubjectOf } from '../../lib/testCategorize';
 import { parseCSV, exportToCsv } from '../../utils/exportCsv';
 import { toLines } from '../../lib/sessionLog';
 import { SatDateSelect } from '../../components/ptm/PtmReports';
+import { PhoneInput } from '../../components/common/PhoneInput';
 
 type MainViewTab = 'analysis' | 'test_analysis';
 
@@ -1383,13 +1384,13 @@ export function StudentManagementPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Student Phone</label>
-                <input type="tel" value={addForm.phone} onChange={(e) => setAddForm(f => ({ ...f, phone: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="555-0100" />
+                <PhoneInput value={addForm.phone} onChange={(v) => setAddForm(f => ({ ...f, phone: v }))}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Student phone" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Parent / Guardian Phone</label>
-                <input type="tel" value={addForm.parentPhone} onChange={(e) => setAddForm(f => ({ ...f, parentPhone: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="555-0101" />
+                <PhoneInput value={addForm.parentPhone} onChange={(v) => setAddForm(f => ({ ...f, parentPhone: v }))}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Parent phone" />
               </div>
             </div>
           </div>
