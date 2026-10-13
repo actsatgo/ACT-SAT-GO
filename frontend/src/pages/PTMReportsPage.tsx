@@ -38,6 +38,14 @@ export function PTMReportsPage() {
 
   const selected = students.find((s) => s.id === selectedId) ?? null;
 
+  // Admins can share a report with the parent on WhatsApp; the number comes from the student's profile.
+  const [parentPhone, setParentPhone] = useState<string | null>(null);
+  useEffect(() => {
+    setParentPhone(null);
+    if (!isAdmin || !selectedId) return;
+    api.getUser(selectedId).then((r) => setParentPhone(r.user.parentPhone ?? null)).catch(() => {});
+  }, [isAdmin, selectedId]);
+
   const onSaved = (studentId: string, reports: PtmStudent['reports']) =>
     setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, reports } : s)));
 
@@ -86,7 +94,8 @@ export function PTMReportsPage() {
             <Button icon={<ClipboardCheck size={16} />} onClick={() => setEditing(selected)}>Update PTM report</Button>
           )}
         </div>
-        <PtmReportList reports={selected.reports} empty="No PTM conducted yet." />
+        <PtmReportList reports={selected.reports} empty="No PTM conducted yet."
+          share={isAdmin ? { name: selected.name, phone: parentPhone } : undefined} />
       </div>
     );
   } else {
