@@ -17,6 +17,31 @@ const upcoming = (dates: string[]) => {
   return dates.filter((d) => d >= today).sort();
 };
 
+/** Upcoming official SAT dates: the server's live College Board list, else the built-in one. */
+export function useSatDates(): string[] {
+  const [satDates, setSatDates] = useState<string[]>(() => upcoming(PUBLISHED_SAT_DATES));
+  useEffect(() => {
+    api.getSatDates().then((r) => { if (r.dates?.length) setSatDates(upcoming(r.dates)); }).catch(() => {});
+  }, []);
+  return satDates;
+}
+
+/**
+ * Target test date dropdown of the upcoming official SAT dates. A date already
+ * saved that isn't in the list (past, or set before) stays selectable so it isn't lost.
+ */
+export function SatDateSelect({ value, onChange, className }: { value: string; onChange: (v: string) => void; className?: string }) {
+  const satDates = useSatDates();
+  const current = (value ?? '').slice(0, 10);
+  const options = current && !satDates.includes(current) ? [current, ...satDates] : satDates;
+  return (
+    <select value={current} onChange={(e) => onChange(e.target.value)} className={className}>
+      <option value="">Select SAT date…</option>
+      {options.map((d) => <option key={d} value={d}>{fmtDate(d)}</option>)}
+    </select>
+  );
+}
+
 export const PREP_STATUSES = ['On track', 'Slightly Delayed', 'Needs attention'] as const;
 
 const STATUS_STYLE: Record<string, string> = {
@@ -92,11 +117,7 @@ export function UpdatePtmModal({ student, onClose, onSaved }: {
   const [prepStatus, setPrepStatus] = useState<string>('');
   const [remarks, setRemarks] = useState('');
   const [saving, setSaving] = useState(false);
-  const [satDates, setSatDates] = useState<string[]>(() => upcoming(PUBLISHED_SAT_DATES));
-
-  useEffect(() => {
-    api.getSatDates().then((r) => { if (r.dates?.length) setSatDates(upcoming(r.dates)); }).catch(() => {});
-  }, []);
+  const satDates = useSatDates();
 
   useEffect(() => {
     if (!student) return;
