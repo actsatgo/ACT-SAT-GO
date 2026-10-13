@@ -145,7 +145,10 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
     navigate('/login');
   };
 
-  const SidebarContent = () => (
+  // Called as a function, not rendered as <SidebarContent />: a component defined
+  // inside Sidebar is a new type on every render, so each hover label (state change)
+  // remounted the whole menu and threw away its scroll position.
+  const sidebarContent = () => (
     <div className="flex flex-col h-full bg-[#0B1E36] border-r border-white/5 transition-all duration-300">
       {/* Logo */}
       <div className={`flex items-center gap-2.5 px-4 py-4 border-b border-white/5 ${collapsed ? 'justify-center px-2' : ''}`}>
@@ -172,7 +175,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto scrollbar-hide">
+      <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto scrollbar-hide" onScroll={() => setTip(null)}>
         {filteredNav.map((item) => (
           <div key={item.path}>
             <NavLink
@@ -364,7 +367,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        <SidebarContent />
+        {sidebarContent()}
       </aside>
 
       {/* Desktop sidebar */}
@@ -375,7 +378,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
           h-screen sticky top-0 flex-shrink-0 shadow-lg border-r border-white/5 z-50
         `}
       >
-        <SidebarContent />
+        {sidebarContent()}
         {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}
