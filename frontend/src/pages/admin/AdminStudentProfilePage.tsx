@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { formatDate, formatDateTime, localDateTimeToISO, isoToLocalDateTimeInput } from '../../lib/utils';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PtmProfileSection, SatDateSelect } from '../../components/ptm/PtmReports';
+import { PhoneInput } from '../../components/common/PhoneInput';
 import { useUrlString } from '../../lib/urlState';
 import {
   ArrowLeft, BookOpen, Target, TrendingUp, Clock, Phone, School, Calendar,
@@ -603,11 +604,11 @@ export function AdminStudentProfilePage() {
                 </div>
                 <div>
                   <label className={labelCls}>Student Phone</label>
-                  <input type="tel" className={inputCls} value={editForm.phone} onChange={(e) => setEditForm(f => ({ ...f, phone: e.target.value }))} placeholder="555-0100" />
+                  <PhoneInput className={inputCls} value={editForm.phone} onChange={(v) => setEditForm(f => ({ ...f, phone: v }))} placeholder="Student phone" />
                 </div>
                 <div>
                   <label className={labelCls}>Parent / Guardian Phone</label>
-                  <input type="tel" className={inputCls} value={editForm.parentPhone} onChange={(e) => setEditForm(f => ({ ...f, parentPhone: e.target.value }))} placeholder="555-0101" />
+                  <PhoneInput className={inputCls} value={editForm.parentPhone} onChange={(v) => setEditForm(f => ({ ...f, parentPhone: v }))} placeholder="Parent phone" />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
