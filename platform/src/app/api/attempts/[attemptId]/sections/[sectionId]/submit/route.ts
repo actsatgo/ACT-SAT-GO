@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { redis } from '@/lib/redis'
 import { isAnswerCorrect } from '@/lib/answerCheck'
 import { syncAnswerTimesFromEvents } from '@/lib/answerTimes'
+import { notifyParentTestResult } from '@/lib/whatsapp'
 
 
 // Digital SAT raw→scaled conversion tables, reproduced exactly from the
@@ -309,6 +310,8 @@ export async function POST(
           where: { id: attemptId },
           data: { status: 'SUBMITTED', totalScore: finalScaledScore, completedAt: new Date() },
         })
+        // Tell the parent on WhatsApp (no-op until WhatsApp is configured; never blocks the submit).
+        void notifyParentTestResult(attemptId)
       }
     }
 
