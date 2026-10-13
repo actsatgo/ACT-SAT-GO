@@ -6,7 +6,7 @@ import {
   LogOut, GraduationCap, ClipboardList, ChevronLeft, ChevronRight, X,
   Activity, UserCheck, Database, LifeBuoy, ChevronDown,
   AlertCircle, HelpCircle, PieChart, BookMarked, CalendarCheck, TrendingUp,
-  FileCheck2, Sparkles, Library, FileBarChart2,
+  FileCheck2, Sparkles, Library, FileBarChart2, Video,
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -46,6 +46,7 @@ const studentNavItems: NavItem[] = [
   { label: 'My Progress', path: '/my-progress', icon: <TrendingUp size={18} />, roles: ['student'] },
   { label: 'Test Report', path: '/test-report', icon: <FileBarChart2 size={18} />, roles: ['student'] },
   { label: 'My Classes', path: '/attendance', icon: <CalendarCheck size={18} />, roles: ['student'] },
+  { label: 'Live Class', path: '/live-class', icon: <Video size={18} />, roles: ['student'] },
   { label: 'Analytics', path: '/analytics', icon: <PieChart size={18} />, roles: ['student'] },
   { label: 'Review Mistakes', path: '/mistakes', icon: <AlertCircle size={18} />, roles: ['student'] },
   { label: 'My Doubts', path: '/doubts', icon: <HelpCircle size={18} />, roles: ['student'] },
@@ -59,6 +60,7 @@ const adminNavItems: NavItem[] = [
   { label: 'Free Test Leads', path: '/free-test-leads', icon: <FileCheck2 size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'My Students', path: '/my-students', icon: <GraduationCap size={18} />, roles: ['tutor'] },
   { label: 'Session Log', path: '/attendance', icon: <CalendarCheck size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
+  { label: 'Live Class', path: '/live-class', icon: <Video size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Tutors', path: '/tutors', icon: <UserCheck size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'Test Builder', path: '/tests', icon: <ClipboardList size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'Question Bank', path: '/question-bank', icon: <Database size={18} />, roles: ['super_admin', 'admin'] },

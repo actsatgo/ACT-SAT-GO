@@ -23,5 +23,13 @@ services:
         sync: false
       - key: CORS_ORIGIN
         sync: false
+      - key: HMS_ACCESS_KEY
+        sync: false
+      - key: HMS_APP_SECRET
+        sync: false
+      - key: HMS_TEMPLATE_ID
+        sync: false
+      - key: HMS_SUBDOMAIN
+        sync: false
       - key: NODE_ENV
         value: production
