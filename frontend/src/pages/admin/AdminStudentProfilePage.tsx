@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { formatDate, formatDateTime, localDateTimeToISO, isoToLocalDateTimeInput } from '../../lib/utils';
 import { useParams, useNavigate } from 'react-router-dom';
+import { PtmProfileSection } from '../../components/ptm/PtmReports';
 import { useUrlString } from '../../lib/urlState';
 import {
   ArrowLeft, BookOpen, Target, TrendingUp, Clock, Phone, School, Calendar,
@@ -704,6 +705,9 @@ export function AdminStudentProfilePage() {
               </div>
             )}
           </div>
+
+          {/* PTM reports (admins add them on the PTM Reports page) */}
+          <PtmProfileSection studentId={student.id} />
         </div>
 
         {/* ── Right column: analytics ───────────────────────────────────── */}
