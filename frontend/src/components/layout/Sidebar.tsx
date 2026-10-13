@@ -6,7 +6,7 @@ import {
   LogOut, GraduationCap, ClipboardList, ChevronLeft, ChevronRight, X,
   Activity, UserCheck, Database, LifeBuoy, ChevronDown,
   AlertCircle, HelpCircle, PieChart, BookMarked, CalendarCheck, TrendingUp,
-  FileCheck2, Sparkles, Library, FileBarChart2, /* Video, */ ClipboardCheck,
+  /* FileCheck2, */ Sparkles, Library, FileBarChart2, /* Video, */ ClipboardCheck,
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -59,7 +59,8 @@ const studentNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Students', path: '/students', icon: <GraduationCap size={18} />, roles: ['super_admin', 'admin'] },
-  { label: 'Free Test Leads', path: '/free-test-leads', icon: <FileCheck2 size={18} />, roles: ['super_admin', 'admin'] },
+  // Free Test Leads hidden from the admin portal (user asked 13 Oct); page and route kept.
+  // { label: 'Free Test Leads', path: '/free-test-leads', icon: <FileCheck2 size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'My Students', path: '/my-students', icon: <GraduationCap size={18} />, roles: ['tutor'] },
   { label: 'Session Log', path: '/attendance', icon: <CalendarCheck size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'PTM Reports', path: '/ptm-reports', icon: <ClipboardCheck size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
