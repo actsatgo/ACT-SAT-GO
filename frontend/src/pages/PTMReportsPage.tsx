@@ -1,14 +1,15 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
-import { ClipboardCheck, Loader2, Search, ChevronDown, ChevronRight } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ClipboardCheck, Loader2, Search, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { api, type PtmStudent } from '../lib/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { Button } from '../components/common/Button';
-import { PtmReportList, PrepStatusBadge, UpdatePtmModal, fmtDate } from '../components/ptm/PtmReports';
+import { PtmReportList, UpdatePtmModal } from '../components/ptm/PtmReports';
 
 /**
- * PTM Reports. Admins see every student and add reports with "Update PTM
- * report"; tutors see their assigned students' reports; students see their own.
+ * PTM Reports. Admins and tutors first see the names of the active students
+ * (tutors: only their own); clicking a name shows every PTM conducted, and
+ * admins add one with "Update PTM report". Students see their own reports.
  */
 export function PTMReportsPage() {
   const { user } = useAuthStore();
@@ -17,27 +18,28 @@ export function PTMReportsPage() {
 
   const [students, setStudents] = useState<PtmStudent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
   const [query, setQuery] = useState('');
-  const [open, setOpen] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState<PtmStudent | null>(null);
 
   useEffect(() => {
     api.getPtmReports()
       .then((r) => setStudents(r.students))
-      .catch(() => setStudents([]))
+      .catch(() => setFailed(true))
       .finally(() => setLoading(false));
   }, []);
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = q ? students.filter((s) => s.name.toLowerCase().includes(q) || s.email.toLowerCase().includes(q)) : students;
+    const list = q ? students.filter((s) => s.name.toLowerCase().includes(q)) : students;
     return [...list].sort((a, b) => a.name.localeCompare(b.name));
   }, [students, query]);
 
-  const onSaved = (studentId: string, reports: PtmStudent['reports']) => {
+  const selected = students.find((s) => s.id === selectedId) ?? null;
+
+  const onSaved = (studentId: string, reports: PtmStudent['reports']) =>
     setStudents((prev) => prev.map((s) => (s.id === studentId ? { ...s, reports } : s)));
-    setOpen(studentId);
-  };
 
   const header = (
     <div>
@@ -46,31 +48,72 @@ export function PTMReportsPage() {
         <h1 className="text-xl md:text-2xl font-bold text-slate-900">PTM Reports</h1>
       </div>
       <p className="text-sm text-slate-500">
-        {isStudent
-          ? 'Your parent-teacher meeting reports, latest first.'
-          : isAdmin
-            ? 'Every student with their latest PTM. Click Update PTM report to add a new one.'
-            : 'PTM reports of your students, latest first.'}
+        {isStudent ? 'Your parent-teacher meeting reports, latest first.' : 'Click a student to see all the PTMs conducted.'}
       </p>
     </div>
   );
 
+  let body: React.ReactNode;
   if (loading) {
-    return (
-      <div className="space-y-5">
-        {header}
-        <div className="flex items-center justify-center h-32 gap-2 text-slate-400 text-sm">
-          <Loader2 size={16} className="animate-spin" /> Loading…
-        </div>
+    body = (
+      <div className="flex items-center justify-center h-32 gap-2 text-slate-400 text-sm">
+        <Loader2 size={16} className="animate-spin" /> Loading…
       </div>
     );
-  }
-
-  if (isStudent) {
-    return (
-      <div className="space-y-5">
-        {header}
-        <PtmReportList reports={students[0]?.reports ?? []} empty="No PTM report yet." />
+  } else if (failed) {
+    body = (
+      <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+        PTM reports could not be loaded. If this was just released, the server update may still be deploying; try again in a few minutes.
+      </div>
+    );
+  } else if (isStudent) {
+    body = <PtmReportList reports={students[0]?.reports ?? []} />;
+  } else if (selected) {
+    body = (
+      <div className="space-y-4">
+        <button type="button" onClick={() => setSelectedId(null)}
+          className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-800">
+          <ArrowLeft size={14} /> All students
+        </button>
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
+          <div>
+            <p className="text-lg font-semibold text-slate-900">{selected.name}</p>
+            <p className="text-xs text-slate-500">
+              {selected.reports.length} PTM{selected.reports.length === 1 ? '' : 's'} conducted · {selected.mocksCompleted} mocks completed
+            </p>
+          </div>
+          {isAdmin && (
+            <Button icon={<ClipboardCheck size={16} />} onClick={() => setEditing(selected)}>Update PTM report</Button>
+          )}
+        </div>
+        <PtmReportList reports={selected.reports} empty="No PTM conducted yet." />
+      </div>
+    );
+  } else {
+    body = (
+      <div className="space-y-3">
+        <div className="relative max-w-sm">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search students"
+            className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100" />
+        </div>
+        <div className="rounded-xl border border-slate-200 bg-white">
+          {shown.length === 0 ? (
+            <p className="px-4 py-8 text-center text-sm text-slate-400">No active students found.</p>
+          ) : (
+            <ul className="divide-y divide-slate-100">
+              {shown.map((s) => (
+                <li key={s.id}>
+                  <button type="button" onClick={() => setSelectedId(s.id)}
+                    className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-slate-50">
+                    <span className="text-sm font-semibold text-slate-900">{s.name}</span>
+                    <ChevronRight size={16} className="text-slate-400" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     );
   }
@@ -79,67 +122,7 @@ export function PTMReportsPage() {
     <div className="space-y-5">
       <Toaster position="top-right" />
       {header}
-
-      <div className="relative max-w-sm">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search students"
-          className="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100" />
-      </div>
-
-      <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-100 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
-              <th className="px-4 py-3">Student</th>
-              <th className="px-4 py-3">Last PTM</th>
-              <th className="px-4 py-3">Prep status</th>
-              <th className="px-4 py-3">Target test date</th>
-              <th className="px-4 py-3">Mocks completed</th>
-              {isAdmin && <th className="px-4 py-3" />}
-            </tr>
-          </thead>
-          <tbody>
-            {shown.length === 0 && (
-              <tr><td colSpan={isAdmin ? 6 : 5} className="px-4 py-8 text-center text-slate-400">No students found.</td></tr>
-            )}
-            {shown.map((s) => {
-              const latest = s.reports[0];
-              const isOpen = open === s.id;
-              return (
-                <Fragment key={s.id}>
-                  <tr className="border-b border-slate-100 hover:bg-slate-50/60">
-                    <td className="px-4 py-3">
-                      <button type="button" onClick={() => setOpen(isOpen ? null : s.id)}
-                        className="flex items-center gap-1.5 font-semibold text-slate-900 hover:text-blue-700">
-                        {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                        {s.name}
-                        {s.reports.length > 0 && <span className="text-xs font-normal text-slate-400">({s.reports.length})</span>}
-                      </button>
-                    </td>
-                    <td className="px-4 py-3 text-slate-700">{latest ? fmtDate(latest.ptmDate) : '—'}</td>
-                    <td className="px-4 py-3">{latest ? <PrepStatusBadge status={latest.prepStatus} /> : <span className="text-slate-400">—</span>}</td>
-                    <td className="px-4 py-3 text-slate-700">{fmtDate(latest?.targetTestDate ?? s.targetDate)}</td>
-                    <td className="px-4 py-3 text-slate-700">{s.mocksCompleted}</td>
-                    {isAdmin && (
-                      <td className="px-4 py-3 text-right">
-                        <Button size="sm" icon={<ClipboardCheck size={14} />} onClick={() => setEditing(s)}>Update PTM report</Button>
-                      </td>
-                    )}
-                  </tr>
-                  {isOpen && (
-                    <tr className="border-b border-slate-100 bg-slate-50/40">
-                      <td colSpan={isAdmin ? 6 : 5} className="px-4 py-4">
-                        <PtmReportList reports={s.reports} />
-                      </td>
-                    </tr>
-                  )}
-                </Fragment>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
+      {body}
       {isAdmin && <UpdatePtmModal student={editing} onClose={() => setEditing(null)} onSaved={onSaved} />}
     </div>
   );

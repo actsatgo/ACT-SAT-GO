@@ -76,7 +76,12 @@ export async function GET(request: NextRequest) {
     })
 
     const rows = students
-      .filter((s) => ((s.permissions ?? {}) as Perms).accountType !== 'DEMO')
+      .filter((s) => {
+        const p = (s.permissions ?? {}) as Perms
+        if (p.accountType === 'DEMO') return false
+        // Admins and tutors see only students marked Active on the Students page.
+        return caller.role === 'STUDENT' || p.diagnosticDecision === 'keep'
+      })
       .map((s) => {
         const p = (s.permissions ?? {}) as Perms
         return {
