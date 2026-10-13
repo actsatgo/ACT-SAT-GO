@@ -1,7 +1,7 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useUrlFlag } from '../../lib/urlState';
-import { CheckCircle, Loader2, ChevronLeft, ChevronRight, XCircle, Maximize2, X, ChevronDown, ChevronUp, Info, Bookmark } from 'lucide-react';
+import { CheckCircle, Loader2, ChevronLeft, ChevronRight, XCircle, Maximize2, X, ChevronDown, ChevronUp, Info, Bookmark, Calculator } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { Card } from '../common/Card';
 import { Modal } from '../common/Modal';
@@ -9,6 +9,7 @@ import { RichContentRenderer } from '../admin/RichContentRenderer';
 import { OptionRenderer } from '../admin/OptionRenderer';
 import { ExplanationDoubtBar } from '../admin/ExplanationDoubtBar';
 import { QuestionVisitTimes } from './QuestionVisitTimes';
+import { DesmosCalculator } from '../calculator/DesmosCalculator';
 import { AttemptTimeAnalyticsGrid } from '../dashboard/AttemptTimeAnalyticsGrid';
 import { type QuestionTimeStat } from '../dashboard/QuestionTimeChart';
 import { api } from '../../lib/api';
@@ -382,6 +383,9 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
   const [questionFilterBy, setQuestionFilterBy] = useState('all');
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [fullscreenQuestionReportOpen, setFullscreenQuestionReportOpen] = useState(false);
+  // DESMOS in the fullscreen question review; closes along with the fullscreen view.
+  const [reviewDesmosOpen, setReviewDesmosOpen] = useState(false);
+  useEffect(() => { if (!fullscreenQuestionReportOpen) setReviewDesmosOpen(false); }, [fullscreenQuestionReportOpen]);
   // Lock page scroll while the fullscreen question-wise review is open so the
   // page behind it can never peek through below the overlay.
   useEffect(() => {
@@ -1362,6 +1366,16 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                   </select>
                 </div>
                 <button
+                  type="button"
+                  onClick={() => setReviewDesmosOpen((o) => !o)}
+                  title="Desmos calculator"
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                    reviewDesmosOpen ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:text-slate-800 hover:bg-slate-100'
+                  }`}
+                >
+                  <Calculator size={16} /> DESMOS
+                </button>
+                <button
                   onClick={() => setFullscreenQuestionReportOpen(false)}
                   className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-all cursor-pointer"
                   title="Close Fullscreen"
@@ -1720,6 +1734,10 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
           document.body
         );
       })()}
+      {fullscreenQuestionReportOpen && reviewDesmosOpen && createPortal(
+        <DesmosCalculator open onClose={() => setReviewDesmosOpen(false)} />,
+        document.body,
+      )}
     </>
   );
 }
