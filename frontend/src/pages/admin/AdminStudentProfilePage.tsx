@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { formatDate, formatDateTime, localDateTimeToISO, isoToLocalDateTimeInput } from '../../lib/utils';
 import { useParams, useNavigate } from 'react-router-dom';
-import { PtmProfileSection } from '../../components/ptm/PtmReports';
+import { PtmProfileSection, SatDateSelect } from '../../components/ptm/PtmReports';
 import { useUrlString } from '../../lib/urlState';
 import {
   ArrowLeft, BookOpen, Target, TrendingUp, Clock, Phone, School, Calendar,
@@ -615,8 +615,8 @@ export function AdminStudentProfilePage() {
                     <input type="date" className={inputCls} value={editForm.dob} onChange={(e) => setEditForm(f => ({ ...f, dob: e.target.value }))} />
                   </div>
                   <div>
-                    <label className={labelCls}>Target Date</label>
-                    <input type="date" className={inputCls} value={editForm.targetDate} onChange={(e) => setEditForm(f => ({ ...f, targetDate: e.target.value }))} />
+                    <label className={labelCls}>Target Test Date</label>
+                    <SatDateSelect className={inputCls} value={editForm.targetDate} onChange={(v) => setEditForm(f => ({ ...f, targetDate: v }))} />
                   </div>
                 </div>
                 <div>
