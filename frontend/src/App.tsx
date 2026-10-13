@@ -48,6 +48,7 @@ const ReviewAttemptsPage = lazy(() => import('./pages/student/ReviewAttemptsPage
 const MistakesPage = lazy(() => import('./pages/student/MistakesPage').then((m) => ({ default: m.MistakesPage })));
 const DoubtsPage = lazy(() => import('./pages/student/DoubtsPage').then((m) => ({ default: m.DoubtsPage })));
 const LiveClassPage = lazy(() => import('./pages/LiveClassPage').then((m) => ({ default: m.LiveClassPage })));
+const PTMReportsPage = lazy(() => import('./pages/PTMReportsPage').then((m) => ({ default: m.PTMReportsPage })));
 const LibraryPage = lazy(() => import('./pages/LibraryPage').then((m) => ({ default: m.LibraryPage })));
 const MyProgressPage = lazy(() => import('./pages/student/MyProgressPage').then((m) => ({ default: m.MyProgressPage })));
 
@@ -179,6 +180,7 @@ const router = createBrowserRouter(
         {/* Shared */}
         {/* ASG Library — every role; the page shows admins everything, others only what is assigned */}
         <Route path="library" element={<LibraryPage />} />
+        <Route path="ptm-reports" element={<PTMReportsPage />} />
         {/* Live Class — tutors and admins start a class, the student joins it */}
         <Route path="live-class" element={<LiveClassPage />} />
         <Route path="settings" element={<SettingsPage />} />

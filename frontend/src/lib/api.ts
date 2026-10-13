@@ -347,6 +347,26 @@ export interface LibraryDocument {
   assignedAt?: string
 }
 
+export interface PtmReport {
+  id: string;
+  ptmDate: string;
+  targetTestDate: string | null;
+  prepStatus: string;
+  mocksCompleted: number;
+  remarks: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface PtmStudent {
+  id: string;
+  name: string;
+  email: string;
+  targetDate: string | null;
+  mocksCompleted: number;
+  reports: PtmReport[];
+}
+
 export const api = {
   // Users
   getUsersByRole: (role?: string, opts?: { deleted?: boolean }) => {
@@ -784,6 +804,12 @@ export const api = {
     request<{ class: LiveClass }>('/api/live-class', { method: 'POST', body: JSON.stringify({ studentId, tutorId }) }),
   endLiveClass: (roomId: string) =>
     request<{ success: boolean }>(`/api/live-class?roomId=${encodeURIComponent(roomId)}`, { method: 'DELETE' }),
+
+  // PTM reports: admins write; tutors read their students'; students read their own.
+  getPtmReports: (studentId?: string) =>
+    request<{ students: PtmStudent[] }>(`/api/ptm-reports${studentId ? `?studentId=${encodeURIComponent(studentId)}` : ''}`),
+  addPtmReport: (body: { studentId: string; ptmDate: string; targetTestDate?: string; prepStatus: string; remarks?: string }) =>
+    request<{ report: PtmReport; reports: PtmReport[] }>('/api/ptm-reports', { method: 'POST', body: JSON.stringify(body) }),
 
   // Platform-wide settings (e.g. the "Next SAT Date" shown in admin/tutor sidebars,
   // and the full official test-date calendar shown in the super admin console)
