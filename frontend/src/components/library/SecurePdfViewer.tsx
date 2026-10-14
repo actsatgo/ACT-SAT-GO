@@ -1,8 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
-import { X, ZoomIn, ZoomOut, Loader2, Download, Printer, Lock } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { X, ZoomIn, ZoomOut, Loader2, Download, Printer, Lock, Maximize2, Minimize2, Calculator, ExternalLink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { api, type LibraryDocument } from '../../lib/api';
+import { DesmosCalculator } from '../calculator/DesmosCalculator';
+
+/** A clickable link found on a PDF page: a web address, or a jump to another page. */
+type PdfLink = { url: string } | { dest: unknown };
 
 interface SecurePdfViewerProps {
   document: LibraryDocument;
@@ -27,6 +32,65 @@ export function SecurePdfViewer({ document: doc, canPrint, watermark, onClose }:
   const [bytes, setBytes] = useState<ArrayBuffer | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [scale, setScale] = useState(1.25);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [desmosOpen, setDesmosOpen] = useState(false);
+  const [webLink, setWebLink] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const pagesRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  // Browser full screen for the reader itself (DESMOS and link panels live inside it).
+  useEffect(() => {
+    const onChange = () => setIsFullscreen(document.fullscreenElement === rootRef.current);
+    document.addEventListener('fullscreenchange', onChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange);
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    };
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else rootRef.current?.requestFullscreen?.().catch(() => toast.error('Full screen is not available in this browser'));
+  };
+
+  const close = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    onClose();
+  };
+
+  const goToPage = (pageNumber: number) => {
+    pagesRef.current?.querySelector(`[data-page="${pageNumber}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // Links inside the PDF: page jumps scroll the reader, portal addresses open that
+  // portal page, and any other web address opens in a panel inside the portal.
+  const openLink = useCallback(async (link: PdfLink) => {
+    if ('url' in link) {
+      let target: URL;
+      try { target = new URL(link.url, window.location.href); } catch { return; }
+      if (target.protocol === 'mailto:' || target.protocol === 'tel:') { window.location.href = target.href; return; }
+      if (target.protocol !== 'http:' && target.protocol !== 'https:') return;
+      if (target.origin === window.location.origin) {
+        if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        onClose();
+        navigate(target.pathname + target.search + target.hash);
+        return;
+      }
+      setWebLink(target.href);
+      return;
+    }
+    if (!pdf) return;
+    try {
+      const dest = typeof link.dest === 'string' ? await pdf.getDestination(link.dest) : link.dest;
+      if (!Array.isArray(dest) || dest.length === 0) return;
+      const ref = dest[0];
+      const index = typeof ref === 'number' ? ref : await pdf.getPageIndex(ref);
+      goToPage(index + 1);
+    } catch {
+      // A broken link inside the PDF does nothing, like in a normal PDF viewer.
+    }
+  }, [pdf, navigate, onClose]);
 
   // Load the PDF bytes (auth-checked server route) and parse them.
   useEffect(() => {
@@ -111,7 +175,7 @@ export function SecurePdfViewer({ document: doc, canPrint, watermark, onClose }:
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex flex-col bg-slate-800/95" onContextMenu={canPrint ? undefined : (e) => e.preventDefault()}>
+    <div ref={rootRef} className="fixed inset-0 z-[70] flex flex-col bg-slate-800/95" onContextMenu={canPrint ? undefined : (e) => e.preventDefault()}>
       {/* Toolbar */}
       <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-900 text-white shadow">
         <div className="min-w-0 flex-1">
@@ -130,6 +194,16 @@ export function SecurePdfViewer({ document: doc, canPrint, watermark, onClose }:
         <button onClick={() => setScale((s) => Math.min(3, +(s + 0.25).toFixed(2)))} className="p-2 rounded-lg hover:bg-slate-700" title="Zoom in">
           <ZoomIn size={18} />
         </button>
+        <button
+          onClick={() => setDesmosOpen((o) => !o)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${desmosOpen ? 'bg-white text-slate-900 border-white' : 'border-slate-500 hover:bg-slate-700'}`}
+          title="DESMOS calculator"
+        >
+          <Calculator size={15} /> DESMOS
+        </button>
+        <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-slate-700" title={isFullscreen ? 'Exit full screen' : 'Full screen'}>
+          {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
+        </button>
         {canPrint && (
           <>
             <button onClick={download} disabled={!bytes} className="p-2 rounded-lg hover:bg-slate-700 disabled:opacity-40" title="Download">
@@ -140,13 +214,13 @@ export function SecurePdfViewer({ document: doc, canPrint, watermark, onClose }:
             </button>
           </>
         )}
-        <button onClick={onClose} className="p-2 rounded-lg hover:bg-slate-700" title="Close">
+        <button onClick={close} className="p-2 rounded-lg hover:bg-slate-700" title="Close">
           <X size={18} />
         </button>
       </div>
 
       {/* Pages */}
-      <div className="flex-1 overflow-auto py-6" style={{ userSelect: 'none' }}>
+      <div ref={pagesRef} className="flex-1 overflow-auto py-6" style={{ userSelect: 'none' }}>
         {error ? (
           <p className="mt-20 text-center text-sm text-red-300">{error}</p>
         ) : !pdf ? (
@@ -156,21 +230,57 @@ export function SecurePdfViewer({ document: doc, canPrint, watermark, onClose }:
         ) : (
           <div className="flex flex-col items-center gap-4">
             {Array.from({ length: pdf.numPages }, (_, i) => (
-              <PdfPage key={i} pdf={pdf} pageNumber={i + 1} scale={scale} watermark={canPrint ? undefined : watermark} />
+              <PdfPage key={i} pdf={pdf} pageNumber={i + 1} scale={scale} watermark={canPrint ? undefined : watermark} onLink={openLink} />
             ))}
           </div>
         )}
+      </div>
+
+      {webLink && <WebLinkPanel url={webLink} onClose={() => setWebLink(null)} />}
+      <DesmosCalculator open={desmosOpen} onClose={() => setDesmosOpen(false)} />
+    </div>
+  );
+}
+
+/** A web page opened from a PDF link, shown inside the portal over the document. */
+function WebLinkPanel({ url, onClose }: { url: string; onClose: () => void }) {
+  return (
+    <div className="absolute inset-0 z-[80] flex flex-col bg-slate-900/80 p-4 sm:p-8">
+      <div className="flex flex-1 flex-col overflow-hidden rounded-xl bg-white shadow-2xl">
+        <div className="flex items-center gap-2 border-b border-slate-200 px-3 py-2">
+          <p className="min-w-0 flex-1 truncate text-xs text-slate-600" title={url}>{url}</p>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50"
+            title="Some websites don't allow being shown inside the portal. Use this if the page stays blank."
+          >
+            <ExternalLink size={14} /> Open in new tab
+          </a>
+          <button onClick={onClose} className="rounded-lg p-1.5 text-slate-600 hover:bg-slate-100" title="Back to the document">
+            <X size={16} />
+          </button>
+        </div>
+        <iframe src={url} title={url} className="w-full flex-1 border-0" referrerPolicy="no-referrer" />
       </div>
     </div>
   );
 }
 
 /** One page, rendered only once it scrolls near the viewport. */
-function PdfPage({ pdf, pageNumber, scale, watermark }: { pdf: PDFDocumentProxy; pageNumber: number; scale: number; watermark?: string }) {
+function PdfPage({ pdf, pageNumber, scale, watermark, onLink }: {
+  pdf: PDFDocumentProxy;
+  pageNumber: number;
+  scale: number;
+  watermark?: string;
+  onLink: (link: PdfLink) => void;
+}) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [visible, setVisible] = useState(false);
   const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  const [links, setLinks] = useState<Array<{ left: number; top: number; width: number; height: number; link: PdfLink }>>([]);
 
   // Page size up front, so the scroll height is right before pages render.
   useEffect(() => {
@@ -206,6 +316,21 @@ function PdfPage({ pdf, pageNumber, scale, watermark }: { pdf: PDFDocumentProxy;
       canvas.style.height = `${vp.height}px`;
       task = page.render({ canvas, viewport: vp, transform: ratio !== 1 ? [ratio, 0, 0, ratio, 0, 0] : undefined });
       task.promise.catch(() => {});
+
+      // Clickable areas for the page's links, placed over the drawn page.
+      page.getAnnotations({ intent: 'display' }).then((annots) => {
+        if (cancelled) return;
+        const found: typeof links = [];
+        for (const a of annots as Array<Record<string, unknown>>) {
+          if (a.subtype !== 'Link' || !Array.isArray(a.rect)) continue;
+          const url = (a.url || a.unsafeUrl) as string | undefined;
+          const link: PdfLink | null = url ? { url } : a.dest ? { dest: a.dest } : null;
+          if (!link) continue;
+          const [x1, y1, x2, y2] = vp.convertToViewportRectangle(a.rect as number[]);
+          found.push({ left: Math.min(x1, x2), top: Math.min(y1, y2), width: Math.abs(x2 - x1), height: Math.abs(y2 - y1), link });
+        }
+        setLinks(found);
+      }).catch(() => {});
     });
     return () => { cancelled = true; task?.cancel(); };
   }, [visible, pdf, pageNumber, scale]);
@@ -213,11 +338,23 @@ function PdfPage({ pdf, pageNumber, scale, watermark }: { pdf: PDFDocumentProxy;
   return (
     <div
       ref={wrapRef}
+      data-page={pageNumber}
       className="relative bg-white shadow-lg"
       style={{ width: size?.w ?? 600, height: size?.h ?? 800 }}
     >
       <canvas ref={canvasRef} className="block" draggable={false} />
       {watermark && <Watermark text={watermark} />}
+      {links.map((l, i) => (
+        <button
+          key={i}
+          type="button"
+          onClick={() => onLink(l.link)}
+          className="absolute z-10 cursor-pointer rounded-sm hover:bg-blue-400/20"
+          style={{ left: l.left, top: l.top, width: l.width, height: l.height }}
+          title={'url' in l.link ? l.link.url : 'Go to page'}
+          aria-label={'url' in l.link ? `Open ${l.link.url}` : 'Go to linked page'}
+        />
+      ))}
     </div>
   );
 }
