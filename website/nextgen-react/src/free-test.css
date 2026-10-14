@@ -281,6 +281,36 @@
   flex: 1;
 }
 
+.ft-otp-btn {
+  flex-shrink: 0;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(250, 204, 21, 0.6);
+  background: rgba(250, 204, 21, 0.12);
+  color: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ft-otp-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ft-otp-input {
+  margin-top: 8px;
+  width: 100%;
+  letter-spacing: 0.2em;
+}
+
+.ft-otp-note {
+  margin: 6px 0 0;
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
 .ft-error-banner {
   padding: 12px 16px;
   border-radius: 10px;
