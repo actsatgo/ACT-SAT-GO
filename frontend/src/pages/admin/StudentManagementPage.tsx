@@ -22,6 +22,7 @@ import { toLines } from '../../lib/sessionLog';
 import { SatDateSelect } from '../../components/ptm/PtmReports';
 import { PhoneInput } from '../../components/common/PhoneInput';
 import { UserAvatar } from '../../components/common/UserAvatar';
+import { HoverLabel } from '../../components/common/HoverLabel';
 
 type MainViewTab = 'analysis' | 'test_analysis';
 
@@ -915,7 +916,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                         {statusToggle(student)}
                         {/* Row actions: edit, reset password, delete. */}
                         <div className="flex items-center">
-                          <span className="relative group/act">
+                          <HoverLabel label="Edit">
                             <button
                               onClick={() => startEditStudent(student)}
                               className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
@@ -923,9 +924,8 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                             >
                               <Pencil size={18} />
                             </button>
-                            <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-1 whitespace-nowrap rounded bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-white opacity-0 group-hover/act:opacity-100 z-20">Edit</span>
-                          </span>
-                          <span className="relative group/act">
+                          </HoverLabel>
+                          <HoverLabel label="Reset Password">
                             <button
                               onClick={() => setResetPasswordTarget(student)}
                               className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -933,9 +933,8 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                             >
                               <KeyRound size={18} />
                             </button>
-                            <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-1 whitespace-nowrap rounded bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-white opacity-0 group-hover/act:opacity-100 z-20">Reset Password</span>
-                          </span>
-                          <span className="relative group/act">
+                          </HoverLabel>
+                          <HoverLabel label="Delete">
                             <button
                               onClick={() => setConfirmDeleteStudent(student)}
                               className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -943,8 +942,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                             >
                               <Trash2 size={18} />
                             </button>
-                            <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-1 whitespace-nowrap rounded bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-white opacity-0 group-hover/act:opacity-100 z-20">Delete</span>
-                          </span>
+                          </HoverLabel>
                         </div>
                       </div>
                     ))
@@ -966,7 +964,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                     {statusToggle(tutor)}
                     {/* Row actions: edit, reset password, delete. */}
                     <div className="flex items-center">
-                      <span className="relative group/act">
+                      <HoverLabel label="Edit">
                         <button
                           onClick={() => { setShowManageModal(false); navigate('/tutors'); }}
                           className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
@@ -974,9 +972,8 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                         >
                           <Pencil size={18} />
                         </button>
-                        <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-1 whitespace-nowrap rounded bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-white opacity-0 group-hover/act:opacity-100 z-20">Edit</span>
-                      </span>
-                      <span className="relative group/act">
+                      </HoverLabel>
+                      <HoverLabel label="Reset Password">
                         <button
                           onClick={() => setResetPasswordTarget(tutor)}
                           className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -984,9 +981,8 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                         >
                           <KeyRound size={18} />
                         </button>
-                        <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-1 whitespace-nowrap rounded bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-white opacity-0 group-hover/act:opacity-100 z-20">Reset Password</span>
-                      </span>
-                      <span className="relative group/act">
+                      </HoverLabel>
+                      <HoverLabel label="Delete">
                         <button
                           onClick={() => setConfirmDeleteStudent(tutor)}
                           className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -994,8 +990,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                         >
                           <Trash2 size={18} />
                         </button>
-                        <span className="pointer-events-none absolute right-full top-1/2 -translate-y-1/2 mr-1 whitespace-nowrap rounded bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-white opacity-0 group-hover/act:opacity-100 z-20">Delete</span>
-                      </span>
+                      </HoverLabel>
                     </div>
                   </div>
                 ))}
