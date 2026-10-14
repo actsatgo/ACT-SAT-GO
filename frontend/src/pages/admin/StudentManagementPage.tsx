@@ -23,6 +23,7 @@ import { SatDateSelect } from '../../components/ptm/PtmReports';
 import { PhoneInput } from '../../components/common/PhoneInput';
 import { UserAvatar } from '../../components/common/UserAvatar';
 import { HoverLabel } from '../../components/common/HoverLabel';
+import { TutorManagementPage } from './TutorManagementPage';
 
 type MainViewTab = 'analysis' | 'test_analysis';
 
@@ -77,6 +78,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
   const [manageSearch, setManageSearch] = useState('');
   // Manage Accounts tabs. Tutors only see their students; admins also manage tutors.
   const [accountTab, setAccountTab] = useState<'students' | 'tutors' | 'coordinators'>('students');
+  const [dashboardTutorId, setDashboardTutorId] = useState<string | null>(null);
   const [showAddTutor, setShowAddTutor] = useState(false);
   const [tutorForm, setTutorForm] = useState({ firstName: '', lastName: '', email: '', canAddStudents: false });
   const [tutorAddError, setTutorAddError] = useState('');
@@ -868,7 +870,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
             {isTutor ? (
               <p className="font-semibold text-slate-900 text-[17px] leading-tight truncate">{tutor.name}</p>
             ) : (
-              <button type="button" onClick={() => { setShowManageModal(false); navigate(`/tutors?tutor=${tutor.id}`); }}
+              <button type="button" onClick={() => setDashboardTutorId(tutor.id)}
                 className="block max-w-full text-left font-semibold text-slate-900 text-[17px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{tutor.name}</button>
             )}
             <p className="text-[10px] text-slate-500 truncate">{tutor.email}</p>
@@ -1022,6 +1024,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
     <div className="space-y-5">
 
       {accountsPage && <Card>{accountsPanel}</Card>}
+      {dashboardTutorId && <TutorManagementPage dashboardTutorId={dashboardTutorId} onDashboardClose={() => setDashboardTutorId(null)} />}
 
       {!accountsPage && mainView === 'analysis' && (
         <>
