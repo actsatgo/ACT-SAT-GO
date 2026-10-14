@@ -8,7 +8,7 @@ import { api, type ClassProgressEntry, type ClassProgressInput } from '../../lib
 import { isHW, isEnglish, isMath } from '../../lib/testCategorize';
 import {
   STATUSES, HW_SUBFILTERS, SESSION_TYPES, SESSION_TYPE_DEFAULT_DURATION,
-  emptySessionForm, isNoClassStatus, sessionSubject, type DbTest,
+  emptySessionForm, isNoClassStatus, sessionSubject, STUDENT_SUBJECTS, OTHER_SUBJECT, toLines, type DbTest,
 } from '../../lib/sessionLog';
 
 export interface SavedSessionEntry extends ClassProgressEntry {
@@ -74,6 +74,16 @@ export function LogSessionModal({
     api.getUser(form.studentId).then((r) => setStudentSubjects(r.user.specialization ?? [])).catch(() => {});
   }, [isOpen, form.studentId]);
 
+  // Default subject, plus every SAT/ACT subject and the student's own subjects
+  // (which may be custom, e.g. "College Chemistry"); "Other subject" is typed in.
+  const autoSubject = studentExam || sessionSubject(tutorSubjects, studentSubjects);
+  const subjectOptions = useMemo(
+    () => [...new Set([...studentSubjects, ...STUDENT_SUBJECTS])].filter((s) => s !== autoSubject),
+    [studentSubjects, autoSubject],
+  );
+  const subject = form.subjectChoice === OTHER_SUBJECT ? form.customSubject.trim()
+    : form.subjectChoice || autoSubject;
+
   const toggleHomeworkTest = (testId: string) => {
     setForm((f) => ({
       ...f,
@@ -96,7 +106,7 @@ export function LogSessionModal({
   }, [publishedTests, hwSubFilter, hwSearch]);
 
   // The tutor's remark is required for every session.
-  const canSave = !!tutorId && !!form.studentId && !!form.notes.trim() && !saving;
+  const canSave = !!tutorId && !!form.studentId && !!form.notes.trim() && !!subject && !saving;
 
   const handleSave = async () => {
     if (!canSave) return;
@@ -105,7 +115,7 @@ export function LogSessionModal({
       const selectedTitles = form.homeworkTestIds
         .map((id) => publishedTests.find((t) => t.id === id)?.title)
         .filter((t): t is string => Boolean(t));
-      const allHomeworkLines = selectedTitles;
+      const allHomeworkLines = [...toLines(form.homeworkText), ...selectedTitles];
       const homeworkPayload = allHomeworkLines.join('\n') || undefined;
 
       if (!isNoShow && form.homeworkTestIds.length > 0) {
@@ -119,9 +129,9 @@ export function LogSessionModal({
       }
 
       const body: ClassProgressInput = {
-        // Topics are no longer entered; the server still expects a topic, so the
-        // log shows the session type (or the status when no class happened).
-        topic: isNoShow ? form.status : form.sessionType,
+        // Typed topics, one per line. Without them the server still expects a topic,
+        // so the log shows the session type (or the status when no class happened).
+        topic: isNoShow ? form.status : (toLines(form.topics).join('\n') || form.sessionType),
         homework: isNoShow ? undefined : homeworkPayload,
         notes: form.notes.trim(),
         classDate: form.classDate,
@@ -129,7 +139,7 @@ export function LogSessionModal({
         startTime: form.startTime || undefined,
         durationMinutes: form.durationMinutes ? Number(form.durationMinutes) : undefined,
         actualDurationMinutes: form.actualDurationMinutes ? Number(form.actualDurationMinutes) : undefined,
-        subject: studentExam || sessionSubject(tutorSubjects, studentSubjects),
+        subject,
         status: form.status,
         sessionType: form.sessionType,
         understanding: isNoShow ? undefined : form.understanding || undefined,
@@ -141,7 +151,7 @@ export function LogSessionModal({
       const studentName = students.find((s) => s.id === form.studentId)?.name ?? 'Student';
       const tutorName = fixedTutorId ? authorName : (tutors?.find((t) => t.id === tutorId)?.name ?? 'Tutor');
       onSaved({ ...entry, homework: entry.homework ?? allHomeworkLines.join('\n'), studentId: form.studentId, studentName, tutorId, tutorName });
-      toast.success(allHomeworkLines.length > 0 ? 'Session logged and homework assigned.' : 'Session logged.');
+      toast.success(form.homeworkTestIds.length > 0 ? 'Session logged and homework assigned.' : 'Session logged.');
       onClose();
     } catch {
       toast.error('Failed to log session.');
@@ -175,12 +185,30 @@ export function LogSessionModal({
 
         <div>
           <label className="block text-xs font-medium text-slate-600 mb-1">Student</label>
-          <select value={form.studentId} onChange={(e) => setForm((f) => ({ ...f, studentId: e.target.value }))}
+          {/* A subject picked from the previous student's list may not apply; a typed one is kept. */}
+          <select value={form.studentId}
+            onChange={(e) => setForm((f) => ({ ...f, studentId: e.target.value, subjectChoice: f.subjectChoice === OTHER_SUBJECT ? OTHER_SUBJECT : '' }))}
             disabled={!tutorId}
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 disabled:bg-slate-50 disabled:text-slate-400">
             <option value="">{tutorId ? 'Select student…' : 'Select a tutor first'}</option>
             {students.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
           </select>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-slate-600 mb-1">Subject</label>
+          <select value={form.subjectChoice} onChange={(e) => setForm((f) => ({ ...f, subjectChoice: e.target.value }))}
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100">
+            <option value="">{autoSubject}</option>
+            {subjectOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+            <option value={OTHER_SUBJECT}>Other subject…</option>
+          </select>
+          {form.subjectChoice === OTHER_SUBJECT && (
+            <input type="text" value={form.customSubject} autoFocus
+              onChange={(e) => setForm((f) => ({ ...f, customSubject: e.target.value }))}
+              placeholder="Subject name, e.g. College Chemistry"
+              className="mt-2 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100" />
+          )}
         </div>
 
         <div>
@@ -242,6 +270,20 @@ export function LogSessionModal({
 
         {!isNoShow && (
           <>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Topics Covered (optional)</label>
+              <textarea value={form.topics} onChange={(e) => setForm((f) => ({ ...f, topics: e.target.value }))}
+                placeholder="One per line, e.g. Stoichiometry" rows={2}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 resize-none" />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1">Homework (optional)</label>
+              <textarea value={form.homeworkText} onChange={(e) => setForm((f) => ({ ...f, homeworkText: e.target.value }))}
+                placeholder="One per line, e.g. Textbook ch. 4, problems 1-20" rows={2}
+                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 resize-none" />
+            </div>
+
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-medium text-slate-600">Homework Assigned (from Test Builder, optional)</label>

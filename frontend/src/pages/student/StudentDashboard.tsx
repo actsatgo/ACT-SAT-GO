@@ -8,12 +8,14 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { api, type ClassProgressEntry } from '../../lib/api';
 import { loadStudentAnalytics, aggregate, accuracy, avgTime, fmtTime, type QRecord } from '../../lib/analyticsData';
 import { formatDate } from '../../lib/utils';
+import { toLines } from '../../lib/sessionLog';
 
 interface RecentClass {
   id: string;
   tutorName: string;
   topic: string;
   homework: string;
+  subject?: string;
   classDate: string;
   createdAt: string;
 }
@@ -212,17 +214,17 @@ export function StudentDashboard() {
             {recentClasses.map((c) => (
               <div key={c.id} className="px-4 py-3">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <p className="text-sm font-medium text-slate-900">{c.topic}</p>
+                  <p className="text-sm font-medium text-slate-900">{toLines(c.topic).join(', ')}</p>
                   <p className="text-xs text-slate-400 flex-shrink-0">
                     {formatDate(c.classDate)}
                   </p>
                 </div>
                 {c.homework && (
                   <p className="text-xs text-amber-700 bg-amber-50 rounded-md px-2 py-1 inline-flex items-center gap-1 mt-1.5">
-                    <BookOpenCheck size={11} /> {c.homework}
+                    <BookOpenCheck size={11} /> {toLines(c.homework).join(', ')}
                   </p>
                 )}
-                <p className="text-xs text-slate-400 mt-1">with {c.tutorName}</p>
+                <p className="text-xs text-slate-400 mt-1">{c.subject ? `${c.subject} · ` : ''}with {c.tutorName}</p>
               </div>
             ))}
           </div>
