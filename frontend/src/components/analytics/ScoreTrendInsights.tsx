@@ -34,15 +34,15 @@ function TrendTip({ active, payload }: any) {
   const p = payload[0]?.payload;
   if (!p) return null;
   return (
-    <div className="bg-white border border-gray-200 rounded-xl px-3 py-2.5 shadow-xl text-xs">
-      <p className="text-gray-500 mb-1 font-medium">{p.title}{p.date ? ` · ${new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</p>
+    <div className="bg-white border border-slate-200 rounded-xl px-3 py-2.5 shadow-xl text-xs">
+      <p className="text-slate-500 mb-1 font-medium">{p.title}{p.date ? ` · ${new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}` : ''}</p>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: BLUE }} />
-        <span className="text-gray-800 font-semibold">Score: {p.score}</span>
+        <span className="text-slate-800 font-semibold">Score: {p.score}</span>
       </div>
       <div className="flex items-center gap-2">
         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: SKY }} />
-        <span className="text-gray-800 font-semibold">Accuracy: {p.accuracy}%</span>
+        <span className="text-slate-800 font-semibold">Accuracy: {p.accuracy}%</span>
       </div>
     </div>
   );
@@ -74,29 +74,29 @@ export function ScoreAccuracyTrend({ attempts, records }: { attempts: LoadedAtte
   }, [attempts, records, win]);
 
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 h-full flex flex-col">
+    <div className="bg-white border border-slate-100 rounded-xl shadow-sm p-4 h-full flex flex-col">
       <div className="flex items-center gap-2 mb-3">
         <TrendingUp size={15} className="text-blue-500" />
-        <span className="text-sm font-bold text-gray-800">Score Trend</span>
+        <span className="text-sm font-bold text-slate-800">Score Trend</span>
         <div className="relative ml-auto">
           <select
             value={win}
             onChange={e => setWin(e.target.value as TrendWindow)}
-            className="appearance-none pl-3 pr-7 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold text-gray-600 bg-white focus:outline-none focus:ring-2 focus:ring-[#1b3d6e]"
+            className="appearance-none pl-3 pr-7 py-1.5 border border-slate-200 rounded-lg text-xs font-semibold text-slate-600 bg-white focus:outline-none focus:ring-2 focus:ring-[#1b3d6e]"
           >
             <option value="5">Last 5 Tests</option>
             <option value="10">Last 10 Tests</option>
             <option value="20">Last 20 Tests</option>
             <option value="all">All Tests</option>
           </select>
-          <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <ChevronDown size={12} className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
         </div>
       </div>
       <div className="flex-1" style={{ minHeight: 220 }}>
         {data.length < 2 ? (
-          <div className="flex flex-col items-center justify-center h-full gap-2 text-gray-300">
+          <div className="flex flex-col items-center justify-center h-full gap-2 text-slate-300">
             <TrendingUp size={22} />
-            <p className="text-xs text-gray-400">Need &ge; 2 tests for trend</p>
+            <p className="text-xs text-slate-400">Need &ge; 2 tests for trend</p>
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
@@ -107,7 +107,7 @@ export function ScoreAccuracyTrend({ attempts, records }: { attempts: LoadedAtte
               <YAxis yAxisId="accuracy" orientation="right" domain={[0, 100]} tickFormatter={v => `${v}%`} tick={{ fill: '#94a3b8', fontSize: 10 }} axisLine={false} tickLine={false} />
               <Tooltip content={<TrendTip />} />
               <Legend
-                formatter={(value: string) => <span className="text-xs text-gray-500">{value}</span>}
+                formatter={(value: string) => <span className="text-xs text-slate-500">{value}</span>}
                 wrapperStyle={{ fontSize: 11 }}
               />
               <Line
@@ -138,10 +138,10 @@ const MIN_QUESTIONS = 3;
 function InsightCard({ tone, title, items }: { tone: 'strong' | 'weak'; title: string; items: Array<{ name: string; agg: Agg }> }) {
   const blurbs = tone === 'strong' ? STRONG_BLURBS : WEAK_BLURBS;
   return (
-    <div className="bg-white border border-gray-100 rounded-xl shadow-sm p-4 h-full relative overflow-hidden">
+    <div className="bg-white border border-slate-100 rounded-xl shadow-sm p-4 h-full relative overflow-hidden">
       <h3 className={`text-sm font-bold mb-3 ${tone === 'strong' ? 'text-emerald-700' : 'text-rose-700'}`}>{title}</h3>
       {items.length === 0 ? (
-        <p className="text-xs text-gray-400 relative z-10">Not enough data yet.</p>
+        <p className="text-xs text-slate-400 relative z-10">Not enough data yet.</p>
       ) : (
         <div className="space-y-3 relative z-10">
           {items.map((it, i) => (
@@ -150,8 +150,8 @@ function InsightCard({ tone, title, items }: { tone: 'strong' | 'weak'; title: s
                 ? <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" />
                 : <AlertCircle size={16} className="text-rose-500 mt-0.5 flex-shrink-0" />}
               <div className="min-w-0">
-                <p className="text-xs font-bold text-gray-800 truncate">{it.name}</p>
-                <p className="text-[11px] text-gray-400">{blurbs[i % blurbs.length]}</p>
+                <p className="text-xs font-bold text-slate-800 truncate">{it.name}</p>
+                <p className="text-[11px] text-slate-400">{blurbs[i % blurbs.length]}</p>
               </div>
             </div>
           ))}

@@ -72,8 +72,8 @@ export function MyAttendancePage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">My Classes</h1>
-        <p className="text-slate-400 text-sm">{entries.length} session{entries.length !== 1 ? 's' : ''} across {daysTaught} day{daysTaught !== 1 ? 's' : ''}</p>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900">My Classes</h1>
+        <p className="text-sm text-slate-500">{entries.length} session{entries.length !== 1 ? 's' : ''} across {daysTaught} day{daysTaught !== 1 ? 's' : ''}</p>
       </div>
 
       {entries.length === 0 ? (

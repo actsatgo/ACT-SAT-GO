@@ -86,7 +86,7 @@ export function ReviewAttemptsPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">Review Attempts</h1>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900">Review Attempts</h1>
         <p className="text-slate-400 text-sm mt-0.5">Your completed test history</p>
       </div>
 
@@ -126,7 +126,7 @@ export function ReviewAttemptsPage() {
           <p className="text-slate-400 text-xs mt-1">Complete a test to review your attempt</p>
           <button onClick={() => navigate('/my-tests')}
             className="mt-4 text-xs text-blue-600 hover:text-blue-700 font-medium">
-            Go to My Assignments →
+            Go to My Tests →
           </button>
         </div>
       )}

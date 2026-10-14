@@ -6,7 +6,7 @@ interface ModalProps {
   onClose: () => void;
   title?: string;
   children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'session';
   footer?: React.ReactNode;
   /** Set false for content that must not be lost to a stray click — e.g. a
    * one-time-shown credential — so only the explicit close button/action can dismiss it. */
@@ -20,6 +20,8 @@ const sizeClasses = {
   md: 'max-w-lg',
   lg: 'max-w-2xl',
   xl: 'max-w-4xl',
+  // Log a Session: 40% wider than md, about half a laptop screen.
+  session: 'max-w-[720px]',
 };
 
 export function Modal({ isOpen, onClose, title, children, size = 'md', footer, closeOnBackdrop = true, showCloseButton = true }: ModalProps) {

@@ -160,16 +160,16 @@ export function MyProgressPage() {
   if (rows.length === 0) {
     return (
       <div className="max-w-2xl mx-auto py-20 text-center">
-        <div className="w-14 h-14 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Target size={24} className="text-gray-400" />
+        <div className="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Target size={24} className="text-slate-400" />
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">No tests completed yet</h2>
-        <p className="text-gray-500 text-sm mb-6">Complete a test to see your progress here.</p>
+        <h2 className="text-lg font-semibold text-slate-900 mb-1">No tests completed yet</h2>
+        <p className="text-slate-500 text-sm mb-6">Complete a test to see your progress here.</p>
         <button
           onClick={() => navigate('/my-tests')}
           className="px-5 py-2.5 bg-[#1b3d6e] text-white rounded-lg text-sm font-medium hover:bg-[#15305a] transition-colors"
         >
-          Go to My Assignments
+          Go to My Tests
         </button>
       </div>
     );
@@ -180,19 +180,19 @@ export function MyProgressPage() {
       {/* Header + search */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">My Progress</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{rows.length} completed test{rows.length !== 1 ? 's' : ''}</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">My Progress</h1>
+          <p className="text-slate-500 text-sm mt-0.5">{rows.length} completed test{rows.length !== 1 ? 's' : ''}</p>
         </div>
         <div className="relative w-56">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search attempt…"
-            className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1b3d6e]/30 bg-white"
+            className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1b3d6e]/30 bg-white"
           />
           {search && (
-            <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+            <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
               <X size={13} />
             </button>
           )}
@@ -206,12 +206,12 @@ export function MyProgressPage() {
           className={`flex items-center gap-2 text-sm font-semibold px-4 py-1.5 rounded-full transition-all ${
             activeFilter === 'all'
               ? 'bg-[#1b3d6e] text-white'
-              : 'bg-white text-gray-600 border border-gray-200 hover:border-[#1b3d6e]/40'
+              : 'bg-white text-slate-600 border border-slate-200 hover:border-[#1b3d6e]/40'
           }`}
         >
           All
           <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${
-            activeFilter === 'all' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+            activeFilter === 'all' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
           }`}>
             {filterCounts.all}
           </span>
@@ -223,12 +223,12 @@ export function MyProgressPage() {
             className={`flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-full border transition-all ${
               activeFilter === f.key
                 ? 'bg-[#1b3d6e] text-white border-[#1b3d6e]'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-[#1b3d6e]/40 hover:text-[#1b3d6e]'
+                : 'bg-white text-slate-600 border-slate-200 hover:border-[#1b3d6e]/40 hover:text-[#1b3d6e]'
             }`}
           >
             {f.label}
             <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${
-              activeFilter === f.key ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+              activeFilter === f.key ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'
             }`}>
               {filterCounts[f.key]}
             </span>

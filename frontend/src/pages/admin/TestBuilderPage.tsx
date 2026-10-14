@@ -2494,7 +2494,7 @@ export function TestBuilderPage() {
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Test Title *</label>
                     <input type="text" value={testTitle} onChange={(e) => { setTestTitle(e.target.value); if (e.target.value.trim()) setTitleError(false); }}
-                      placeholder="e.g. ACT Full Practice Test #3"
+                      placeholder="e.g. SAT Full Length Mock 3"
                       className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${titleError ? 'border-red-400 bg-red-50' : 'border-slate-200'}`} />
                     {titleError && (
                       <p className="flex items-center gap-1 text-xs text-red-600 mt-1"><AlertCircle size={11} /> Title is required before saving</p>
@@ -2686,7 +2686,7 @@ export function TestBuilderPage() {
 
         {/* Real-time Mock Exam Preview Panel */}
         {previewMode === 'full' && (
-          <div className="space-y-4 w-full max-w-5xl mx-auto animate-fade-in">
+          <div className="space-y-4 w-full animate-fade-in">
             <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Viewport:</span>

@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAttemptAccess } from '@/lib/auth'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ attemptId: string }> }
 ) {
   const { attemptId } = await params
+  const access = await requireAttemptAccess(request, attemptId)
+  if (access !== true) return access
 
   try {
     // The question tree for a section is identical whether it is reached via
@@ -50,7 +53,9 @@ export async function GET(
         sectionAttempts: {
           orderBy: { section: { orderIndex: 'asc' } },
         },
-        answers: { include: { question: true } },
+        // Question rows are already in test.sections above; repeating them on
+        // every answer nearly doubled the response and nothing reads them.
+        answers: true,
         cheatingLogs: { orderBy: { createdAt: 'asc' } },
       },
     })

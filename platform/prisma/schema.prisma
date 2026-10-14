@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -79,11 +80,14 @@ model User {
   flashcardShares FlashcardShare[] @relation("FlashcardSharesReceived")
 
   // Articles: ones a tutor/admin wrote, ones assigned to a student, reviews given
-  articlesCreated    Article[]            @relation("ArticlesCreated")
-  articleAssignments ArticleAssignment[]  @relation("ArticleAssignmentsReceived")
-  articleReviews     ArticleAssignment[]  @relation("ArticleAssignmentsReviewed")
-  materialsCreated   StudyMaterial[]      @relation("StudyMaterialsCreated")
-  materialShares     StudyMaterialShare[] @relation("StudyMaterialSharesReceived")
+  articlesCreated          Article[]            @relation("ArticlesCreated")
+  articleAssignments       ArticleAssignment[]  @relation("ArticleAssignmentsReceived")
+  articleReviews           ArticleAssignment[]  @relation("ArticleAssignmentsReviewed")
+  materialsCreated         StudyMaterial[]      @relation("StudyMaterialsCreated")
+  materialShares           StudyMaterialShare[] @relation("StudyMaterialSharesReceived")
+  // ASG Library (admin-uploaded PDFs)
+  libraryDocumentsUploaded LibraryDocument[]    @relation("LibraryUploader")
+  libraryAssignments       LibraryAssignment[]  @relation("LibraryAssignee")
 }
 
 model TutorAssignment {
@@ -463,5 +467,38 @@ model StudyMaterialShare {
   user     User          @relation("StudyMaterialSharesReceived", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([materialId, userId])
+  @@index([userId])
+}
+
+// ── ASG Library ──────────────────────────────────────────────────────────────
+// PDFs uploaded by admins. Files live in the private Supabase Storage bucket
+// "library" (never a public URL); students and tutors read them only through
+// GET /api/library/:id/file, which checks for a LibraryAssignment.
+model LibraryDocument {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  fileName     String
+  storagePath  String
+  sizeBytes    Int
+  uploadedById String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  uploadedBy  User?               @relation("LibraryUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  assignments LibraryAssignment[]
+}
+
+model LibraryAssignment {
+  id           String   @id @default(uuid())
+  documentId   String
+  userId       String
+  assignedById String?
+  createdAt    DateTime @default(now())
+
+  document LibraryDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User            @relation("LibraryAssignee", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, userId])
   @@index([userId])
 }

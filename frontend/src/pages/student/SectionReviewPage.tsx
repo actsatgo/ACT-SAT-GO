@@ -131,7 +131,7 @@ export function SectionReviewPage() {
           <ArrowLeft size={18} />
         </button>
         <div className="min-w-0">
-          <h1 className="text-lg md:text-xl font-bold text-slate-900 truncate">{sa.section.name}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 truncate">{sa.section.name}</h1>
           <p className="text-sm text-slate-500">{flat.length} questions · {attempt.test.title}</p>
         </div>
       </div>

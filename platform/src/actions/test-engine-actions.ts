@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { redis } from '@/lib/redis'
 import { revalidatePath } from 'next/cache'
+import { notifyParentTestResult } from '@/lib/whatsapp'
 
 const REDIS_TTL = 60 * 60 * 4 // 4 hours safety window
 
@@ -122,6 +123,7 @@ export async function submitSectionAttempt(attemptId: string, sectionId: string)
           where: { id: attemptId },
           data: { status: 'SUBMITTED', totalScore, completedAt: new Date() },
         })
+        void notifyParentTestResult(attemptId)
       }
     }
 

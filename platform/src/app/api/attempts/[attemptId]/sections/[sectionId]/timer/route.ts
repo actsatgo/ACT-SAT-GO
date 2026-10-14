@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAttemptAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redis } from '@/lib/redis'
 
@@ -8,10 +9,12 @@ export const dynamic = 'force-dynamic'
 const NO_LIMIT_MS = 1000 * 60 * 60 * 24 * 365 * 10 // 10 years
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ attemptId: string; sectionId: string }> }
 ) {
   const { attemptId, sectionId } = await params
+  const access = await requireAttemptAccess(request, attemptId)
+  if (access !== true) return access
 
   try {
     let endTime = await redis.get<number>(`timer:${attemptId}:${sectionId}`)

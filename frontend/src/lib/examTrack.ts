@@ -21,8 +21,9 @@ export const examLabel = (u: { track?: string | null; customExam?: string | null
 /** Target-score input hints per track (custom targets are a percentage). */
 export const targetScoreHint = (track: string | null | undefined) =>
   track === 'CUSTOM' ? { min: 1, max: 100, placeholder: 'e.g. 85 (%)', label: 'Target Score (%)' }
-    : track === 'SAT' ? { min: 400, max: 1600, placeholder: 'e.g. 1450', label: 'Target Score' }
-    : { min: 1, max: 36, placeholder: 'e.g. 32', label: 'Target Score' };
+    : track === 'ACT' ? { min: 1, max: 36, placeholder: 'e.g. 32', label: 'Target ACT Score' }
+    : track === 'SAT' ? { min: 400, max: 1600, placeholder: 'e.g. 1450', label: 'Target SAT Score' }
+    : { min: 1, max: 1600, placeholder: 'e.g. 1400', label: 'Target Score' };
 
 /** Custom exam names already in use (students' exams + custom tests), for suggestions. */
 export function useCustomExamNames(): string[] {

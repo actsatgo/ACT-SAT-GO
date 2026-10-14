@@ -8,11 +8,18 @@ import { Modal } from '../../components/common/Modal';
 import { DataTable } from '../../components/common/DataTable';
 import { SearchableSelect } from '../../components/common/SearchableSelect';
 import { TrashModal } from '../../components/common/TrashModal';
+import { CanAddStudentsToggle } from '../../components/admin/CanAddStudentsToggle';
 import { api, type DbUser } from '../../lib/api';
+import { TUTOR_SUBJECTS } from '../../lib/sessionLog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { AdminTeacherSalaryPage } from './AdminTeacherSalaryPage';
 
-const SPECIALIZATIONS = ['Math', 'English', 'Reading', 'Science', 'Writing', 'ACT Prep', 'SAT Prep'];
+// Scores above 36 are on the SAT scale (400-1600); the rest on the ACT scale (1-36).
+const isWeakScore = (score: number) => score > 0 && (score > 36 ? score < 1160 : score < 24);
+
+// Each tutor teaches exactly one subject; the Session Log takes a session's
+// subject from it (see sessionSubject in lib/sessionLog).
+const SPECIALIZATIONS = TUTOR_SUBJECTS;
 
 type TabKey = 'all' | 'active' | 'inactive';
 
@@ -23,7 +30,7 @@ interface TutorStats {
   assignedStudentsList: DbUser[];
 }
 
-export function TutorManagementPage() {
+export function TutorManagementPage({ dashboardTutorId, onDashboardClose }: { dashboardTutorId?: string; onDashboardClose?: () => void } = {}) {
   const { user } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlTab = searchParams.get('tab');
@@ -62,12 +69,21 @@ export function TutorManagementPage() {
   const [showEditModal, setShowEditModal] = useState<DbUser | null>(null);
   const [showTrashModal, setShowTrashModal] = useState(false);
 
+  // /tutors?tutor=<id> (from Accounts) opens that tutor's dashboard.
+  const openTutorId = searchParams.get('tutor');
+  useEffect(() => {
+    if (!openTutorId || tutors.length === 0) return;
+    const t = tutors.find((x) => x.id === openTutorId);
+    if (t) setShowAnalyticsModal(t);
+    setSearchParams((p) => { p.delete('tutor'); return p; }, { replace: true });
+  }, [openTutorId, tutors]);
+
   // Forms & Loading states
   const [assignedStudentIds, setAssignedStudentIds] = useState<string[]>([]);
-  const [addForm, setAddForm] = useState({ firstName: '', lastName: '', email: '', specializations: [] as string[], hourlyRate: '' });
+  const [addForm, setAddForm] = useState({ firstName: '', lastName: '', email: '', specializations: [] as string[], hourlyRate: '', canAddStudents: false });
   const [addError, setAddError] = useState('');
   const [addLoading, setAddLoading] = useState(false);
-  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', specializations: [] as string[], hourlyRate: '' });
+  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', specializations: [] as string[], hourlyRate: '', canAddStudents: false });
   const [editError, setEditError] = useState('');
   const [editLoading, setEditLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
@@ -85,6 +101,14 @@ export function TutorManagementPage() {
   const [messageError, setMessageError] = useState('');
   const [messageSuccess, setMessageSuccess] = useState(false);
 
+  // Accounts page opens a tutor's dashboard in place.
+  useEffect(() => {
+    if (!dashboardTutorId || tutors.length === 0) return;
+    const t = tutors.find((x) => x.id === dashboardTutorId);
+    if (t) setShowAnalyticsModal(t);
+  }, [dashboardTutorId, tutors]);
+  const closeDashboard = () => { setShowAnalyticsModal(null); onDashboardClose?.(); };
+
   const reload = () => {
     setLoading(true);
     Promise.all([
@@ -96,20 +120,10 @@ export function TutorManagementPage() {
   useEffect(() => { reload(); }, []);
 
   const toggleSpec = (spec: string) =>
-    setAddForm((f) => ({
-      ...f,
-      specializations: f.specializations.includes(spec)
-        ? f.specializations.filter((s) => s !== spec)
-        : [...f.specializations, spec],
-    }));
+    setAddForm((f) => ({ ...f, specializations: f.specializations.includes(spec) ? [] : [spec] }));
 
   const toggleEditSpec = (spec: string) =>
-    setEditForm((f) => ({
-      ...f,
-      specializations: f.specializations.includes(spec)
-        ? f.specializations.filter((s) => s !== spec)
-        : [...f.specializations, spec],
-    }));
+    setEditForm((f) => ({ ...f, specializations: f.specializations.includes(spec) ? [] : [spec] }));
 
   const openEditModal = (tutor: DbUser) => {
     const parts = tutor.name.split(' ');
@@ -118,6 +132,7 @@ export function TutorManagementPage() {
       lastName: parts.slice(1).join(' '),
       specializations: (tutor.specialization as string[]) ?? [],
       hourlyRate: tutor.hourlyRate != null ? String(tutor.hourlyRate) : '',
+      canAddStudents: tutor.canAddStudents === true,
     });
     setEditError('');
     setShowEditModal(tutor);
@@ -132,6 +147,7 @@ export function TutorManagementPage() {
         name: fullName,
         specialization: editForm.specializations,
         hourlyRate: editForm.hourlyRate ? Number(editForm.hourlyRate) : null,
+        canAddStudents: editForm.canAddStudents,
       });
       setShowEditModal(null);
       reload();
@@ -187,9 +203,10 @@ export function TutorManagementPage() {
         role: 'TUTOR',
         specialization: addForm.specializations.length ? addForm.specializations : undefined,
         hourlyRate: addForm.hourlyRate ? Number(addForm.hourlyRate) : undefined,
+        canAddStudents: addForm.canAddStudents,
       });
       setShowAddModal(false);
-      setAddForm({ firstName: '', lastName: '', email: '', specializations: [], hourlyRate: '' });
+      setAddForm({ firstName: '', lastName: '', email: '', specializations: [], hourlyRate: '', canAddStudents: false });
       if (res.tempPassword) setCreatedPassword({ name: fullName, email: addForm.email, password: res.tempPassword });
       reload();
     } catch (e) {
@@ -257,11 +274,8 @@ export function TutorManagementPage() {
     const assignedIds = tutor.studentIds ?? [];
     const assignedStudentsList = students.filter(s => assignedIds.includes(s.id));
     
-    // Alert definition: student average score is critically low (< 22) or average accuracy < 60%
-    const weakStudents = assignedStudentsList.filter(s => {
-      const score = s.avgScore ?? 0;
-      return score > 0 && score < 24;
-    });
+    // Alert definition: student average score is below 1160 (SAT scale) or 24 (ACT scale)
+    const weakStudents = assignedStudentsList.filter(s => isWeakScore(s.avgScore ?? 0));
 
     return {
       weakAlertsCount: weakStudents.length,
@@ -368,7 +382,7 @@ export function TutorManagementPage() {
       sortable: true,
       render: (row: DbUser) => {
         const score = row.avgScore ?? 0;
-        const pct = Math.min(100, (score / 36) * 100);
+        const pct = Math.min(100, (score / (score > 36 ? 1600 : 36)) * 100);
         return (
           <div className="flex items-center gap-1.5">
             <span className="text-sm font-semibold text-slate-900">{score || '—'}</span>
@@ -412,6 +426,192 @@ export function TutorManagementPage() {
       }
     }
   ];
+
+  const tutorModals = (
+    <>
+      {showAssignModal && (
+        <Modal isOpen={!!showAssignModal} onClose={() => setShowAssignModal(null)} title={`Assign Students to ${showAssignModal.name}`} size="md">
+          <div className="space-y-3">
+            <p className="text-sm text-slate-500 mb-2">Select students to assign to this tutor:</p>
+            <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1">
+              {students.length === 0 ? (
+                <p className="text-sm text-slate-400 py-4 text-center">No students available.</p>
+              ) : (
+                students.map((s) => {
+                  const checked = assignedStudentIds.includes(s.id);
+                  return (
+                    <label key={s.id} className="flex items-center gap-3 p-3 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
+                      <input type="checkbox" checked={checked}
+                        onChange={() => setAssignedStudentIds((prev) => prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id])}
+                        className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 flex-shrink-0" />
+                      <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-700 text-sm font-bold flex-shrink-0">
+                        {s.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-slate-800">{s.name}</p>
+                        <p className="text-xs text-slate-400">{s.grade ? `Grade ${s.grade}` : s.email}</p>
+                      </div>
+                      {checked && <Badge variant="success" className="bg-emerald-50 text-emerald-700 border-emerald-100" size="sm">Assigned</Badge>}
+                    </label>
+                  );
+                })
+              )}
+            </div>
+            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <p className="text-xs text-slate-400">{assignedStudentIds.length} student{assignedStudentIds.length !== 1 ? 's' : ''} selected</p>
+              <div className="flex gap-2">
+                <Button variant="secondary" size="sm" onClick={() => setShowAssignModal(null)}>Cancel</Button>
+                <Button size="sm" onClick={() => handleSaveAssignments(showAssignModal.id, assignedStudentIds)} disabled={saveLoading}>{saveLoading ? 'Saving…' : 'Save'}</Button>
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* Tutor Detailed Analytics Modal */}
+      {showAnalyticsModal && (() => {
+        const stats = getTutorStats(showAnalyticsModal);
+        const specs = (showAnalyticsModal.specialization as string[]) ?? [];
+        return (
+          <Modal isOpen={!!showAnalyticsModal} onClose={closeDashboard} title={`Tutor Dashboard: ${showAnalyticsModal.name}`} size="lg">
+            <div className="space-y-5">
+              {/* Tutor Header Info */}
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-slate-50/50 p-4 border border-slate-100 rounded-xl">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-2xl border border-emerald-100 flex-shrink-0 shadow-sm">
+                  {showAnalyticsModal.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-base font-bold text-slate-800">{showAnalyticsModal.name}</h3>
+                  <p className="text-xs text-slate-400 font-medium mb-2">{showAnalyticsModal.email}</p>
+                  <div className="flex flex-wrap gap-1">
+                    {specs.map(s => (
+                      <span key={s} className="text-[10px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-medium">{s}</span>
+                    ))}
+                    {specs.length === 0 && <span className="text-xs text-slate-400">No specialization set</span>}
+                  </div>
+                </div>
+                <Badge variant={getTutorStatus(showAnalyticsModal) === 'Active' ? 'success' : 'default'} className="bg-emerald-50 text-emerald-700 border-emerald-100 font-medium">
+                  {getTutorStatus(showAnalyticsModal)}
+                </Badge>
+              </div>
+
+              {/* Tutor Analytics Stats Row */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="bg-white p-3 border border-slate-100 rounded-xl text-center shadow-sm">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Students</p>
+                  <p className="text-xl font-bold text-slate-800 mt-1">{showAnalyticsModal.studentCount ?? 0}</p>
+                </div>
+                <div className="bg-white p-3 border border-slate-100 rounded-xl text-center shadow-sm">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Avg score</p>
+                  <p className="text-xl font-bold text-slate-800 mt-1">{showAnalyticsModal.avgScore ?? '—'}</p>
+                </div>
+                <div className="bg-white p-3 border border-slate-100 rounded-xl text-center shadow-sm">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Improvement</p>
+                  <p className="text-xl font-bold text-emerald-600 mt-1 flex items-center justify-center gap-0.5">
+                    <ArrowUpRight size={14} /> {stats.avgImprovement}
+                  </p>
+                </div>
+                <div className="bg-white p-3 border border-slate-100 rounded-xl text-center shadow-sm">
+                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Alerts</p>
+                  <p className={`text-xl font-bold mt-1 ${stats.weakAlertsCount > 0 ? 'text-red-500' : 'text-slate-400'}`}>
+                    {stats.weakAlertsCount}
+                  </p>
+                </div>
+              </div>
+
+              {/* Weak Student Alerts Section */}
+              {stats.weakAlertsCount > 0 && (
+                <div className="bg-red-50/50 border border-red-100 rounded-xl p-3 flex gap-3 items-start animate-pulse">
+                  <ShieldAlert className="text-red-500 w-5 h-5 flex-shrink-0 mt-0.5" />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold text-red-800">Critical Alerts: {stats.weakAlertsCount} Weak Student(s)</p>
+                    <p className="text-[11px] text-red-600/95 mt-0.5">The following students have an average score below 1160 (SAT) or 24 (ACT) and need urgent syllabus revision:</p>
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {stats.weakStudents.map(ws => (
+                        <span key={ws.id} className="text-[10px] font-bold bg-white text-red-600 border border-red-200 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
+                          <Star size={10} className="fill-red-500 text-red-500" />
+                          {ws.name} ({ws.avgScore} Avg)
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Assigned Students List */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1"><Users size={12} /> Assigned Student Profiles ({stats.assignedStudentsList.length})</h4>
+                  <button 
+                    onClick={() => { setAssignedStudentIds(showAnalyticsModal.studentIds ?? []); setShowAssignModal(showAnalyticsModal); }}
+                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50/50 hover:bg-blue-50 border border-blue-100 rounded-lg px-2 py-1 transition-all"
+                  >
+                    Edit Assignments
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                  {stats.assignedStudentsList.length === 0 ? (
+                    <div className="text-center py-6 text-xs text-slate-400 bg-slate-50/50 border border-dashed border-slate-200 rounded-xl">No students assigned to this tutor currently.</div>
+                  ) : (
+                    stats.assignedStudentsList.map((st) => {
+                      const stScore = st.avgScore ?? 0;
+                      const isWeak = isWeakScore(stScore);
+                      return (
+                        <div key={st.id} className="flex items-center justify-between p-2.5 border border-slate-100 rounded-xl hover:bg-slate-50/50 transition-colors bg-white">
+                          <div className="flex items-center gap-2">
+                            <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-700 text-xs font-bold border border-blue-100">
+                              {st.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-xs font-semibold text-slate-800">{st.name}</p>
+                              <p className="text-[10px] text-slate-400">{st.grade ? `Grade ${st.grade}` : st.email}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-3">
+                            {isWeak ? (
+                              <Badge variant="danger" className="bg-red-50 text-red-600 border-red-100 text-[10px] font-bold">Needs Revision</Badge>
+                            ) : (
+                              <Badge variant="success" className="bg-emerald-50 text-emerald-700 border-emerald-100 text-[10px]">Good Progress</Badge>
+                            )}
+                            <div className="text-right">
+                              <span className="text-xs font-bold text-slate-800 block">{st.avgScore ?? '—'} Avg</span>
+                              <span className="text-[10px] text-slate-400 block">{st.testsAttempted ?? 0} tests</span>
+                            </div>
+                            <button 
+                              onClick={async () => {
+                                if (confirm(`Remove ${st.name} from ${showAnalyticsModal.name}?`)) {
+                                  const filtered = showAnalyticsModal.studentIds?.filter(id => id !== st.id) ?? [];
+                                  await handleSaveAssignments(showAnalyticsModal.id, filtered);
+                                }
+                              }}
+                              className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors border border-transparent hover:border-red-100" 
+                              title="Remove Assignment"
+                            >
+                              <UserMinus size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <div className="flex justify-end pt-2 border-t border-slate-100">
+                <Button variant="secondary" size="sm" onClick={closeDashboard}>Close Dashboard</Button>
+              </div>
+            </div>
+          </Modal>
+        );
+      })()}
+    </>
+  );
+
+  // Embedded from Accounts: show only the tutor's dashboard pop-up.
+  if (dashboardTutorId) return tutorModals;
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -465,7 +665,7 @@ export function TutorManagementPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="secondary" icon={<Trash size={13} />} onClick={() => setShowTrashModal(true)}>Trash</Button>
-              <Button size="sm" icon={<Plus size={13} />} onClick={() => { setAddForm({ firstName: '', lastName: '', email: '', specializations: [], hourlyRate: '' }); setShowAddModal(true); }}>Add Tutor</Button>
+              <Button size="sm" icon={<Plus size={13} />} onClick={() => { setAddForm({ firstName: '', lastName: '', email: '', specializations: [], hourlyRate: '', canAddStudents: false }); setShowAddModal(true); }}>Add Tutor</Button>
             </div>
           </div>
 
@@ -680,6 +880,7 @@ export function TutorManagementPage() {
             <input type="email" value={addForm.email} onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="tutor@example.com" />
           </div>
+          <CanAddStudentsToggle value={addForm.canAddStudents} onChange={(v) => setAddForm((f) => ({ ...f, canAddStudents: v }))} />
           {user?.role === 'super_admin' && (
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Hourly Rate</label>
@@ -689,7 +890,7 @@ export function TutorManagementPage() {
             </div>
           )}
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Specializations</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Subject taught (one per tutor)</label>
             <div className="flex flex-wrap gap-2">
               {SPECIALIZATIONS.map((s) => (
                 <button key={s} type="button" onClick={() => toggleSpec(s)}
@@ -719,6 +920,7 @@ export function TutorManagementPage() {
           }>
           <div className="space-y-3">
             {editError && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{editError}</p>}
+            <CanAddStudentsToggle value={editForm.canAddStudents} onChange={(v) => setEditForm((f) => ({ ...f, canAddStudents: v }))} />
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>
@@ -746,7 +948,7 @@ export function TutorManagementPage() {
               </div>
             )}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Specializations</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1">Subject taught (one per tutor)</label>
               <div className="flex flex-wrap gap-2">
                 {SPECIALIZATIONS.map((s) => (
                   <button key={s} type="button" onClick={() => toggleEditSpec(s)}
@@ -765,184 +967,7 @@ export function TutorManagementPage() {
       )}
 
       {/* Assign Students Modal */}
-      {showAssignModal && (
-        <Modal isOpen={!!showAssignModal} onClose={() => setShowAssignModal(null)} title={`Assign Students to ${showAssignModal.name}`} size="md">
-          <div className="space-y-3">
-            <p className="text-sm text-slate-500 mb-2">Select students to assign to this tutor:</p>
-            <div className="max-h-[300px] overflow-y-auto space-y-2 pr-1">
-              {students.length === 0 ? (
-                <p className="text-sm text-slate-400 py-4 text-center">No students available.</p>
-              ) : (
-                students.map((s) => {
-                  const checked = assignedStudentIds.includes(s.id);
-                  return (
-                    <label key={s.id} className="flex items-center gap-3 p-3 border border-slate-100 rounded-xl cursor-pointer hover:bg-slate-50 transition-colors">
-                      <input type="checkbox" checked={checked}
-                        onChange={() => setAssignedStudentIds((prev) => prev.includes(s.id) ? prev.filter((x) => x !== s.id) : [...prev, s.id])}
-                        className="rounded text-blue-600 focus:ring-blue-500 w-4 h-4 flex-shrink-0" />
-                      <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-700 text-sm font-bold flex-shrink-0">
-                        {s.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-800">{s.name}</p>
-                        <p className="text-xs text-slate-400">{s.grade ? `Grade ${s.grade}` : s.email}</p>
-                      </div>
-                      {checked && <Badge variant="success" className="bg-emerald-50 text-emerald-700 border-emerald-100" size="sm">Assigned</Badge>}
-                    </label>
-                  );
-                })
-              )}
-            </div>
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-              <p className="text-xs text-slate-400">{assignedStudentIds.length} student{assignedStudentIds.length !== 1 ? 's' : ''} selected</p>
-              <div className="flex gap-2">
-                <Button variant="secondary" size="sm" onClick={() => setShowAssignModal(null)}>Cancel</Button>
-                <Button size="sm" onClick={() => handleSaveAssignments(showAssignModal.id, assignedStudentIds)} disabled={saveLoading}>{saveLoading ? 'Saving…' : 'Save'}</Button>
-              </div>
-            </div>
-          </div>
-        </Modal>
-      )}
-
-      {/* Tutor Detailed Analytics Modal */}
-      {showAnalyticsModal && (() => {
-        const stats = getTutorStats(showAnalyticsModal);
-        const specs = (showAnalyticsModal.specialization as string[]) ?? [];
-        return (
-          <Modal isOpen={!!showAnalyticsModal} onClose={() => setShowAnalyticsModal(null)} title={`Tutor Dashboard: ${showAnalyticsModal.name}`} size="lg">
-            <div className="space-y-5">
-              {/* Tutor Header Info */}
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center bg-slate-50/50 p-4 border border-slate-100 rounded-xl">
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-2xl border border-emerald-100 flex-shrink-0 shadow-sm">
-                  {showAnalyticsModal.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-base font-bold text-slate-800">{showAnalyticsModal.name}</h3>
-                  <p className="text-xs text-slate-400 font-medium mb-2">{showAnalyticsModal.email}</p>
-                  <div className="flex flex-wrap gap-1">
-                    {specs.map(s => (
-                      <span key={s} className="text-[10px] bg-white border border-slate-200 text-slate-600 px-2 py-0.5 rounded-full font-medium">{s}</span>
-                    ))}
-                    {specs.length === 0 && <span className="text-xs text-slate-400">No specialization set</span>}
-                  </div>
-                </div>
-                <Badge variant={getTutorStatus(showAnalyticsModal) === 'Active' ? 'success' : 'default'} className="bg-emerald-50 text-emerald-700 border-emerald-100 font-medium">
-                  {getTutorStatus(showAnalyticsModal)}
-                </Badge>
-              </div>
-
-              {/* Tutor Analytics Stats Row */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-white p-3 border border-slate-100 rounded-xl text-center shadow-sm">
-                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Students</p>
-                  <p className="text-xl font-bold text-slate-800 mt-1">{showAnalyticsModal.studentCount ?? 0}</p>
-                </div>
-                <div className="bg-white p-3 border border-slate-100 rounded-xl text-center shadow-sm">
-                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Avg score</p>
-                  <p className="text-xl font-bold text-slate-800 mt-1">{showAnalyticsModal.avgScore ?? '—'}</p>
-                </div>
-                <div className="bg-white p-3 border border-slate-100 rounded-xl text-center shadow-sm">
-                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Improvement</p>
-                  <p className="text-xl font-bold text-emerald-600 mt-1 flex items-center justify-center gap-0.5">
-                    <ArrowUpRight size={14} /> {stats.avgImprovement}
-                  </p>
-                </div>
-                <div className="bg-white p-3 border border-slate-100 rounded-xl text-center shadow-sm">
-                  <p className="text-[10px] text-slate-400 uppercase font-semibold">Alerts</p>
-                  <p className={`text-xl font-bold mt-1 ${stats.weakAlertsCount > 0 ? 'text-red-500' : 'text-slate-400'}`}>
-                    {stats.weakAlertsCount}
-                  </p>
-                </div>
-              </div>
-
-              {/* Weak Student Alerts Section */}
-              {stats.weakAlertsCount > 0 && (
-                <div className="bg-red-50/50 border border-red-100 rounded-xl p-3 flex gap-3 items-start animate-pulse">
-                  <ShieldAlert className="text-red-500 w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-red-800">Critical Alerts: {stats.weakAlertsCount} Weak Student(s)</p>
-                    <p className="text-[11px] text-red-600/95 mt-0.5">The following students have an average score below 24 ACT point standard and need urgent syllabus revision:</p>
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {stats.weakStudents.map(ws => (
-                        <span key={ws.id} className="text-[10px] font-bold bg-white text-red-600 border border-red-200 px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
-                          <Star size={10} className="fill-red-500 text-red-500" />
-                          {ws.name} ({ws.avgScore} Avg)
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Assigned Students List */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1"><Users size={12} /> Assigned Student Profiles ({stats.assignedStudentsList.length})</h4>
-                  <button 
-                    onClick={() => { setAssignedStudentIds(showAnalyticsModal.studentIds ?? []); setShowAssignModal(showAnalyticsModal); }}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50/50 hover:bg-blue-50 border border-blue-100 rounded-lg px-2 py-1 transition-all"
-                  >
-                    Edit Assignments
-                  </button>
-                </div>
-
-                <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
-                  {stats.assignedStudentsList.length === 0 ? (
-                    <div className="text-center py-6 text-xs text-slate-400 bg-slate-50/50 border border-dashed border-slate-200 rounded-xl">No students assigned to this tutor currently.</div>
-                  ) : (
-                    stats.assignedStudentsList.map((st) => {
-                      const stScore = st.avgScore ?? 0;
-                      const isWeak = stScore > 0 && stScore < 24;
-                      return (
-                        <div key={st.id} className="flex items-center justify-between p-2.5 border border-slate-100 rounded-xl hover:bg-slate-50/50 transition-colors bg-white">
-                          <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center text-blue-700 text-xs font-bold border border-blue-100">
-                              {st.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="text-xs font-semibold text-slate-800">{st.name}</p>
-                              <p className="text-[10px] text-slate-400">{st.grade ? `Grade ${st.grade}` : st.email}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-3">
-                            {isWeak ? (
-                              <Badge variant="danger" className="bg-red-50 text-red-600 border-red-100 text-[10px] font-bold">Needs Revision</Badge>
-                            ) : (
-                              <Badge variant="success" className="bg-emerald-50 text-emerald-700 border-emerald-100 text-[10px]">Good Progress</Badge>
-                            )}
-                            <div className="text-right">
-                              <span className="text-xs font-bold text-slate-800 block">{st.avgScore ?? '—'} Avg</span>
-                              <span className="text-[10px] text-slate-400 block">{st.testsAttempted ?? 0} tests</span>
-                            </div>
-                            <button 
-                              onClick={async () => {
-                                if (confirm(`Remove ${st.name} from ${showAnalyticsModal.name}?`)) {
-                                  const filtered = showAnalyticsModal.studentIds?.filter(id => id !== st.id) ?? [];
-                                  await handleSaveAssignments(showAnalyticsModal.id, filtered);
-                                }
-                              }}
-                              className="p-1 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-lg transition-colors border border-transparent hover:border-red-100" 
-                              title="Remove Assignment"
-                            >
-                              <UserMinus size={13} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              {/* Close Button */}
-              <div className="flex justify-end pt-2 border-t border-slate-100">
-                <Button variant="secondary" size="sm" onClick={() => setShowAnalyticsModal(null)}>Close Dashboard</Button>
-              </div>
-            </div>
-          </Modal>
-        );
-      })()}
+      {tutorModals}
       {/* Temp Password Modal — backdrop click disabled so a stray click can't lose
           a password that's never shown again (it's never stored in plaintext). */}
       <Modal isOpen={!!createdPassword} onClose={() => { setCreatedPassword(null); setCopiedPassword(false); }} title="Tutor Created" size="sm"

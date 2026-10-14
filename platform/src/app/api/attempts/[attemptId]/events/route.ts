@@ -5,6 +5,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { EVENT_TYPES } from '@/lib/timeAnalytics'
 import { syncAnswerTimesFromEvents } from '@/lib/answerTimes'
 import { ensureAttemptEventsTable } from '@/lib/attemptEventsTable'
+import { withTimeout } from '@/lib/withTimeout'
 
 // Test-player event log for visit-level time analytics.
 //
@@ -41,7 +42,13 @@ export async function GET(
     const { attempt, error } = await loadOwnAttempt(request, attemptId)
     if (error) return error
     await ensureAttemptEventsTable()
-    const max = await prisma.attemptEvent.aggregate({ where: { attemptId }, _max: { seq: true, tMs: true } })
+    // The test player waits for this before it sends any events, so it must
+    // answer promptly; on an error the player falls back to its own counter.
+    const max = await withTimeout(
+      prisma.attemptEvent.aggregate({ where: { attemptId }, _max: { seq: true, tMs: true } }),
+      8_000,
+      'attempt event state',
+    )
     return NextResponse.json({
       lastSeq: max._max.seq ?? 0,
       lastT: max._max.tMs ?? 0,

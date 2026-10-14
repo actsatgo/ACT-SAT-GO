@@ -126,7 +126,7 @@ export function StudentDashboard() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Welcome */}
       <div className="bg-gradient-to-br from-[#1e3a8a] via-[#1b3d6e] to-[#0f172a] rounded-2xl p-6 text-white shadow-lg border border-blue-900/40 relative overflow-hidden">
         <div className="absolute -top-10 -right-10 w-36 h-36 rounded-full bg-blue-500/10 blur-xl" />
@@ -150,7 +150,7 @@ export function StudentDashboard() {
             onClick={() => navigate('/my-tests')}
             className="flex-shrink-0 flex items-center justify-center gap-2 bg-white text-[#1b3d6e] px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-blue-50 transition-colors"
           >
-            Go to My Assignments →
+            Go to My Tests →
           </button>
         </div>
       </div>
@@ -166,12 +166,12 @@ export function StudentDashboard() {
           <div
             key={s.label}
             onClick={() => navigate(s.path)}
-            className="bg-white border border-gray-100 rounded-xl p-4 text-center cursor-pointer hover:border-blue-100 hover:shadow-sm transition-all"
+            className="bg-white border border-slate-100 rounded-xl p-4 text-center cursor-pointer hover:border-blue-100 hover:shadow-sm transition-all"
           >
             <div className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md mb-2 ${s.color}`}>
               {s.icon} {s.label}
             </div>
-            <p className="text-2xl font-bold text-gray-900">{s.value}</p>
+            <p className="text-2xl font-bold text-slate-900">{s.value}</p>
           </div>
         ))}
       </div>
@@ -179,44 +179,44 @@ export function StudentDashboard() {
       {/* Stats row 2 — real cumulative performance, from all non-diagnostic submitted attempts */}
       {overallAgg.total > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div className="bg-white border border-slate-100 rounded-xl p-4 text-center">
             <div className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md mb-2 text-emerald-700 bg-emerald-50"><Percent size={15} /> Avg Accuracy</div>
-            <p className="text-2xl font-bold text-gray-900">{accuracy(overallAgg)}%</p>
+            <p className="text-2xl font-bold text-slate-900">{accuracy(overallAgg)}%</p>
           </div>
-          <div className="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div className="bg-white border border-slate-100 rounded-xl p-4 text-center">
             <div className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md mb-2 text-blue-700 bg-blue-50"><Timer size={15} /> Avg Time</div>
-            <p className="text-2xl font-bold text-gray-900">{fmtTime(avgTime(overallAgg))}</p>
-            <p className="text-[10px] text-gray-400 mt-0.5">per question</p>
+            <p className="text-2xl font-bold text-slate-900">{fmtTime(avgTime(overallAgg))}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">per question</p>
           </div>
-          <div className="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div className="bg-white border border-slate-100 rounded-xl p-4 text-center">
             <div className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md mb-2 text-amber-700 bg-amber-50"><Award size={15} /> Best Subject</div>
-            <p className="text-lg font-bold text-gray-900">{bestSubject?.name ?? '—'}</p>
-            {bestSubject && <p className="text-[10px] text-gray-400 mt-0.5">{bestSubject.pct}% accuracy</p>}
+            <p className="text-lg font-bold text-slate-900">{bestSubject?.name ?? '—'}</p>
+            {bestSubject && <p className="text-[10px] text-slate-400 mt-0.5">{bestSubject.pct}% accuracy</p>}
           </div>
-          <div className="bg-white border border-gray-100 rounded-xl p-4 text-center">
+          <div className="bg-white border border-slate-100 rounded-xl p-4 text-center">
             <div className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-1 rounded-md mb-2 text-red-700 bg-red-50"><TrendingDown size={15} /> Needs Improvement</div>
-            <p className="text-lg font-bold text-gray-900">{weakSubject?.name ?? '—'}</p>
-            {weakSubject && <p className="text-[10px] text-gray-400 mt-0.5">{weakSubject.pct}% accuracy</p>}
+            <p className="text-lg font-bold text-slate-900">{weakSubject?.name ?? '—'}</p>
+            {weakSubject && <p className="text-[10px] text-slate-400 mt-0.5">{weakSubject.pct}% accuracy</p>}
           </div>
         </div>
       )}
 
       {/* Recent Classes */}
       {recentClasses.length > 0 && (
-        <div className="bg-white border border-gray-100 rounded-xl">
-          <div className="flex items-center justify-between px-4 py-3.5 border-b border-gray-50">
+        <div className="bg-white border border-slate-100 rounded-xl">
+          <div className="flex items-center justify-between px-4 py-3.5 border-b border-slate-50">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#1b3d6e] flex items-center justify-center flex-shrink-0"><CalendarCheck size={16} /></div>
-              <p className="text-sm font-semibold text-gray-900">Recent Classes</p>
+              <p className="text-sm font-semibold text-slate-900">Recent Classes</p>
             </div>
             <button onClick={() => navigate('/attendance')} className="text-xs font-semibold text-[#1b3d6e] hover:underline">View all</button>
           </div>
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-slate-50">
             {recentClasses.map((c) => (
               <div key={c.id} className="px-4 py-3">
                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <p className="text-sm font-medium text-gray-900">{c.topic}</p>
-                  <p className="text-xs text-gray-400 flex-shrink-0">
+                  <p className="text-sm font-medium text-slate-900">{c.topic}</p>
+                  <p className="text-xs text-slate-400 flex-shrink-0">
                     {formatDate(c.classDate)}
                   </p>
                 </div>
@@ -225,7 +225,7 @@ export function StudentDashboard() {
                     <BookOpenCheck size={11} /> {c.homework}
                   </p>
                 )}
-                <p className="text-xs text-gray-400 mt-1">with {c.tutorName}</p>
+                <p className="text-xs text-slate-400 mt-1">with {c.tutorName}</p>
               </div>
             ))}
           </div>
@@ -243,8 +243,8 @@ export function StudentDashboard() {
                 <AlertCircle size={18} className="text-red-600" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-gray-900">Review Mistakes</p>
-                <p className="text-xs text-gray-600 mt-0.5">See all wrong and unattempted questions from all your tests</p>
+                <p className="text-sm font-semibold text-slate-900">Review Mistakes</p>
+                <p className="text-xs text-slate-600 mt-0.5">See all wrong and unattempted questions from all your tests</p>
               </div>
             </div>
             <button
@@ -262,10 +262,10 @@ export function StudentDashboard() {
 
       {/* Empty state */}
       {tests.length === 0 && (
-        <div className="bg-white border border-gray-100 rounded-xl py-16 text-center">
-          <Target size={28} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">No tests assigned yet</p>
-          <p className="text-gray-400 text-sm mt-1">Your admin will assign diagnostic tests to you soon.</p>
+        <div className="bg-white border border-slate-100 rounded-xl py-16 text-center">
+          <Target size={28} className="text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-500 font-medium">No tests assigned yet</p>
+          <p className="text-slate-400 text-sm mt-1">Your admin will assign diagnostic tests to you soon.</p>
         </div>
       )}
     </div>

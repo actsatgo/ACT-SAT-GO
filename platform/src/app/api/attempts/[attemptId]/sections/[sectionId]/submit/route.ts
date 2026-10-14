@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAttemptAccess } from '@/lib/auth'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { redis } from '@/lib/redis'
 import { isAnswerCorrect } from '@/lib/answerCheck'
 import { syncAnswerTimesFromEvents } from '@/lib/answerTimes'
+import { notifyParentTestResult } from '@/lib/whatsapp'
 
 
 // Digital SAT raw→scaled conversion tables, reproduced exactly from the
@@ -40,10 +42,12 @@ function satSectionScore(m1: number, m2: number, total: number, isMath: boolean,
 
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ attemptId: string; sectionId: string }> }
 ) {
   const { attemptId, sectionId } = await params
+  const access = await requireAttemptAccess(request, attemptId)
+  if (access !== true) return access
 
   try {
     // 1. Flush Redis answers → PostgreSQL
@@ -309,6 +313,8 @@ export async function POST(
           where: { id: attemptId },
           data: { status: 'SUBMITTED', totalScore: finalScaledScore, completedAt: new Date() },
         })
+        // Tell the parent on WhatsApp (no-op until WhatsApp is configured; never blocks the submit).
+        void notifyParentTestResult(attemptId)
       }
     }
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireStudentAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { numericValuesEqual } from '@/lib/numericAnswer'
 import { isRawScoredTest } from '@/lib/testCategorize'
@@ -37,11 +38,13 @@ function isAnswerCorrect(given: unknown, correct: unknown): boolean {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ studentId: string }> }
 ) {
   const { studentId } = await params
-  const { searchParams } = new URL(_request.url)
+  const access = await requireStudentAccess(request, studentId)
+  if (access !== true) return access
+  const { searchParams } = new URL(request.url)
   const attemptId = searchParams.get('attemptId')
 
   try {

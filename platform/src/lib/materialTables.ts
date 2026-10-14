@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 
-// Same idempotent SQL as migration 9_add_study_materials. Run once per server
+// Same idempotent SQL as migration 9_add_flashcards_articles_materials. Run once per server
 // process before the first study-material query, so the feature works even if
 // a deploy's `prisma migrate deploy` step was skipped or failed.
 

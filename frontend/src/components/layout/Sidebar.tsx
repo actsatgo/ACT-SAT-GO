@@ -1,14 +1,17 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, BarChart3, Settings,
   LogOut, GraduationCap, ClipboardList, ChevronLeft, ChevronRight, X,
   Activity, UserCheck, Database, LifeBuoy, ChevronDown,
   AlertCircle, HelpCircle, PieChart, BookMarked, CalendarCheck, TrendingUp,
-  FileCheck2, Sparkles, Layers, FileText, FileLock2
+  /* FileCheck2, */ Sparkles, UsersRound, Library, FileBarChart2, /* Video, */ ClipboardCheck,
+  Layers, FileText, FileLock2,
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useAuthStore } from '../../store/useAuthStore';
+import { UserAvatar } from '../common/UserAvatar';
 import { api } from '../../lib/api';
 import type { Role } from '../../types';
 
@@ -41,28 +44,37 @@ interface NavItem {
 // Student-focused navigation (clean and minimal — diagnostic test flow)
 const studentNavItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} />, roles: ['student'] },
-  { label: 'My Assignments', path: '/my-tests', icon: <ClipboardList size={18} />, roles: ['student'] },
+  { label: 'My Tests', path: '/my-tests', icon: <ClipboardList size={18} />, roles: ['student'] },
   { label: 'My Progress', path: '/my-progress', icon: <TrendingUp size={18} />, roles: ['student'] },
+  { label: 'Test Report', path: '/test-report', icon: <FileBarChart2 size={18} />, roles: ['student'] },
   { label: 'My Classes', path: '/attendance', icon: <CalendarCheck size={18} />, roles: ['student'] },
+  { label: 'PTM Reports', path: '/ptm-reports', icon: <ClipboardCheck size={18} />, roles: ['student'] },
+  // Live Class hidden for now (user asked 13 Oct); uncomment to bring it back.
+  // { label: 'Live Class', path: '/live-class', icon: <Video size={18} />, roles: ['student'] },
   { label: 'Analytics', path: '/analytics', icon: <PieChart size={18} />, roles: ['student'] },
   { label: 'Review Mistakes', path: '/mistakes', icon: <AlertCircle size={18} />, roles: ['student'] },
   { label: 'Flashcards', path: '/flashcards', icon: <Layers size={18} />, roles: ['student'] },
   { label: 'Articles', path: '/articles', icon: <FileText size={18} />, roles: ['student'] },
   { label: 'Study Materials', path: '/materials', icon: <FileLock2 size={18} />, roles: ['student'] },
   { label: 'My Doubts', path: '/doubts', icon: <HelpCircle size={18} />, roles: ['student'] },
-  { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['student'] },
+  { label: 'ASG Library', path: '/library', icon: <Library size={18} />, roles: ['student'] },
 ];
 
 // Admin/Tutor navigation
 const adminNavItems: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
+  { label: 'Accounts', path: '/accounts', icon: <UsersRound size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'Students', path: '/students', icon: <GraduationCap size={18} />, roles: ['super_admin', 'admin'] },
-  { label: 'Free Test Leads', path: '/free-test-leads', icon: <FileCheck2 size={18} />, roles: ['super_admin', 'admin'] },
+  // Free Test Leads hidden from the admin portal (user asked 13 Oct); page and route kept.
+  // { label: 'Free Test Leads', path: '/free-test-leads', icon: <FileCheck2 size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'My Students', path: '/my-students', icon: <GraduationCap size={18} />, roles: ['tutor'] },
   { label: 'Session Log', path: '/attendance', icon: <CalendarCheck size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
+  { label: 'PTM Reports', path: '/ptm-reports', icon: <ClipboardCheck size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
+  // { label: 'Live Class', path: '/live-class', icon: <Video size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Tutors', path: '/tutors', icon: <UserCheck size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'Test Builder', path: '/tests', icon: <ClipboardList size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'Question Bank', path: '/question-bank', icon: <Database size={18} />, roles: ['super_admin', 'admin'] },
+  { label: 'Test Report', path: '/test-report', icon: <FileBarChart2 size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   {
     label: 'Analytics',
     path: '/analytics',
@@ -76,8 +88,9 @@ const adminNavItems: NavItem[] = [
   { label: 'Articles', path: '/articles', icon: <FileText size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Study Materials', path: '/materials', icon: <FileLock2 size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Skills', path: '/skills', icon: <BookMarked size={18} />, roles: ['super_admin', 'admin'] },
+  { label: 'ASG Library', path: '/library', icon: <Library size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Support', path: '/support', icon: <LifeBuoy size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
-  { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
+  { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['super_admin', 'admin'] },
 ];
 
 // Free Demo Test accounts (website signups) get a deliberately tiny portal:
@@ -85,7 +98,6 @@ const adminNavItems: NavItem[] = [
 const demoNavItems: NavItem[] = [
   { label: 'My Demo Test', path: '/dashboard', icon: <Sparkles size={18} />, roles: ['student'] },
   { label: 'Score Analytics', path: '/analytics', icon: <PieChart size={18} />, roles: ['student'] },
-  { label: 'Settings', path: '/settings', icon: <Settings size={18} />, roles: ['student'] },
 ];
 
 const navItems: NavItem[] = [...studentNavItems, ...adminNavItems];
@@ -106,6 +118,18 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: SidebarProps) {
+  // Collapsed sidebar: hovering an icon shows the tab's name in a small label
+  // to its right (portalled so the narrow sidebar never clips it).
+  const [tip, setTip] = React.useState<{ label: string; top: number; left: number } | null>(null);
+  const tipProps = (label: string) => collapsed ? {
+    onMouseEnter: (e: React.MouseEvent<HTMLElement>) => {
+      const r = e.currentTarget.getBoundingClientRect();
+      setTip({ label, top: r.top + r.height / 2, left: r.right + 10 });
+    },
+    onMouseLeave: () => setTip(null),
+  } : {};
+  React.useEffect(() => { if (!collapsed) setTip(null); }, [collapsed]);
+
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
   const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>({});
@@ -123,14 +147,17 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
 
   const filteredNav = user?.isDemo
     ? demoNavItems
-    : navItems.filter((item) => user && item.roles.includes(user.role));
+    : navItems.filter((item) => user && (item.roles.includes(user.role) || (item.path === '/accounts' && user.isCoordinator)));
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const SidebarContent = () => (
+  // Called as a function, not rendered as <SidebarContent />: a component defined
+  // inside Sidebar is a new type on every render, so each hover label (state change)
+  // remounted the whole menu and threw away its scroll position.
+  const sidebarContent = () => (
     <div className="flex flex-col h-full bg-[#0B1E36] border-r border-white/5 transition-all duration-300">
       {/* Logo */}
       <div className={`flex items-center gap-2.5 px-4 py-4 border-b border-white/5 ${collapsed ? 'justify-center px-2' : ''}`}>
@@ -157,7 +184,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
       </div>
 
       {/* Nav items */}
-      <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto scrollbar-hide">
+      <nav className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto scrollbar-hide" onScroll={() => setTip(null)}>
         {filteredNav.map((item) => (
           <div key={item.path}>
             <NavLink
@@ -168,13 +195,13 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
                 else setMobileOpen(false);
               }}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group relative overflow-hidden ${
+                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-[16px] font-medium transition-all duration-200 group relative overflow-hidden ${
                   isActive
                     ? 'bg-blue-600/25 text-blue-300 font-semibold'
                     : 'text-slate-300 hover:text-white hover:bg-white/5'
                 } ${collapsed ? 'justify-center' : ''}`
               }
-              title={collapsed ? item.label : undefined}
+              {...tipProps(item.label)}
             >
               {({ isActive }) => (
                 <>
@@ -208,7 +235,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
                         else setMobileOpen(false);
                       }}
                       className={({ isActive }) =>
-                        `flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-colors ${
+                        `flex items-center justify-between px-3 py-2 rounded-lg text-[16px] transition-colors ${
                           isActive && !subItem.subItems ? 'text-blue-300 bg-blue-600/20 font-semibold' : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium'
                         }`
                       }
@@ -228,7 +255,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
                             to={subSubItem.path}
                             onClick={() => setMobileOpen(false)}
                             className={({ isActive }) =>
-                              `block px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                              `block px-3 py-1.5 rounded-lg text-[16px] transition-colors ${
                                 isActive ? 'text-blue-300 bg-blue-600/20 font-semibold' : 'text-slate-400 hover:text-white hover:bg-white/5'
                               }`
                             }
@@ -297,28 +324,36 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
         )}
 
         {user && (
-          <div className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 ${collapsed ? 'justify-center px-0' : ''}`}>
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-              {user.name.charAt(0)}
-            </div>
+          <button type="button" onClick={() => { navigate('/profile'); setMobileOpen(false); }} title={collapsed ? undefined : 'My Profile'} {...tipProps('My Profile')}
+            className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 hover:bg-white/5 transition-colors ${collapsed ? 'justify-center px-0' : ''}`}>
+            <UserAvatar name={user.name} src={user.avatar} className="w-8 h-8 bg-blue-600 text-white text-sm" />
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{user.name}</p>
-                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">{user.isDemo ? 'Demo Student' : roleLabels[user.role]}</p>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">{user.isDemo ? 'Demo Student' : user.isCoordinator ? 'Coordinator' : roleLabels[user.role]}</p>
               </div>
             )}
-          </div>
+          </button>
         )}
 
         <button
           onClick={handleLogout}
-          className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 text-sm font-medium group ${collapsed ? 'justify-center' : ''}`}
-          title={collapsed ? "Sign Out" : undefined}
+          className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 text-[16px] font-medium group ${collapsed ? 'justify-center' : ''}`}
+          {...tipProps('Sign Out')}
         >
           <LogOut size={18} className="flex-shrink-0 group-hover:-translate-x-1 transition-transform" />
           {!collapsed && <span>Sign Out</span>}
         </button>
       </div>
+      {tip && createPortal(
+        <div
+          className="asg-fade-in pointer-events-none fixed z-[200] -translate-y-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2.5 py-1 text-xs font-semibold text-white shadow-lg ring-1 ring-white/10"
+          style={{ top: tip.top, left: tip.left }}
+        >
+          {tip.label}
+        </div>,
+        document.body,
+      )}
     </div>
   );
 
@@ -339,7 +374,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
           ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
       >
-        <SidebarContent />
+        {sidebarContent()}
       </aside>
 
       {/* Desktop sidebar */}
@@ -350,7 +385,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
           h-screen sticky top-0 flex-shrink-0 shadow-lg border-r border-white/5 z-50
         `}
       >
-        <SidebarContent />
+        {sidebarContent()}
         {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}

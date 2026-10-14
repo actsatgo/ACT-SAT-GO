@@ -26,6 +26,12 @@ export function isoToLocalDateTimeInput(iso?: string | null): string {
 }
 
 /** Format seconds into human-readable duration: "45s", "1m 10s", "2h 5m" */
+/** Seconds as MM:SS (e.g. 90 -> "01:30"); hours roll into the minutes. */
+export function fmtMmSs(totalSeconds: number): string {
+  const secs = Math.max(0, Math.round(totalSeconds));
+  return `${String(Math.floor(secs / 60)).padStart(2, '0')}:${String(secs % 60).padStart(2, '0')}`;
+}
+
 export function fmtSec(s: number): string {
   if (s < 60) return `${s}s`;
   const m = Math.floor(s / 60);

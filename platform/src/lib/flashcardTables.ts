@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma'
 
-// Same idempotent SQL as migration 7_add_flashcards. Run once per server
+// Same idempotent SQL as migration 9_add_flashcards_articles_materials. Run once per server
 // process before the first flashcard query, so the feature works even if a
 // deploy's `prisma migrate deploy` step was skipped or failed.
 
@@ -64,7 +64,7 @@ export function ensureFlashcardTables(): Promise<void> {
       `SELECT to_regclass('public."FlashcardShare"')::text AS t`,
     )
     if (rows[0]?.t) return
-    console.warn('[flashcards] tables missing (migration 7 not applied) — creating them')
+    console.warn('[flashcards] tables missing (migration 9 not applied) — creating them')
     for (const sql of DDL) await prisma.$executeRawUnsafe(sql)
   })().catch((err) => {
     ready = null // retry on the next request

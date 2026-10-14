@@ -36,7 +36,7 @@ export function invalidateApiCache(prefix: string) {
   for (const key of [...getCache.keys()]) if (key.startsWith(prefix)) getCache.delete(key)
 }
 
-async function cachedGet<T>(path: string, ttlMs: number): Promise<T> {
+async function cachedGet<T>(path: string, ttlMs: number, timeoutMs?: number): Promise<T> {
   const now = Date.now()
   const hit = getCache.get(path)
   if (hit && hit.expiresAt > now) {
@@ -46,7 +46,7 @@ async function cachedGet<T>(path: string, ttlMs: number): Promise<T> {
     for (const [k, v] of getCache) if (v.expiresAt <= now) getCache.delete(k)
     if (getCache.size >= GET_CACHE_MAX) getCache.delete(getCache.keys().next().value as string)
   }
-  const text = requestText(path)
+  const text = requestText(path, undefined, timeoutMs)
   const entry: CacheEntry = { text, expiresAt: now + ttlMs }
   getCache.set(path, entry)
   try {
@@ -148,11 +148,26 @@ export interface TimeAnalyticsResponse {
 const SHORT_TTL = 30_000
 const LONG_TTL = 5 * 60_000
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  return JSON.parse(await requestText(path, options)) as T
+async function request<T>(path: string, options?: RequestInit, timeoutMs?: number): Promise<T> {
+  return JSON.parse(await requestText(path, options, timeoutMs)) as T
 }
 
-async function requestText(path: string, options?: RequestInit): Promise<string> {
+/**
+ * With `timeoutMs`, a request that gets no answer in time fails with status 504
+ * instead of waiting forever (callers show their fallback and can retry).
+ */
+async function requestText(path: string, options?: RequestInit, timeoutMs?: number): Promise<string> {
+  if (timeoutMs && typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+    try {
+      return await requestText(path, { ...options, signal: AbortSignal.timeout(timeoutMs) })
+    } catch (err) {
+      if ((err as Error)?.name !== 'TimeoutError') throw err
+      const e = new Error('The server took too long to respond') as Error & { status?: number }
+      e.status = 504
+      throw e
+    }
+  }
+
   const method = (options?.method ?? 'GET').toUpperCase()
   if (method !== 'GET' && method !== 'HEAD') clearApiCache()
 
@@ -189,6 +204,8 @@ export interface DbUser {
   role: string
   /** True for free-demo-test accounts created from the website (permissions.accountType = 'DEMO'). */
   isDemo?: boolean
+  /** Profile picture as a small image data URL, or null. */
+  avatar?: string | null
   createdAt: string
   /** Set when an admin has soft-deleted this user; null/undefined means active. */
   deletedAt?: string | null
@@ -206,6 +223,10 @@ export interface DbUser {
   specialization?: string[]
   /** Tutor compensation rate. Only ever present in the response for an admin/super-admin caller. */
   hourlyRate?: number | null
+  /** Tutor may create student accounts (set by an admin). */
+  canAddStudents?: boolean
+  /** Tutor account flagged as a coordinator: may add tutors and students. */
+  coordinator?: boolean
   phone?: string | null
   parentPhone?: string | null
   dob?: string | null
@@ -257,6 +278,17 @@ export interface ClassProgressEntry {
   engagement?: string
   nextSessionGoal?: string
   nextSessionAt?: string
+}
+
+export interface LiveClass {
+  roomId: string
+  studentId: string
+  studentName: string
+  tutorId: string
+  tutorName: string
+  startedAt: string
+  joinUrl: string
+  canEnd: boolean
 }
 
 export interface ClassProgressInput {
@@ -525,6 +557,48 @@ export interface MaterialDetail {
   sharedWith?: string[]
 }
 
+// ── ASG Library ──────────────────────────────────────────────────────────────
+export interface LibraryAssignee {
+  id: string
+  name: string | null
+  email: string
+  role: string
+}
+export interface LibraryDocument {
+  id: string
+  title: string
+  description: string | null
+  fileName: string
+  sizeBytes: number
+  createdAt: string
+  updatedAt: string
+  /** Admin listing only. */
+  uploadedByName?: string | null
+  assignees?: LibraryAssignee[]
+  /** Student/tutor listing only: when it was assigned to them. */
+  assignedAt?: string
+}
+
+export interface PtmReport {
+  id: string;
+  ptmDate: string;
+  targetTestDate: string | null;
+  prepStatus: string;
+  mocksCompleted: number;
+  remarks: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface PtmStudent {
+  id: string;
+  name: string;
+  email: string;
+  targetDate: string | null;
+  mocksCompleted: number;
+  reports: PtmReport[];
+}
+
 export const api = {
   // Users
   getUsersByRole: (role?: string, opts?: { deleted?: boolean }) => {
@@ -546,6 +620,8 @@ export const api = {
     specialization?: string[]
     /** Tutor compensation rate — only applied when role is 'TUTOR'. */
     hourlyRate?: number | null
+    coordinator?: boolean
+    canAddStudents?: boolean
     phone?: string
     parentPhone?: string
     dob?: string
@@ -575,7 +651,9 @@ export const api = {
     tutorId?: string | null
     tutorIds?: string[]
     /** Tutor compensation rate — silently ignored server-side unless the caller is an admin. */
+    avatar?: string | null
     hourlyRate?: number | null
+    canAddStudents?: boolean
     notifications?: Record<string, boolean>
     phone?: string
     parentPhone?: string
@@ -842,9 +920,10 @@ export const api = {
 
   // Visit-level time analytics (see lib/questionTimeTracker.ts)
   getAttemptEventState: (attemptId: string) =>
-    request<{ lastSeq: number; lastT: number; serverElapsedMs: number }>(`/api/attempts/${attemptId}/events`),
+    // The player sends no events until this answers, so don't wait long.
+    request<{ lastSeq: number; lastT: number; serverElapsedMs: number }>(`/api/attempts/${attemptId}/events`, undefined, 10_000),
   getTimeAnalytics: (attemptId: string) =>
-    cachedGet<TimeAnalyticsResponse>(`/api/attempts/${attemptId}/time-analytics`, LONG_TTL),
+    cachedGet<TimeAnalyticsResponse>(`/api/attempts/${attemptId}/time-analytics`, LONG_TTL, 60_000),
   logCheatingEvent: (
     attemptId: string,
     eventType: string,
@@ -1064,6 +1143,22 @@ export const api = {
       body: JSON.stringify({ tutorId, studentId, entryId, ...body }),
     }),
 
+  // Live classes (100ms): one room per class; each caller gets their own join link.
+  getLiveClasses: () => request<{ configured: boolean; classes: LiveClass[] }>('/api/live-class'),
+  startLiveClass: (studentId: string, tutorId?: string) =>
+    request<{ class: LiveClass }>('/api/live-class', { method: 'POST', body: JSON.stringify({ studentId, tutorId }) }),
+  endLiveClass: (roomId: string) =>
+    request<{ success: boolean }>(`/api/live-class?roomId=${encodeURIComponent(roomId)}`, { method: 'DELETE' }),
+
+  // Upcoming official SAT test dates (read from College Board by the server).
+  getSatDates: () => cachedGet<{ dates: string[]; source: string }>('/api/sat-dates', LONG_TTL),
+
+  // PTM reports: admins write; tutors read their students'; students read their own.
+  getPtmReports: (studentId?: string) =>
+    request<{ students: PtmStudent[] }>(`/api/ptm-reports${studentId ? `?studentId=${encodeURIComponent(studentId)}` : ''}`),
+  addPtmReport: (body: { studentId: string; ptmDate: string; targetTestDate?: string; prepStatus: string; remarks?: string }) =>
+    request<{ report: PtmReport; reports: PtmReport[] }>('/api/ptm-reports', { method: 'POST', body: JSON.stringify(body) }),
+
   // Platform-wide settings (e.g. the "Next SAT Date" shown in admin/tutor sidebars,
   // and the full official test-date calendar shown in the super admin console)
   getSettings: () => cachedGet<{ nextSatDate: string | null; satTestDates: string[] }>('/api/settings', LONG_TTL),
@@ -1086,6 +1181,42 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
+
+  // ASG Library — admin uploads PDFs and assigns them; students/tutors read assigned ones.
+  getLibrary: () => request<{ documents: LibraryDocument[] }>('/api/library'),
+  uploadLibraryDocument: async (file: File, meta: { title: string; description?: string }) => {
+    const { path, token } = await request<{ path: string; token: string }>('/api/library/upload-url', {
+      method: 'POST',
+      body: JSON.stringify({ fileName: file.name, sizeBytes: file.size }),
+    })
+    // Straight to the private Storage bucket with the one-time signed URL (no 10MB server limit).
+    const { error } = await supabase.storage.from('library').uploadToSignedUrl(path, token, file, {
+      contentType: 'application/pdf',
+    })
+    if (error) throw new Error(error.message || 'Upload failed')
+    return request<{ document: LibraryDocument }>('/api/library', {
+      method: 'POST',
+      body: JSON.stringify({ title: meta.title, description: meta.description ?? null, path, fileName: file.name }),
+    })
+  },
+  updateLibraryDocument: (documentId: string, body: { title?: string; description?: string | null }) =>
+    request<{ document: LibraryDocument }>(`/api/library/${documentId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  deleteLibraryDocument: (documentId: string) =>
+    request<{ success: boolean }>(`/api/library/${documentId}`, { method: 'DELETE' }),
+  setLibraryAssignees: (documentId: string, userIds: string[]) =>
+    request<{ assignees: LibraryAssignee[] }>(`/api/library/${documentId}/assignments`, {
+      method: 'PUT',
+      body: JSON.stringify({ userIds }),
+    }),
+  /** The PDF bytes for the in-app viewer (access is checked on the server). */
+  getLibraryFile: async (documentId: string): Promise<ArrayBuffer> => {
+    const res = await fetch(`${BASE}/api/library/${documentId}/file`, { headers: { ...(await authHeaders()) } })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }))
+      throw new Error(err.error ?? 'Could not open the document')
+    }
+    return res.arrayBuffer()
+  },
 
   deleteImage: async (path: string) => {
     clearApiCache()

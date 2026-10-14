@@ -12,6 +12,7 @@ import type { TestAttempt } from '../../types';
 import { transformDbTest, flattenTest } from './TestInstructionsPage';
 import { parseNumericAnswer, isValidNumericInput, sanitizeNumericInput } from '../../lib/numericAnswer';
 import { useVisitTracking } from '../../hooks/useVisitTracking';
+import { SprDirections } from '../../components/test/SprDirections';
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
@@ -130,7 +131,7 @@ function BluebookOption({
       {/* Option body */}
       <div
         onClick={isEliminated ? undefined : onClick}
-        className={`group flex-1 flex items-start gap-3 px-4 py-3 rounded-xl border transition-all select-none
+        className={`group flex-1 flex items-center gap-3 px-4 py-3 rounded-xl border transition-all select-none
           ${isEliminated
             ? 'border-gray-200 bg-white cursor-default'
             : isSelected
@@ -138,7 +139,7 @@ function BluebookOption({
               : 'border-gray-300 hover:border-gray-400 bg-white cursor-pointer'}`}
       >
         {/* Letter circle */}
-        <div className={`flex-shrink-0 mt-0.5 w-7 h-7 rounded-full border flex items-center justify-center text-sm font-bold transition-all
+        <div className={`flex-shrink-0 w-7 h-7 rounded-full border flex items-center justify-center text-sm font-bold transition-all
           ${isEliminated
             ? 'border-gray-300 bg-white text-gray-400'
             : isSelected
@@ -146,7 +147,7 @@ function BluebookOption({
               : 'bg-white border-gray-500 text-gray-700'}`}>
           <span className={isEliminated ? 'line-through decoration-gray-400' : ''}>{label}</span>
         </div>
-        <div className={`flex-1 text-[15px] leading-relaxed pt-0.5 transition-all
+        <div className={`flex-1 text-[15px] leading-relaxed transition-all
           ${isEliminated ? 'line-through text-gray-400 decoration-gray-400' : 'text-gray-900'}`}>
           <RichContentRenderer content={text} variant="option" />
         </div>
@@ -248,6 +249,10 @@ export function TestInterfacePage() {
   const highlightPendingRef = useRef<{ container: HTMLDivElement; key: string; range: Range } | null>(null);
   const [restoring, setRestoring] = useState(Boolean(searchParams.get('attemptId')));
   const [restoreError, setRestoreError] = useState<string | null>(null);
+  // SPR split view (directions left, question right): question panel width in %.
+  // The question half can only grow (50-85%); the directions panel can shrink below half.
+  const [sprQuestionPct, setSprQuestionPct] = useState(50);
+  const sprSplitRef = useRef<HTMLDivElement>(null);
 
   const { testId } = useParams<{ testId: string }>();
   const isPreview = searchParams.get('preview') === 'true';
@@ -1319,17 +1324,6 @@ export function TestInterfacePage() {
               Directions <ChevronDown size={13} />
             </button>
           </div>
-          
-          {hasDesmos && (
-            <button
-              onClick={() => setShowCalculator((v) => !v)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                showCalculator ? 'bg-[#1b3d6e] text-white border-[#1b3d6e]' : 'text-gray-700 bg-white border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <Calculator size={14} /> Calculator
-            </button>
-          )}
         </div>
 
         {/* Center: timer */}
@@ -1349,6 +1343,15 @@ export function TestInterfacePage() {
 
         {/* Right: tools */}
         <div className="flex items-center gap-5">
+          {hasDesmos && (
+            <button
+              onClick={() => setShowCalculator((v) => !v)}
+              className={`flex flex-col items-center gap-0.5 text-[11px] ${showCalculator ? 'text-[#1b3d6e] font-semibold' : 'text-gray-700 hover:text-[#1b3d6e]'}`}
+            >
+              <Calculator size={18} /> DESMOS
+            </button>
+          )}
+
           {hasReference && (
             <button onClick={() => setShowReference(true)} className="flex flex-col items-center gap-0.5 text-[11px] text-gray-700 hover:text-[#1b3d6e]">
               <BookOpen size={18} /> Reference
@@ -1458,12 +1461,72 @@ export function TestInterfacePage() {
                     maxLength={numericInput.startsWith('-') ? 6 : 5}
                     value={numericInput} onChange={(e) => setNumericInput(sanitizeNumericInput(e.target.value))}
                     placeholder="e.g. 7/10 or 0.7"
-                    className={`w-48 px-4 py-3 border-2 rounded-lg text-lg font-mono focus:outline-none transition-colors bg-white ${
+                    className={`w-56 px-4 py-3 border-2 rounded-lg text-lg font-mono focus:outline-none transition-colors bg-white ${
                       isValidNumericInput(numericInput) ? 'border-gray-300 focus:border-[#1b3d6e]' : 'border-red-400 focus:border-red-500'
                     }`} />
                   <p className="text-xs text-gray-400 mt-1.5">You can enter a fraction (e.g. 7/10) or a decimal. Up to 5 digits (6 if negative).</p>
                 </div>
               )}
+            </div>
+          </div>
+        ) : currentQuestion.type === 'numeric' ? (
+          /* SPR layout (Bluebook): directions on the left, question on the right, draggable divider */
+          <div ref={sprSplitRef} className="flex h-full min-h-full">
+            <div className="flex-1 min-w-0 overflow-y-auto px-6 py-10 bg-gray-50">
+              <SprDirections />
+            </div>
+            <div
+              role="separator"
+              aria-orientation="vertical"
+              aria-label="Resize directions panel"
+              title="Drag to resize"
+              className="relative w-2 flex-shrink-0 cursor-col-resize bg-gray-200 hover:bg-[#1b3d6e]/40 transition-colors touch-none select-none"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                const box = sprSplitRef.current?.getBoundingClientRect();
+                if (!box) return;
+                const onMove = (ev: PointerEvent) => {
+                  const pct = 100 - ((ev.clientX - box.left) / box.width) * 100;
+                  setSprQuestionPct(Math.min(85, Math.max(50, pct)));
+                };
+                const onUp = () => {
+                  window.removeEventListener('pointermove', onMove);
+                  window.removeEventListener('pointerup', onUp);
+                  document.body.style.cursor = '';
+                };
+                document.body.style.cursor = 'col-resize';
+                window.addEventListener('pointermove', onMove);
+                window.addEventListener('pointerup', onUp);
+              }}
+            >
+              <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-1 rounded-full bg-gray-400" />
+            </div>
+            <div className="flex-none overflow-y-auto px-8 py-10 bg-white" style={{ width: `${sprQuestionPct}%` }}>
+              <div className="max-w-3xl mx-auto">
+                {questionHeaderBar}
+                {questionHighlights[`text:${currentQuestion.id}`] ? (
+                  <div
+                    ref={questionTextRef}
+                    className="text-[16px] text-gray-900 leading-relaxed mb-8 font-normal"
+                    dangerouslySetInnerHTML={{ __html: questionHighlights[`text:${currentQuestion.id}`] }}
+                  />
+                ) : (
+                  <div ref={questionTextRef} className="text-[16px] text-gray-900 leading-relaxed mb-8 font-normal">
+                    <RichContentRenderer content={currentQuestion.text || `Question ${currentQIdx + 1}`} variant="question" />
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm text-gray-600 mb-2 font-medium">Enter your answer:</p>
+                  <input type="text" inputMode="decimal" pattern="[0-9./\- ]*" autoComplete="off"
+                    maxLength={numericInput.startsWith('-') ? 6 : 5}
+                    value={numericInput} onChange={(e) => setNumericInput(sanitizeNumericInput(e.target.value))}
+                    placeholder="e.g. 7/10 or 0.7"
+                    className={`w-56 px-4 py-3 border-2 rounded-lg text-lg font-mono focus:outline-none transition-colors bg-white ${
+                      isValidNumericInput(numericInput) ? 'border-gray-300 focus:border-[#1b3d6e]' : 'border-red-400 focus:border-red-500'
+                    }`} />
+                  <p className="text-xs text-gray-400 mt-1.5">You can enter a fraction (e.g. 7/10) or a decimal. Up to 5 digits (6 if negative).</p>
+                </div>
+              </div>
             </div>
           </div>
         ) : (
@@ -1488,19 +1551,6 @@ export function TestInterfacePage() {
             )}
             {(currentQuestion.type === 'mcq_single' || currentQuestion.type === 'mcq_multi') &&
               renderOptions(currentQuestion.options, currentQuestion.type, selectedAnswer)}
-            {currentQuestion.type === 'numeric' && (
-              <div>
-                <p className="text-sm text-gray-600 mb-2 font-medium">Enter your answer:</p>
-                <input type="text" inputMode="decimal" pattern="[0-9./\- ]*" autoComplete="off"
-                  maxLength={numericInput.startsWith('-') ? 6 : 5}
-                  value={numericInput} onChange={(e) => setNumericInput(sanitizeNumericInput(e.target.value))}
-                  placeholder="e.g. 7/10 or 0.7"
-                  className={`w-48 px-4 py-3 border-2 rounded-lg text-lg font-mono focus:outline-none transition-colors bg-white ${
-                    isValidNumericInput(numericInput) ? 'border-gray-300 focus:border-[#1b3d6e]' : 'border-red-400 focus:border-red-500'
-                  }`} />
-                <p className="text-xs text-gray-400 mt-1.5">You can enter a fraction (e.g. 7/10) or a decimal. Up to 5 digits (6 if negative).</p>
-              </div>
-            )}
           </div>
         )}
       </div>
@@ -1572,7 +1622,7 @@ export function TestInterfacePage() {
           >
             <div className="flex items-center gap-4">
               <span className="text-xs font-semibold flex items-center gap-1.5">
-                <Calculator size={14} /> Calculator
+                <Calculator size={14} /> DESMOS
               </span>
               
               {/* Tab Selector */}

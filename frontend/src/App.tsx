@@ -24,15 +24,13 @@ const QuestionBankPage = lazy(() => import('./pages/admin/QuestionBankPage').the
 const SupportPage = lazy(() => import('./pages/admin/SupportPage').then((m) => ({ default: m.SupportPage })));
 const StudentDoubtsAdminPage = lazy(() => import('./pages/admin/StudentDoubtsAdminPage').then((m) => ({ default: m.StudentDoubtsAdminPage })));
 const StudentMistakesPage = lazy(() => import('./pages/admin/StudentMistakesPage').then((m) => ({ default: m.StudentMistakesPage })));
+const TestReportPage = lazy(() => import('./pages/TestReportPage').then((m) => ({ default: m.TestReportPage })));
 const SkillsManagementPage = lazy(() => import('./pages/admin/SkillsManagementPage').then((m) => ({ default: m.SkillsManagementPage })));
 const AdminAttendancePage = lazy(() => import('./pages/admin/AdminAttendancePage').then((m) => ({ default: m.AdminAttendancePage })));
 const AdminFreeTestLeadsPage = lazy(() => import('./pages/admin/AdminFreeTestLeadsPage').then((m) => ({ default: m.AdminFreeTestLeadsPage })));
 
 // Tutor pages
 const TutorDashboard = lazy(() => import('./pages/tutor/TutorDashboard').then((m) => ({ default: m.TutorDashboard })));
-const MyStudentsPage = lazy(() => import('./pages/tutor/MyStudentsPage').then((m) => ({ default: m.MyStudentsPage })));
-const StudentDetailPage = lazy(() => import('./pages/tutor/StudentDetailPage').then((m) => ({ default: m.StudentDetailPage })));
-const TutorAnalyticsPage = lazy(() => import('./pages/tutor/TutorAnalyticsPage').then((m) => ({ default: m.TutorAnalyticsPage })));
 const AttendancePage = lazy(() => import('./pages/tutor/AttendancePage').then((m) => ({ default: m.AttendancePage })));
 
 // Student pages
@@ -55,6 +53,9 @@ const ArticlesPage = lazy(() => import('./pages/articles/ArticlesPage').then((m)
 const MaterialsPage = lazy(() => import('./pages/materials/MaterialsPage').then((m) => ({ default: m.MaterialsPage })));
 const MaterialViewerPage = lazy(() => import('./pages/materials/MaterialViewerPage').then((m) => ({ default: m.MaterialViewerPage })));
 const ArticleReadPage = lazy(() => import('./pages/articles/ArticleReadPage').then((m) => ({ default: m.ArticleReadPage })));
+const LiveClassPage = lazy(() => import('./pages/LiveClassPage').then((m) => ({ default: m.LiveClassPage })));
+const PTMReportsPage = lazy(() => import('./pages/PTMReportsPage').then((m) => ({ default: m.PTMReportsPage })));
+const LibraryPage = lazy(() => import('./pages/LibraryPage').then((m) => ({ default: m.LibraryPage })));
 const MyProgressPage = lazy(() => import('./pages/student/MyProgressPage').then((m) => ({ default: m.MyProgressPage })));
 
 function PageFallback() {
@@ -78,6 +79,7 @@ const DEMO_ALLOWED = [
   /^\/dashboard$/,
   /^\/analytics$/,
   /^\/settings$/,
+  /^\/profile$/,
   /^\/test-instructions\/[^/]+$/,
   /^\/test\/[^/]+$/,
   /^\/test-review\/[^/]+(\/section\/[^/]+)?$/,
@@ -106,8 +108,8 @@ function AnalyticsRouter() {
   const { user } = useAuthStore();
   if (!user) return null;
   if (user.role === 'student') return <AnalyticsPage />;
-  if (user.role === 'tutor') return <TutorAnalyticsPage />;
-  return <AdminAnalyticsPage />;
+  if (user.role === 'tutor') return <AdminAnalyticsPage scope="tutor" />;
+  return <AdminAnalyticsPage scope="all" />;
 }
 
 function AttendanceRouter() {
@@ -145,6 +147,7 @@ const router = createBrowserRouter(
         {/* Admin + Super Admin */}
         <Route path="tests" element={<TestsPage />} />
         <Route path="test-builder" element={<TestBuilderPage />} />
+        <Route path="accounts" element={<StudentManagementPage accountsPage />} />
         <Route path="students" element={<StudentManagementPage />} />
         <Route path="students/:id" element={<AdminStudentProfilePage />} />
         <Route path="free-test-leads" element={<AdminFreeTestLeadsPage />} />
@@ -166,8 +169,8 @@ const router = createBrowserRouter(
         <Route path="user-management" element={<SuperAdminDashboard />} />
 
         {/* Tutor */}
-        <Route path="my-students" element={<MyStudentsPage />} />
-        <Route path="student/:id" element={<StudentDetailPage />} />
+        <Route path="my-students" element={<StudentManagementPage />} />
+        <Route path="student/:id" element={<AdminStudentProfilePage />} />
         <Route path="analytics" element={<AnalyticsRouter />} />
         <Route path="attendance" element={<AttendanceRouter />} />
 
@@ -178,6 +181,7 @@ const router = createBrowserRouter(
         <Route path="test-review/:attemptId" element={<TestReviewPage />} />
         <Route path="test-review/:attemptId/section/:sectionIdx" element={<SectionReviewPage />} />
         <Route path="mistakes" element={<MistakesPage />} />
+        <Route path="test-report" element={<TestReportPage />} />
         <Route path="doubts" element={<DoubtsPage />} />
 
         {/* Shared */}
@@ -187,7 +191,14 @@ const router = createBrowserRouter(
         <Route path="articles/:articleId" element={<ArticleReadPage />} />
         <Route path="materials" element={<MaterialsPage />} />
         <Route path="materials/:materialId" element={<MaterialViewerPage />} />
+        {/* ASG Library — every role; the page shows admins everything, others only what is assigned */}
+        <Route path="library" element={<LibraryPage />} />
+        <Route path="ptm-reports" element={<PTMReportsPage />} />
+        {/* Live Class — tutors and admins start a class, the student joins it */}
+        <Route path="live-class" element={<LiveClassPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        {/* My Profile — opened by clicking your own name (sidebar or top bar) */}
+        <Route path="profile" element={<SettingsPage mode="profile" />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

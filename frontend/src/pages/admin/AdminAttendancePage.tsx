@@ -373,8 +373,8 @@ export function AdminAttendancePage() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Session Logs</h1>
-          <p className="text-slate-400 text-sm">Track how much every tutor is teaching and what's being covered.</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">Session Logs</h1>
+          <p className="text-sm text-slate-500">Track how much every tutor is teaching and what's being covered.</p>
         </div>
         <div className="flex items-center gap-2">
           {user?.role === 'super_admin' && (

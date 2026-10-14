@@ -39,5 +39,9 @@ export function targetScoreError(score: number, track: string | null | undefined
   if (Number.isNaN(score)) return 'Target score must be a number'
   if (track === 'CUSTOM') return score >= 1 && score <= 100 ? null : 'Target score for a custom exam is a percentage between 1 and 100'
   if (track === 'SAT') return score >= 400 && score <= 1600 ? null : 'Target score must be a valid SAT score between 400 and 1600'
-  return score >= 1 && score <= 36 ? null : 'Target score must be a valid ACT score between 1 and 36'
+  if (track === 'ACT') return score >= 1 && score <= 36 ? null : 'Target score must be a valid ACT score between 1 and 36'
+  // No track set: accept either a valid ACT (1–36) or SAT (400–1600) score.
+  return (score >= 1 && score <= 36) || (score >= 400 && score <= 1600)
+    ? null
+    : 'Target score must be a valid ACT score (1–36) or SAT score (400–1600)'
 }

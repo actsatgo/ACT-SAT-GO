@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { Clock, AlertTriangle, Zap } from 'lucide-react';
-import { fmtSec } from '../../lib/utils';
+import { fmtSec, fmtMmSs } from '../../lib/utils';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export type QuestionTimeStat = {
@@ -13,8 +13,8 @@ export type QuestionTimeStat = {
 };
 
 // Thresholds for flagging pacing problems (seconds)
-const SLOW_THRESHOLD = 90;
-const RUSHED_THRESHOLD = 20;
+export const SLOW_THRESHOLD = 90;
+export const RUSHED_THRESHOLD = 20;
 
 const STATUS_COLOR: Record<string, string> = {
   correct:   '#10b981',  // emerald
@@ -127,7 +127,7 @@ function GanttChart({ sorted, avgTime }: { sorted: QuestionTimeStat[]; avgTime: 
           const barW    = Math.max(x2 - x1, 1.5);
           const fill    = STATUS_COLOR[r.status] || STATUS_COLOR.skipped;
           const label   = `Q${r.questionIndex}`;
-          const tipText = `Q${r.questionIndex} | ${r.topicName || '—'} | ${r.status} | ${fmtSec(r.timeSpentSeconds)}`;
+          const tipText = `Q${r.questionIndex} | ${r.topicName || '—'} | ${r.status} | ${fmtMmSs(r.timeSpentSeconds)}`;
 
           return (
             <g key={r.questionIndex}>
