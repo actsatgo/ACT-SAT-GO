@@ -789,7 +789,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
     const btn = (value: 'keep' | 'leave', label: string, on: boolean, onCls: string) => (
       <button
         onClick={() => handleTableUpdateDecision(account.id, value)}
-        className={`px-[32px] py-1 text-[14px] font-bold rounded transition-all ${
+        className={`px-[32px] py-1 text-[11px] font-bold rounded transition-all ${
           on ? `${onCls} text-white shadow-sm` : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
         }`}
         title={`Mark ${label}`}
@@ -863,15 +863,15 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
         <p className="px-3 py-6 text-center text-sm text-slate-400">{emptyText}</p>
       ) : list.map((tutor) => (
         <div key={tutor.id} className="group flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
-          <UserAvatar name={tutor.name} src={tutor.avatar} className="w-8 h-8 bg-gradient-to-br from-violet-400 to-violet-600 text-white text-xs" />
+          <UserAvatar name={tutor.name} src={tutor.avatar} className="w-8 h-8 bg-gradient-to-br from-violet-400 to-violet-600 text-white text-[10px]" />
           <div className="min-w-0 flex-1">
             {isTutor ? (
-              <p className="font-semibold text-slate-900 text-[21px] leading-tight truncate">{tutor.name}</p>
+              <p className="font-semibold text-slate-900 text-[17px] leading-tight truncate">{tutor.name}</p>
             ) : (
               <button type="button" onClick={() => { setShowManageModal(false); navigate(`/tutors?tutor=${tutor.id}`); }}
-                className="block max-w-full text-left font-semibold text-slate-900 text-[21px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{tutor.name}</button>
+                className="block max-w-full text-left font-semibold text-slate-900 text-[17px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{tutor.name}</button>
             )}
-            <p className="text-xs text-slate-500 truncate">{tutor.email}</p>
+            <p className="text-[10px] text-slate-500 truncate">{tutor.email}</p>
           </div>
           {!isTutor && statusToggle(tutor)}
           {/* Row actions: edit, reset password, delete (admins only). */}
@@ -915,7 +915,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
               <div className="flex gap-1 border-b border-slate-200">
                 {accountTabs.map((t) => (
                   <button key={t.key} onClick={() => { setAccountTab(t.key); setManageSearch(''); }}
-                    className={`px-4 py-2 text-[28px] leading-tight font-semibold border-b-2 -mb-px transition-colors ${accountTab === t.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
+                    className={`px-4 py-2 text-[22px] leading-tight font-semibold border-b-2 -mb-px transition-colors ${accountTab === t.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
                     {t.label}
                   </button>
                 ))}
@@ -926,13 +926,14 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                   placeholder="Search by name or email…"
                   value={manageSearch}
                   onChange={(e) => setManageSearch(e.target.value)}
-                  className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50"
+                  className="flex-1 px-3 py-2 text-[11px] border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50"
                 />
                 {!isTutor && (
-                  <Button size="sm" variant="secondary" icon={<Trash size={13} />} onClick={() => setShowTrashModal(true)}>Trash</Button>
+                  <Button size="sm" variant="secondary" className="!text-[11px]" icon={<Trash size={13} />} onClick={() => setShowTrashModal(true)}>Trash</Button>
                 )}
                 {canAddAccounts && <Button
                   size="sm"
+                  className="!text-[11px]"
                   icon={<Plus size={13} />}
                   onClick={() => {
                     if (accountTab === 'tutors' || accountTab === 'coordinators') {
@@ -968,12 +969,12 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                     )
                     .map((student) => (
                       <div key={student.id} className="group flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
-                        <UserAvatar name={student.name} src={student.avatar} className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 text-white text-xs" />
+                        <UserAvatar name={student.name} src={student.avatar} className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 text-white text-[10px]" />
                         <div className="min-w-0 flex-1">
                           {isCoordinatorView ? (
-                            <p className="font-semibold text-slate-900 text-[21px] leading-tight truncate">{student.name}</p>
+                            <p className="font-semibold text-slate-900 text-[17px] leading-tight truncate">{student.name}</p>
                           ) : <button type="button" onClick={() => { setShowManageModal(false); navigate(isTutor ? `/student/${student.id}` : `/students/${student.id}`); }}
-                            className="block max-w-full text-left font-semibold text-slate-900 text-[21px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{student.name}</button>}
+                            className="block max-w-full text-left font-semibold text-slate-900 text-[17px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{student.name}</button>}
                         </div>
                         {!isTutor && statusToggle(student)}
                         {/* Row actions: edit, reset password, delete (admins only). */}
