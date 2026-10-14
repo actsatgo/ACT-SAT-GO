@@ -60,6 +60,7 @@ export async function GET(
         canAddStudents: perms.canAddStudents === true,
         coordinator: perms.coordinator === true,
         avatar: (perms.avatar as string | undefined) ?? null,
+        mustChangePassword: perms.mustChangePassword === true,
         createdAt: user.createdAt,
         deletedAt: user.deletedAt,
         // Kept for back-compat with callers that only render one tutor.
@@ -169,7 +170,7 @@ export async function PATCH(
       board, timezone, firstClassDate, programVariant, mockVariant,
       accommodation, stage, onboarded,
       manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate, canAddStudents, avatar,
-      salarySettlements, paidSessionIds, track, customExam,
+      salarySettlements, paidSessionIds, passwordChanged, track, customExam,
     } = body as {
       name?: string
       email?: string
@@ -204,6 +205,7 @@ export async function PATCH(
       paidSessionIds?: string[]
       track?: string | null
       customExam?: string | null
+      passwordChanged?: boolean
     }
 
     const existing = await prisma.user.findUnique({ where: { id: userId } })
@@ -309,6 +311,8 @@ export async function PATCH(
     if (isAdmin && canAddStudents !== undefined) permissions.canAddStudents = canAddStudents === true
     if (isAdmin && salarySettlements !== undefined) permissions.salarySettlements = salarySettlements
     if (isAdmin && paidSessionIds !== undefined) permissions.paidSessionIds = paidSessionIds
+    // The user set their own password, so the temporary one no longer applies.
+    if (passwordChanged === true && requester.id === userId) delete permissions.mustChangePassword
 
     const updateData: any = { permissions: permissions as any }
     if (name !== undefined) updateData.name = name

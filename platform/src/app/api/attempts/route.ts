@@ -10,11 +10,28 @@ export async function GET(request: NextRequest) {
   const status = searchParams.get('status')
   const studentId = searchParams.get('studentId')
 
+  const user = await getCurrentUser(request)
+  if (!user) return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+
   try {
+    // Scope by role: admins see every attempt; a tutor only their assigned
+    // students' (the tutor dashboard used to download every attempt on the
+    // platform and filter in the browser); a student only their own.
+    let scope: { studentId?: string | { in: string[] } } = {}
+    if (user.role === 'STUDENT') {
+      scope = { studentId: user.id }
+    } else if (user.role === 'TUTOR') {
+      const mine = await prisma.tutorAssignment.findMany({ where: { tutorId: user.id }, select: { studentId: true } })
+      const ids = mine.map((m) => m.studentId)
+      scope = { studentId: { in: studentId ? ids.filter((id) => id === studentId) : ids } }
+    } else if (studentId) {
+      scope = { studentId }
+    }
+
     const attempts = await prisma.testAttempt.findMany({
       where: {
         ...(status ? { status: status as 'IN_PROGRESS' | 'SUBMITTED' } : {}),
-        ...(studentId ? { studentId } : {}),
+        ...scope,
       },
       include: {
         student: { select: { id: true, email: true, permissions: true } },

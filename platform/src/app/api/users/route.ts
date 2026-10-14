@@ -272,6 +272,8 @@ export async function POST(request: NextRequest) {
     // 4. Create local database user matching the Supabase Auth user ID
     const displayName = name || email.split('@')[0]
     const permissions: Record<string, unknown> = { displayName }
+    // A temporary password was issued: ask for a new one on first login.
+    if (supabaseAdmin) permissions.mustChangePassword = true
     if (grade) permissions.grade = grade
     if (targetScore) permissions.targetScore = Number(targetScore)
     if (specialization?.length) permissions.specialization = specialization

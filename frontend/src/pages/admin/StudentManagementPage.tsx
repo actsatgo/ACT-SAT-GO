@@ -34,6 +34,20 @@ interface DbTest { id: string; title: string; status: string; category?: string;
 
 // Test Builder tags homework as subCategory "{Subject}-Homework" (e.g. "Math-Homework"),
 // which does NOT contain the substring "hw" — match on "homework" instead.
+/** Runs `fn` over `items` with at most `limit` in flight; results keep input order. */
+async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out = new Array<R>(items.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i]);
+    }
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return out;
+}
+
 const isHW = (test: any): boolean => {
   const t = (test.title ?? '').toLowerCase();
   const sub = (test.subCategory ?? '').toLowerCase();
@@ -222,7 +236,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
      
       return;
     }
-    api.getStudentAttempts(selectedStudentId)
+    api.getStudentAttemptSummaries(selectedStudentId)
       .then((r) => {
         const submitted = ((r.attempts as any[]) ?? []).filter((a) => a.status === 'SUBMITTED');
         setStudentAttempts(submitted);
@@ -356,14 +370,16 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
         return 'other';
       };
 
-      const allStudentData = await Promise.all(
-        students.map(async (student) => {
+      // Every student's attempts + latest-attempt stats in ONE request (this
+      // used to be two requests per student — hundreds per page view).
+      const summary = await api.getStudentsAnalysisSummary().then((r) => r.students).catch(() => ({} as Record<string, any>));
+      // Only students with a diagnostic still fetch that one attempt; a few at a time.
+      const allStudentData = await mapWithConcurrency(students, 6, async (student) => {
           try {
-            // Fetch attempts list + analytics in parallel (was sequential before)
-            const [attemptsResp, analyticsResp] = await Promise.all([
-              api.getStudentAttempts(student.id) as Promise<any>,
-              api.getStudentAnalytics(student.id),
-            ]);
+            const s = summary[student.id];
+            if (!s) throw new Error('no summary for student');
+            const attemptsResp: any = { attempts: s.attempts };
+            const analyticsResp: any = { latestScore: s.latestScore, trend: s.lastTrend ? [s.lastTrend] : [], sectionStats: s.sectionStats };
 
             const studentAttempts = (attemptsResp?.attempts ?? []).filter((a: any) => a.status === 'SUBMITTED');
 
@@ -504,8 +520,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
               attempts: [],
             };
           }
-        })
-      );
+        });
 
       setStudentAnalysisData(allStudentData);
       try {

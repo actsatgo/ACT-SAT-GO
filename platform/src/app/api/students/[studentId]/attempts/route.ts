@@ -14,6 +14,26 @@ export async function GET(
   if (access !== true) return access
 
   try {
+    // ?summary=1 — just each attempt's test, score and dates (no questions or
+    // answers). List/summary screens (e.g. the admin Students analysis table,
+    // which loads this for every student) only need these fields.
+    if (request.nextUrl.searchParams.get('summary') === '1') {
+      const attempts = await prisma.testAttempt.findMany({
+        where: { studentId },
+        orderBy: { startedAt: 'desc' },
+        select: {
+          id: true, testId: true, studentId: true, status: true, totalScore: true, startedAt: true, completedAt: true,
+          test: {
+            select: {
+              id: true, title: true, category: true, subCategory: true,
+              sections: { orderBy: { orderIndex: 'asc' }, select: { id: true, name: true, orderIndex: true } },
+            },
+          },
+        },
+      })
+      return NextResponse.json({ attempts })
+    }
+
     const attempts = await prisma.testAttempt.findMany({
       where: { studentId },
       orderBy: { startedAt: 'desc' },
