@@ -4,6 +4,7 @@ import { getCurrentUser } from '@/lib/auth'
 import { ensureArticleTables } from '@/lib/articleTables'
 import { allowedStudentIds, canAuthor, isAdmin, json, notifyUsers } from '@/lib/studentSharing'
 import { parseArticleInput, parseDueAt, readingMinutes } from '@/lib/articles'
+import { aiOverview } from '@/lib/articleFeedback'
 
 // GET  /api/articles
 //   STUDENT → articles assigned to them, with their summary status
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
         orderBy: { assignedAt: 'desc' },
         select: {
           status: true, assignedAt: true, dueAt: true, openedAt: true, submittedAt: true, reviewedAt: true,
-          summaryWordCount: true, feedback: true,
+          summaryWordCount: true, feedback: true, submissions: true,
           article: {
             select: {
               id: true, title: true, topic: true, subject: true, body: true, minSummaryWords: true,
@@ -49,6 +50,7 @@ export async function GET(request: NextRequest) {
           reviewedAt: r.reviewedAt,
           summaryWordCount: r.summaryWordCount,
           hasFeedback: !!r.feedback,
+          ...aiOverview(r.submissions),
         })),
       })
     }
@@ -66,7 +68,7 @@ export async function GET(request: NextRequest) {
           orderBy: { assignedAt: 'asc' },
           select: {
             studentId: true, status: true, assignedAt: true, dueAt: true, openedAt: true, submittedAt: true,
-            reviewedAt: true, summaryWordCount: true, copiedRatio: true,
+            reviewedAt: true, summaryWordCount: true, copiedRatio: true, submissions: true,
             student: { select: { name: true, email: true } },
           },
         },
@@ -96,6 +98,7 @@ export async function GET(request: NextRequest) {
           reviewedAt: s.reviewedAt,
           summaryWordCount: s.summaryWordCount,
           copiedRatio: s.copiedRatio,
+          ...aiOverview(s.submissions),
         })),
       })),
     })

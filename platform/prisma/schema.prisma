@@ -363,6 +363,8 @@ model FlashcardCard {
   deckId     String
   front      String // term / question
   back       String // definition / answer / explanation
+  hint       String? // optional clue the student can reveal before flipping
+  example    String? // optional example sentence, shown on the back
   orderIndex Int
 
   deck FlashcardDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
@@ -378,6 +380,7 @@ model FlashcardShare {
   viewedAt      DateTime? // first time the student opened the deck
   lastStudiedAt DateTime?
   knownCardIds  Json? // string[] — cards the student marked "Got it"
+  seenCardIds   Json? // string[] — cards the student has flipped or marked at least once
 
   deck    FlashcardDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
   student User          @relation("FlashcardSharesReceived", fields: [studentId], references: [id], onDelete: Cascade)
@@ -398,6 +401,7 @@ model Article {
   subject         String?
   body            String // plain text; blank lines separate paragraphs, "## " starts a heading, "- " a bullet
   sourceUrl       String?
+  instructions    String? // optional note to students on what to focus on in their summary
   minSummaryWords Int      @default(50)
   createdById     String
   createdAt       DateTime @default(now())
@@ -423,6 +427,7 @@ model ArticleAssignment {
   submittedAt      DateTime?
   submissionCount  Int       @default(0)
   feedback         String? // tutor's feedback on the latest review
+  submissions      Json? // ArticleSubmission[] (lib/articleFeedback.ts) — every submitted summary with its AI feedback, oldest first
   reviewedAt       DateTime?
   reviewedById     String?
 

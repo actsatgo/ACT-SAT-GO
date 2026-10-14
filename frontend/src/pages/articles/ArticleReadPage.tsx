@@ -1,18 +1,20 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  AlertTriangle, ArrowLeft, CheckCircle2, ChevronDown, ChevronUp, Clock, ExternalLink, Loader2, MessageSquare, Pencil, Send,
+  AlertTriangle, ArrowLeft, CheckCircle2, ChevronDown, ChevronUp, Clock, ExternalLink, ListChecks, Loader2, MessageSquare, Pencil, Send,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { api, type ArticleAssignmentInfo, type ArticleDetail } from '../../lib/api';
+import { api, type ArticleAssignmentInfo, type ArticleDetail, type ArticleSubmissionRecord } from '../../lib/api';
 import { Button } from '../../components/common/Button';
 import { ArticleEditorModal } from '../../components/articles/ArticleEditorModal';
 import { ArticleBody, StatusBadge, fmtDate, isOverdue, wordCount } from '../../components/articles/ArticleBody';
+import { AiFeedbackLoading, AiFeedbackPanel, AiScoreBadge } from '../../components/articles/AiFeedback';
 import { useAssignableStudents } from './ArticlesPage';
 
 // Read an article. Students write a summary underneath as proof of reading
-// (drafts autosave; submitting sends it to the tutor). Tutors/admins see every
-// student's submitted summary and approve it or ask for changes.
+// (drafts autosave; submitting sends it to the tutor and gets AI feedback
+// right away; they can resubmit until the tutor reviews it). Tutors/admins see
+// every student's summary, its AI feedback, and approve it or ask for changes.
 
 const AUTOSAVE_MS = 2500;
 
@@ -20,7 +22,10 @@ const AUTOSAVE_MS = 2500;
 
 function SummaryPanel({ article, onChanged }: { article: ArticleDetail; onChanged: () => void }) {
   const a = article.assignment!;
-  const editable = a.status === 'ASSIGNED' || a.status === 'NEEDS_REVISION';
+  // Until a tutor reviews it, a submitted summary can be edited and resubmitted.
+  const [revising, setRevising] = useState(false);
+  const editable = a.status === 'ASSIGNED' || a.status === 'NEEDS_REVISION' || (a.status === 'SUBMITTED' && revising);
+  const draftable = a.status === 'ASSIGNED' || a.status === 'NEEDS_REVISION';
   const [text, setText] = useState(a.summary ?? '');
   const [saved, setSaved] = useState(a.summary ?? '');
   const [saving, setSaving] = useState(false);
@@ -47,35 +52,45 @@ function SummaryPanel({ article, onChanged }: { article: ArticleDetail; onChange
     }
   }, [article.id]);
 
-  // Autosave the draft shortly after the student stops typing.
+  // Autosave the draft shortly after the student stops typing (not while
+  // revising a submitted summary — that one only changes on resubmit).
   useEffect(() => {
-    if (!editable || !dirty || submitting) return;
+    if (!draftable || !dirty || submitting) return;
     const t = setTimeout(() => saveDraft(true), AUTOSAVE_MS);
     return () => clearTimeout(t);
-  }, [text, editable, dirty, submitting, saveDraft]);
+  }, [text, draftable, dirty, submitting, saveDraft]);
 
   const submit = async () => {
     setError(null);
     if (!enough) { setError(`Write at least ${article.minSummaryWords} words — you have ${words}.`); return; }
     setSubmitting(true);
     try {
-      await api.saveArticleSummary(article.id, text, true);
+      const r = await api.saveArticleSummary(article.id, text, true);
       setSaved(text);
-      toast.success('Summary submitted to your tutor');
+      toast.success(r.aiFeedback?.status === 'ready' ? 'Summary submitted — your feedback is ready' : 'Summary submitted to your tutor');
       onChanged();
     } catch (e) {
       setError((e as Error).message || 'Could not submit your summary');
-    } finally {
       setSubmitting(false);
     }
   };
 
+  const resubmitting = a.status === 'NEEDS_REVISION' || a.status === 'SUBMITTED';
+  const history = a.submissions ?? [];
+
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" aria-labelledby="summary-heading">
+    <section className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 shadow-sm" aria-labelledby="summary-heading">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h2 id="summary-heading" className="font-semibold text-slate-900">Your summary</h2>
         <StatusBadge status={a.status} />
       </div>
+
+      {article.instructions && (
+        <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50/60 p-3 text-sm text-slate-700">
+          <p className="flex items-center gap-1.5 font-semibold text-slate-800"><ListChecks size={14} /> Instructions</p>
+          <p className="mt-1 whitespace-pre-wrap">{article.instructions}</p>
+        </div>
+      )}
 
       {a.status === 'NEEDS_REVISION' && a.feedback && (
         <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
@@ -89,9 +104,10 @@ function SummaryPanel({ article, onChanged }: { article: ArticleDetail; onChange
           {a.feedback && <p className="mt-1 whitespace-pre-wrap">{a.feedback}</p>}
         </div>
       )}
-      {a.status === 'SUBMITTED' && (
+      {a.status === 'SUBMITTED' && !revising && (
         <p className="mt-3 rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
-          Submitted {fmtDate(a.submittedAt)}. Your tutor will review it — you’ll get a notification.
+          Submitted {fmtDate(a.submittedAt)}{a.submissionCount > 1 ? ` (version ${a.submissionCount})` : ''}. Your tutor will review it — you’ll get a notification.
+          You can still improve it and resubmit until then.
         </p>
       )}
 
@@ -101,15 +117,15 @@ function SummaryPanel({ article, onChanged }: { article: ArticleDetail; onChange
             In your own words, explain the main idea and the key points. At least <strong className="text-slate-700">{article.minSummaryWords} words</strong>.
           </p>
           <textarea
-            className="mt-3 w-full min-h-[220px] rounded-xl border border-slate-200 px-3 py-2.5 text-sm leading-relaxed text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500"
+            className="mt-3 w-full min-h-[220px] rounded-xl border border-slate-200 px-3 py-2.5 text-base sm:text-sm leading-relaxed text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 disabled:bg-slate-50"
             value={text} maxLength={10_000} onChange={(e) => { setText(e.target.value); setError(null); }}
-            placeholder="This article is about…" aria-label="Write your summary"
+            placeholder="This article is about…" aria-label="Write your summary" disabled={submitting}
           />
           <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-xs">
             <span className={enough ? 'font-semibold text-emerald-700' : 'text-slate-500'} aria-live="polite">
               {words} / {article.minSummaryWords} words{enough ? ' ✓' : ''}
             </span>
-            <span className="text-slate-400">{saving ? 'Saving…' : dirty ? 'Unsaved changes' : saved ? 'Draft saved' : ''}</span>
+            {draftable && <span className="text-slate-400">{saving ? 'Saving…' : dirty ? 'Unsaved changes' : saved ? 'Draft saved' : ''}</span>}
           </div>
           <p className="mt-2 text-[11px] text-slate-400">Summaries that copy long passages word-for-word from the article are not accepted.</p>
           {error && (
@@ -117,20 +133,69 @@ function SummaryPanel({ article, onChanged }: { article: ArticleDetail; onChange
               <AlertTriangle size={15} className="shrink-0 mt-0.5" /> {error}
             </p>
           )}
+          {submitting && <div className="mt-3"><AiFeedbackLoading /></div>}
           <div className="mt-4 flex flex-wrap justify-end gap-2">
-            <Button variant="secondary" onClick={() => saveDraft(false)} disabled={!dirty || submitting} loading={saving && !submitting}>Save draft</Button>
-            <Button icon={<Send size={15} />} onClick={submit} loading={submitting} disabled={!text.trim()}>
-              {a.status === 'NEEDS_REVISION' ? 'Resubmit summary' : 'Submit summary'}
+            {draftable ? (
+              <Button variant="secondary" onClick={() => saveDraft(false)} disabled={!dirty || submitting} loading={saving && !submitting}>Save draft</Button>
+            ) : (
+              <Button variant="secondary" onClick={() => { setRevising(false); setText(saved); setError(null); }} disabled={submitting}>Cancel</Button>
+            )}
+            <Button icon={<Send size={15} />} onClick={submit} loading={submitting} disabled={!text.trim() || (a.status === 'SUBMITTED' && !dirty)}>
+              {resubmitting ? 'Resubmit summary' : 'Submit summary'}
             </Button>
           </div>
         </>
       ) : (
         <>
           <p className="mt-3 whitespace-pre-wrap rounded-xl bg-slate-50 p-3 text-sm leading-relaxed text-slate-800">{a.summary}</p>
-          <p className="mt-1.5 text-xs text-slate-400">{a.summaryWordCount} words</p>
+          <div className="mt-1.5 flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-slate-400">{a.summaryWordCount} words</p>
+            {a.status === 'SUBMITTED' && (
+              <Button size="sm" variant="secondary" icon={<Pencil size={13} />} onClick={() => setRevising(true)}>Edit &amp; resubmit</Button>
+            )}
+          </div>
         </>
       )}
+
+      {a.submittedAt && !editable && (
+        <div className="mt-4">
+          <AiFeedbackPanel articleId={article.id} feedback={a.aiFeedback} />
+        </div>
+      )}
+      {a.submittedAt && editable && a.aiFeedback?.status === 'ready' && !submitting && (
+        <details className="mt-4 rounded-xl border border-slate-200 px-3 py-2 text-sm">
+          <summary className="cursor-pointer font-semibold text-slate-700">Feedback on your last version</summary>
+          <div className="mt-2"><AiFeedbackPanel articleId={article.id} feedback={a.aiFeedback} /></div>
+        </details>
+      )}
+      {history.length > 1 && <SubmissionHistory articleId={article.id} items={history.slice(1)} />}
     </section>
+  );
+}
+
+/** Earlier versions of a summary with the AI score each one got. */
+function SubmissionHistory({ articleId, items, studentId, manager }: {
+  articleId: string; items: ArticleSubmissionRecord[]; studentId?: string; manager?: boolean;
+}) {
+  return (
+    <details className="mt-4 rounded-xl border border-slate-200 px-3 py-2 text-sm">
+      <summary className="cursor-pointer font-semibold text-slate-700">Earlier versions ({items.length})</summary>
+      <ul className="mt-2 space-y-3">
+        {items.map((s) => (
+          <li key={s.n} className="border-t border-slate-100 pt-2">
+            <p className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
+              <span className="font-semibold text-slate-700">Version {s.n}</span>
+              <span>{fmtDate(s.submittedAt)} · {s.wordCount} words</span>
+              <AiScoreBadge score={s.ai?.score} status={s.ai?.status} />
+            </p>
+            <p className="mt-1 whitespace-pre-wrap text-slate-700">{s.summary}</p>
+            {s.ai?.status === 'ready' && (
+              <div className="mt-2"><AiFeedbackPanel articleId={articleId} feedback={s.ai} studentId={studentId} manager={manager} /></div>
+            )}
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 
@@ -171,11 +236,17 @@ function SubmissionCard({ articleId, s, onChanged }: { articleId: string; s: Art
             {overdue ? ` · overdue (due ${fmtDate(s.dueAt)})` : s.dueAt && !s.submittedAt ? ` · due ${fmtDate(s.dueAt)}` : ''}
           </p>
         </div>
+        <AiScoreBadge score={s.aiFeedback?.score} status={s.submittedAt ? s.aiFeedback?.status ?? 'pending' : null} />
         <StatusBadge status={s.status} manager />
         {s.summary ? (open ? <ChevronUp size={15} className="text-slate-400" /> : <ChevronDown size={15} className="text-slate-400" />) : null}
       </button>
       {open && s.summary && (
         <div className="border-t border-slate-100 px-3 py-3">
+          <p className="mb-2 flex flex-wrap gap-x-3 gap-y-0.5 text-[11px] text-slate-400">
+            <span>Assigned {fmtDate(s.assignedAt)}</span>
+            <span>Opened {fmtDate(s.openedAt)}</span>
+            <span>Submitted {fmtDate(s.submittedAt)}{(s.submissionCount ?? 0) > 1 ? ` (${s.submissionCount} versions)` : ''}</span>
+          </p>
           <p className="whitespace-pre-wrap text-sm leading-relaxed text-slate-800">{s.summary}</p>
           <p className="mt-2 flex flex-wrap gap-x-3 text-xs text-slate-500">
             <span>{s.summaryWordCount} words</span>
@@ -185,6 +256,13 @@ function SubmissionCard({ articleId, s, onChanged }: { articleId: string; s: Art
               </span>
             )}
           </p>
+          <div className="mt-3">
+            <AiFeedbackPanel key={`${s.submissionCount}-${s.aiFeedback?.status}`} articleId={articleId} feedback={s.aiFeedback}
+              studentId={s.studentId} manager />
+          </div>
+          {(s.submissions?.length ?? 0) > 1 && (
+            <SubmissionHistory articleId={articleId} items={s.submissions!.slice(1)} studentId={s.studentId} manager />
+          )}
           {s.status === 'SUBMITTED' ? (
             <div className="mt-3">
               <textarea className="w-full min-h-[70px] rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30"
@@ -218,6 +296,11 @@ function ReviewPanel({ article, onChanged, onEdit }: { article: ArticleDetail; o
         <h2 id="review-heading" className="font-semibold text-slate-900">Student summaries</h2>
         <span className="text-xs font-semibold text-slate-500">{approved}/{list.length} approved</span>
       </div>
+      {article.instructions && (
+        <p className="mt-2 rounded-lg bg-white px-3 py-2 text-xs text-slate-600 border border-slate-200">
+          <span className="font-semibold">Instructions:</span> <span className="whitespace-pre-wrap">{article.instructions}</span>
+        </p>
+      )}
       {list.length === 0 ? (
         <div className="mt-3 text-sm text-slate-500">
           <p>No students are assigned yet.</p>
@@ -294,7 +377,7 @@ export function ArticleReadPage() {
         </article>
         <div className="lg:sticky lg:top-4">
           {article.assignment
-            ? <SummaryPanel key={`${article.assignment.status}-${article.assignment.submissionCount}`} article={article} onChanged={load} />
+            ? <SummaryPanel key={`${article.assignment.status}-${article.assignment.submissionCount}-${article.assignment.aiFeedback?.status}`} article={article} onChanged={load} />
             : <ReviewPanel article={article} onChanged={load} onEdit={() => setEditing(true)} />}
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, ClipboardCheck, Clock, FileText, Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { AlertCircle, ClipboardCheck, Clock, FileText, Loader2, Pencil, Plus, Search, Trash2, Users } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/useAuthStore';
 import { api, type ArticleDetail, type ArticleSummary, type DbUser, type StudentArticle } from '../../lib/api';
@@ -8,6 +8,7 @@ import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { ArticleEditorModal } from '../../components/articles/ArticleEditorModal';
 import { StatusBadge, fmtDate, isOverdue } from '../../components/articles/ArticleBody';
+import { AiScoreBadge } from '../../components/articles/AiFeedback';
 
 function PageHeader({ subtitle, action }: { subtitle: string; action?: React.ReactNode }) {
   return (
@@ -71,7 +72,7 @@ function StudentArticles() {
           {articles?.map((a) => {
             const overdue = isOverdue(a.dueAt, a.status);
             const cta = a.status === 'APPROVED' ? 'Read again →'
-              : a.status === 'SUBMITTED' ? 'View your summary →'
+              : a.status === 'SUBMITTED' ? 'View your summary & feedback →'
               : a.status === 'NEEDS_REVISION' ? 'Revise your summary →'
               : a.summaryWordCount ? 'Continue your summary →' : 'Read article →';
             return (
@@ -83,7 +84,10 @@ function StudentArticles() {
                     <h3 className="font-semibold text-slate-900 leading-snug">{a.title}</h3>
                     {a.topic && <p className="text-sm text-slate-500 mt-0.5">{a.topic}</p>}
                   </div>
-                  {!a.openedAt ? <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">New</span> : <StatusBadge status={a.status} />}
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    {!a.openedAt ? <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">New</span> : <StatusBadge status={a.status} />}
+                    {a.submittedAt && <AiScoreBadge score={a.aiScore} status={a.aiStatus} />}
+                  </div>
                 </div>
                 <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-400">
                   <span className="inline-flex items-center gap-1"><Clock size={12} /> {a.readMinutes} min read</span>
@@ -119,6 +123,7 @@ function ManageArticles() {
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [toDelete, setToDelete] = useState<ArticleSummary | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [view, setView] = useState<'articles' | 'students'>('articles');
 
   const load = useCallback(() => {
     api.getArticles()
@@ -172,11 +177,25 @@ function ManageArticles() {
           <AlertCircle size={18} className="shrink-0 mt-0.5" /> {error}
         </div>
       )}
-      {articles && articles.length > 3 && (
-        <div className="relative mb-4 max-w-sm">
-          <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input className="w-full rounded-lg border border-slate-200 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30" value={query}
-            onChange={(e) => setQuery(e.target.value)} placeholder="Search articles" />
+      {articles && articles.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          <div className="inline-flex rounded-lg bg-slate-100 p-0.5 text-xs font-bold" role="group" aria-label="Group by">
+            <button type="button" onClick={() => setView('articles')} aria-pressed={view === 'articles'}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md ${view === 'articles' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>
+              <FileText size={13} /> By article
+            </button>
+            <button type="button" onClick={() => setView('students')} aria-pressed={view === 'students'}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md ${view === 'students' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500'}`}>
+              <Users size={13} /> By student
+            </button>
+          </div>
+          {articles.length > 3 && (
+            <div className="relative w-full sm:w-auto sm:min-w-[260px]">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input className="w-full rounded-lg border border-slate-200 pl-9 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30" value={query}
+                onChange={(e) => setQuery(e.target.value)} placeholder="Search articles" />
+            </div>
+          )}
         </div>
       )}
 
@@ -187,6 +206,8 @@ function ManageArticles() {
           <p className="text-slate-400 text-sm mt-1 mb-4">Paste an article, assign it to students, and they’ll send back a summary for you to approve.</p>
           <Button icon={<Plus size={16} />} onClick={() => openEditor()}>Add your first article</Button>
         </div>
+      ) : view === 'students' ? (
+        <StudentTracker articles={visible} onOpen={(id) => navigate(`/articles/${id}`)} />
       ) : (
         <div className="space-y-3">
           {visible.map((a) => {
@@ -210,7 +231,8 @@ function ManageArticles() {
                   </p>
                 </div>
                 <div className="text-xs font-semibold text-slate-600 rounded-lg bg-slate-50 px-3 py-1.5">
-                  {n ? `${approved}/${n} approved · ${a.assignments.filter((s) => s.openedAt).length} opened` : 'Not assigned yet'}
+                  {n ? `${approved}/${n} approved · ${a.assignments.filter((s) => s.submittedAt).length} submitted · ${a.assignments.filter((s) => s.openedAt).length} opened` : 'Not assigned yet'}
+                  {avgScore(a) != null && <span className="ml-1 text-violet-700">· AI avg {avgScore(a)}/10</span>}
                 </div>
                 <div className="flex items-center gap-1">
                   <Button size="sm" variant={review ? 'primary' : 'ghost'} icon={<ClipboardCheck size={14} />} onClick={() => navigate(`/articles/${a.id}`)}>
@@ -242,6 +264,57 @@ function ManageArticles() {
           <Button variant="danger" onClick={confirmDelete} loading={deleting}>Delete article</Button>
         </div>
       </Modal>
+    </div>
+  );
+}
+
+const avgScore = (a: ArticleSummary) => {
+  const scores = a.assignments.map((s) => s.aiScore).filter((n): n is number => typeof n === 'number');
+  return scores.length ? Math.round((scores.reduce((x, y) => x + y, 0) / scores.length) * 10) / 10 : null;
+};
+
+/** Every assigned student with each article's progress: opened, submitted, AI score. */
+function StudentTracker({ articles, onOpen }: { articles: ArticleSummary[]; onOpen: (articleId: string) => void }) {
+  const rows = useMemo(() => {
+    const byStudent = new Map<string, { name: string; items: Array<{ article: ArticleSummary; s: ArticleSummary['assignments'][number] }> }>();
+    for (const article of articles) {
+      for (const s of article.assignments) {
+        const row = byStudent.get(s.studentId) ?? { name: s.studentName, items: [] };
+        row.items.push({ article, s });
+        byStudent.set(s.studentId, row);
+      }
+    }
+    return [...byStudent.entries()].map(([id, r]) => ({ id, ...r })).sort((x, y) => x.name.localeCompare(y.name));
+  }, [articles]);
+
+  if (rows.length === 0) return <p className="text-sm text-slate-500 py-6 text-center">No students are assigned to these articles yet.</p>;
+  return (
+    <div className="space-y-3">
+      {rows.map((r) => {
+        const submitted = r.items.filter((i) => i.s.submittedAt).length;
+        return (
+          <details key={r.id} className="group rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3">
+              <span className="min-w-0 flex-1 truncate font-semibold text-slate-900">{r.name}</span>
+              <span className="shrink-0 text-xs font-semibold text-slate-500">{submitted}/{r.items.length} submitted</span>
+            </summary>
+            <ul className="divide-y divide-slate-100 border-t border-slate-100">
+              {r.items.map(({ article, s }) => (
+                <li key={article.id}>
+                  <button type="button" onClick={() => onOpen(article.id)} className="flex w-full flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 text-left hover:bg-slate-50">
+                    <span className="min-w-0 flex-1 basis-48 text-sm font-medium text-slate-800">{article.title}</span>
+                    <span className="text-[11px] text-slate-400">
+                      Assigned {fmtDate(s.assignedAt)} · Opened {fmtDate(s.openedAt)} · Submitted {fmtDate(s.submittedAt)}
+                    </span>
+                    {s.submittedAt && <AiScoreBadge score={s.aiScore} status={s.aiStatus} />}
+                    <StatusBadge status={s.status} manager />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </details>
+        );
+      })}
     </div>
   );
 }

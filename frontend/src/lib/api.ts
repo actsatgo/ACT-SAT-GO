@@ -339,7 +339,7 @@ export interface DbTestPackage {
 
 
 // ── Flashcards ───────────────────────────────────────────────────────────────
-export interface FlashcardCard { id: string; front: string; back: string }
+export interface FlashcardCard { id: string; front: string; back: string; hint?: string | null; example?: string | null }
 export interface FlashcardShareInfo {
   studentId: string
   studentName: string
@@ -347,6 +347,8 @@ export interface FlashcardShareInfo {
   viewedAt: string | null
   lastStudiedAt: string | null
   knownCount: number
+  /** Cards flipped or marked at least once */
+  seenCount: number
 }
 /** A deck as listed for a tutor/admin (with sharing + progress). */
 export interface FlashcardDeckSummary {
@@ -376,6 +378,8 @@ export interface StudentFlashcardDeck {
   viewedAt: string | null
   lastStudiedAt: string | null
   knownCount: number
+  /** Cards flipped or marked at least once */
+  seenCount: number
 }
 export interface FlashcardDeckDetail {
   id: string
@@ -393,18 +397,39 @@ export interface FlashcardDeckDetail {
   shares?: FlashcardShareInfo[]
   /** Student view only */
   knownCardIds?: string[]
+  seenCardIds?: string[]
 }
 export interface FlashcardDeckInput {
   title: string
   topic: string
   description?: string
   subject?: string
-  cards: Array<{ id?: string; front: string; back: string }>
+  cards: Array<{ id?: string; front: string; back: string; hint?: string; example?: string }>
   studentIds?: string[]
 }
 
 // ── Articles ─────────────────────────────────────────────────────────────────
 export type ArticleStatus = 'ASSIGNED' | 'SUBMITTED' | 'NEEDS_REVISION' | 'APPROVED'
+/** Claude's feedback on one submitted summary. "pending" = not generated yet. */
+export interface ArticleAiFeedback {
+  status: 'ready' | 'pending'
+  score?: number
+  strengths?: string[]
+  improvements?: string[]
+  comment?: string
+  generatedAt?: string
+  lastAttemptAt?: string
+  /** Tutors/admins only: why the last attempt failed */
+  error?: string
+}
+export interface ArticleSubmissionRecord {
+  n: number
+  summary: string
+  wordCount: number
+  copiedRatio: number | null
+  submittedAt: string
+  ai: ArticleAiFeedback | null
+}
 /** One student's assignment as a tutor/admin sees it. */
 export interface ArticleAssignmentInfo {
   studentId: string
@@ -417,11 +442,17 @@ export interface ArticleAssignmentInfo {
   reviewedAt: string | null
   summaryWordCount: number
   copiedRatio: number | null
+  /** List view: latest submission's AI score / status */
+  aiScore?: number | null
+  aiStatus?: 'ready' | 'pending' | null
   /** Detail view only — null until the student submits. */
   summary?: string | null
   submissionCount?: number
   feedback?: string | null
   reviewedByName?: string | null
+  aiFeedback?: ArticleAiFeedback | null
+  /** Every submission, newest first */
+  submissions?: ArticleSubmissionRecord[]
 }
 export interface ArticleSummary {
   id: string
@@ -453,6 +484,8 @@ export interface StudentArticle {
   reviewedAt: string | null
   summaryWordCount: number
   hasFeedback: boolean
+  aiScore?: number | null
+  aiStatus?: 'ready' | 'pending' | null
 }
 export interface MyArticleAssignment {
   status: ArticleStatus
@@ -466,6 +499,9 @@ export interface MyArticleAssignment {
   feedback: string | null
   reviewedAt: string | null
   reviewedByName: string | null
+  aiFeedback: ArticleAiFeedback | null
+  /** Every submission, newest first */
+  submissions: ArticleSubmissionRecord[]
 }
 export interface ArticleDetail {
   id: string
@@ -474,6 +510,7 @@ export interface ArticleDetail {
   subject: string | null
   body: string
   sourceUrl: string | null
+  instructions: string | null
   minSummaryWords: number
   createdAt: string
   updatedAt: string
@@ -493,6 +530,7 @@ export interface ArticleInput {
   subject?: string
   body: string
   sourceUrl?: string
+  instructions?: string
   minSummaryWords?: number
   dueAt?: string | null
   studentIds?: string[]
@@ -843,9 +881,9 @@ export const api = {
     request<{ added: number; removed: number; total: number }>(`/api/flashcards/${deckId}/shares`, {
       method: 'PUT', body: JSON.stringify({ studentIds }),
     }),
-  saveFlashcardProgress: (deckId: string, knownCardIds: string[]) =>
-    request<{ knownCount: number; cardCount: number }>(`/api/flashcards/${deckId}/progress`, {
-      method: 'PUT', body: JSON.stringify({ knownCardIds }),
+  saveFlashcardProgress: (deckId: string, knownCardIds: string[], seenCardIds?: string[]) =>
+    request<{ knownCount: number; seenCount: number; cardCount: number }>(`/api/flashcards/${deckId}/progress`, {
+      method: 'PUT', body: JSON.stringify({ knownCardIds, seenCardIds }),
     }),
 
   // Articles
@@ -864,8 +902,13 @@ export const api = {
       method: 'PUT', body: JSON.stringify({ studentIds, dueAt }),
     }),
   saveArticleSummary: (articleId: string, summary: string, submit: boolean) =>
-    request<{ status: ArticleStatus; summaryWordCount: number; copiedRatio?: number }>(`/api/articles/${articleId}/summary`, {
+    request<{ status: ArticleStatus; summaryWordCount: number; copiedRatio?: number; aiFeedback?: ArticleAiFeedback | null }>(`/api/articles/${articleId}/summary`, {
       method: 'PUT', body: JSON.stringify({ summary, submit }),
+    }),
+  /** Retry Claude's feedback on the latest submission (studentId: tutors/admins only). */
+  requestArticleFeedback: (articleId: string, studentId?: string) =>
+    request<{ aiFeedback: ArticleAiFeedback | null }>(`/api/articles/${articleId}/feedback`, {
+      method: 'POST', body: JSON.stringify({ studentId }),
     }),
   reviewArticleSummary: (articleId: string, studentId: string, decision: 'approve' | 'revise', feedback?: string) =>
     request<{ status: ArticleStatus }>(`/api/articles/${articleId}/review`, {

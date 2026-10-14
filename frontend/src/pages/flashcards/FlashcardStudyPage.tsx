@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, Loader2, RotateCcw, Shuffle, X,
+  ArrowLeft, Check, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Eye, Lightbulb, Loader2, RotateCcw, Shuffle, X,
 } from 'lucide-react';
 import { api, type FlashcardDeckDetail } from '../../lib/api';
 import { Button } from '../../components/common/Button';
 
-// Study a flashcard deck: read "About this topic", then flip through cards and
-// mark each "Got it" or "Still learning". Students' progress is saved; tutors
-// and admins get the same screen as a read-only preview.
+// Study a vocab / flashcard deck: read "About this topic", then go through the
+// cards one at a time — reveal the hint if needed, flip to see the meaning and
+// example, and mark each "I know this" or "Still learning". Students' progress
+// (known + seen cards) is saved; tutors and admins get the same screen as a
+// read-only preview.
 
 type Mode = 'all' | 'learning';
 
@@ -32,6 +34,9 @@ export function FlashcardStudyPage() {
   const [order, setOrder] = useState<string[]>([]);
   const [pos, setPos] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [hintShown, setHintShown] = useState(false);
+  const [seenCount, setSeenCount] = useState(0);
+  const seenRef = useRef<Set<string>>(new Set());
   const [infoOpen, setInfoOpen] = useState(true);
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -44,6 +49,8 @@ export function FlashcardStudyPage() {
       .then(({ deck }) => {
         setDeck(deck);
         setKnown(new Set(deck.knownCardIds ?? []));
+        seenRef.current = new Set([...(deck.seenCardIds ?? []), ...(deck.knownCardIds ?? [])]);
+        setSeenCount(seenRef.current.size);
         setOrder(deck.cards.map((c) => c.id));
         // Returning students who have started already go straight to the cards.
         setInfoOpen(!(deck.knownCardIds && deck.knownCardIds.length > 0));
@@ -65,6 +72,7 @@ export function FlashcardStudyPage() {
     setOrder(buildOrder(m, shuffle, known));
     setPos(0);
     setFlipped(false);
+    setHintShown(false);
   };
 
   const persist = useCallback((next: Set<string>) => {
@@ -72,7 +80,7 @@ export function FlashcardStudyPage() {
     if (saveTimer.current) clearTimeout(saveTimer.current);
     setSaveState('saving');
     saveTimer.current = setTimeout(() => {
-      api.saveFlashcardProgress(deck.id, [...next])
+      api.saveFlashcardProgress(deck.id, [...next], [...seenRef.current])
         .then(() => setSaveState('saved'))
         .catch(() => setSaveState('error'));
     }, 500);
@@ -86,7 +94,16 @@ export function FlashcardStudyPage() {
   const go = useCallback((delta: number) => {
     setPos((p) => Math.max(0, Math.min(order.length, p + delta)));
     setFlipped(false);
+    setHintShown(false);
   }, [order.length]);
+
+  // A card counts as "seen" the first time it is flipped to the meaning.
+  useEffect(() => {
+    if (!flipped || !current || seenRef.current.has(current.id)) return;
+    seenRef.current.add(current.id);
+    setSeenCount(seenRef.current.size);
+    persist(known);
+  }, [flipped, current, known, persist]);
 
   const mark = useCallback((gotIt: boolean) => {
     if (!current) return;
@@ -106,6 +123,7 @@ export function FlashcardStudyPage() {
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
       if (!current) return;
       if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); setFlipped((f) => !f); }
+      else if ((e.key === 'h' || e.key === 'H') && current.hint) setHintShown((v) => !v);
       else if (e.key === 'ArrowRight') go(1);
       else if (e.key === 'ArrowLeft') go(-1);
       else if (flipped && (e.key === 'k' || e.key === 'K')) mark(true);
@@ -119,7 +137,7 @@ export function FlashcardStudyPage() {
     return (
       <div className="max-w-xl mx-auto text-center py-16">
         <p className="text-slate-700 font-medium">{error}</p>
-        <Button className="mt-4" variant="secondary" icon={<ArrowLeft size={16} />} onClick={() => navigate('/flashcards')}>Back to flashcards</Button>
+        <Button className="mt-4" variant="secondary" icon={<ArrowLeft size={16} />} onClick={() => navigate('/flashcards')}>Back to vocab</Button>
       </div>
     );
   }
@@ -135,7 +153,7 @@ export function FlashcardStudyPage() {
     <div className="max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-start gap-3 mb-4">
-        <button onClick={() => navigate('/flashcards')} className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="Back to flashcards">
+        <button onClick={() => navigate('/flashcards')} className="p-2 hover:bg-slate-100 rounded-lg transition-colors" title="Back to vocab">
           <ArrowLeft size={20} className="text-slate-600" />
         </button>
         <div className="min-w-0 flex-1">
@@ -166,7 +184,7 @@ export function FlashcardStudyPage() {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-[200px] flex-1">
           <div className="flex items-center justify-between text-xs font-semibold text-slate-500 mb-1">
-            <span>Known {knownCount} of {total}</span>
+            <span>Known {knownCount} of {total}{!isPreview ? ` · seen ${Math.min(seenCount, total)}` : ''}</span>
             {!isPreview && saveState !== 'idle' && (
               <span className={saveState === 'error' ? 'text-red-600' : 'text-slate-400'}>
                 {saveState === 'saving' ? 'Saving…' : saveState === 'saved' ? 'Progress saved' : 'Not saved — check your connection'}
@@ -208,19 +226,26 @@ export function FlashcardStudyPage() {
         </div>
       ) : current && (
         <>
-          <div className="mb-2 text-center text-xs font-semibold text-slate-400">Card {pos + 1} of {order.length}</div>
+          <div className="mb-2 text-center text-xs font-semibold text-slate-400" aria-label={`Card ${pos + 1} of ${order.length}`}>{pos + 1} / {order.length}</div>
           <div className="[perspective:1200px]">
             <button
               type="button"
               onClick={() => setFlipped((f) => !f)}
               aria-label={flipped ? `Card ${pos + 1}, answer side. Click to flip back.` : `Card ${pos + 1}, question side. Click to flip.`}
-              className="relative block w-full min-h-[260px] sm:min-h-[300px] cursor-pointer text-left"
+              className="relative block w-full min-h-[280px] sm:min-h-[320px] cursor-pointer text-left"
               style={{ transformStyle: 'preserve-3d', transition: 'transform 0.45s ease', transform: flipped ? 'rotateY(180deg)' : 'none' }}
             >
               <div className="absolute inset-0 flex flex-col rounded-3xl border border-slate-200 bg-white p-8 shadow-md" style={{ backfaceVisibility: 'hidden' }}>
                 <span className="text-[11px] font-bold uppercase tracking-wide text-slate-400">Front</span>
                 <div className="flex-1 grid place-items-center">
-                  <p className="text-center text-xl sm:text-2xl font-semibold text-slate-900 whitespace-pre-wrap">{current.front}</p>
+                  <div className="text-center">
+                    <p className="text-2xl sm:text-3xl font-semibold text-slate-900 whitespace-pre-wrap break-words">{current.front}</p>
+                    {hintShown && current.hint && (
+                      <p className="mt-4 inline-flex items-start gap-1.5 rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-900">
+                        <Lightbulb size={15} className="mt-0.5 shrink-0" /> <span className="whitespace-pre-wrap">{current.hint}</span>
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <span className="text-center text-xs text-slate-400"><span className="sm:hidden">Tap to flip</span><span className="hidden sm:inline">Click or press Space to flip</span></span>
               </div>
@@ -228,26 +253,47 @@ export function FlashcardStudyPage() {
                 style={{ backfaceVisibility: 'hidden', transform: 'rotateY(180deg)' }}>
                 <span className="text-[11px] font-bold uppercase tracking-wide text-blue-600">Back</span>
                 <div className="flex-1 grid place-items-center overflow-y-auto">
-                  <p className="text-center text-lg sm:text-xl text-slate-800 whitespace-pre-wrap">{current.back}</p>
+                  <div className="text-center">
+                    <p className="text-lg sm:text-xl text-slate-800 whitespace-pre-wrap break-words">{current.back}</p>
+                    {current.example && (
+                      <p className="mt-3 text-sm italic text-slate-600 whitespace-pre-wrap">“{current.example}”</p>
+                    )}
+                  </div>
                 </div>
                 {known.has(current.id) && <span className="text-center text-xs font-semibold text-emerald-700">You marked this as known</span>}
               </div>
             </button>
           </div>
 
-          <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <Button variant="ghost" icon={<ChevronLeft size={16} />} onClick={() => go(-1)} disabled={pos === 0}>Previous</Button>
-            {flipped ? (
-              <div className="flex gap-2">
-                <Button variant="secondary" icon={<X size={15} />} onClick={() => mark(false)} title="Still learning (L)">Still learning</Button>
-                <Button variant="success" icon={<Check size={15} />} onClick={() => mark(true)} title="Got it (K)">Got it</Button>
-              </div>
-            ) : (
-              <Button onClick={() => setFlipped(true)}>Show answer</Button>
-            )}
-            <Button variant="ghost" iconRight={<ChevronRight size={16} />} onClick={() => go(1)}>Skip</Button>
+          {current.hint && !flipped && (
+            <div className="mt-3 flex justify-center">
+              <button type="button" onClick={() => setHintShown((v) => !v)} aria-pressed={hintShown}
+                className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-white px-3 py-1.5 text-xs font-bold text-amber-700 hover:bg-amber-50">
+                <Lightbulb size={13} /> {hintShown ? 'Hide hint' : 'Show hint'}
+              </button>
+            </div>
+          )}
+
+          {/* Phone: the main action(s) on their own row, Previous / Next below. */}
+          <div className="mt-5 grid grid-cols-2 items-center gap-3 sm:flex sm:justify-between">
+            <div className="order-1 col-span-2 flex justify-center gap-2 sm:order-2">
+              {flipped ? (
+                <>
+                  <Button className="flex-1 sm:flex-none" variant="secondary" icon={<X size={15} />} onClick={() => mark(false)} title="Still learning (L)">Still learning</Button>
+                  <Button className="flex-1 sm:flex-none" variant="success" icon={<Check size={15} />} onClick={() => mark(true)} title="I know this (K)">I know this</Button>
+                </>
+              ) : (
+                <Button className="w-full sm:w-auto" onClick={() => setFlipped(true)}>Show meaning</Button>
+              )}
+            </div>
+            <div className="order-2 sm:order-1">
+              <Button variant="ghost" icon={<ChevronLeft size={16} />} onClick={() => go(-1)} disabled={pos === 0}>Previous</Button>
+            </div>
+            <div className="order-3 justify-self-end">
+              <Button variant="ghost" iconRight={<ChevronRight size={16} />} onClick={() => go(1)}>Next</Button>
+            </div>
           </div>
-          <p className="mt-3 hidden sm:block text-center text-[11px] text-slate-400">Keys: Space flip · ← → move · K got it · L still learning</p>
+          <p className="mt-3 hidden sm:block text-center text-[11px] text-slate-400">Keys: Space flip · H hint · ← → move · K I know this · L still learning</p>
         </>
       )}
     </div>

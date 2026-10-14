@@ -31,7 +31,7 @@ function PageHeader({ subtitle, action }: { subtitle: string; action?: React.Rea
       <div className="flex items-center gap-3">
         <span className="grid place-items-center w-10 h-10 rounded-xl bg-blue-50 text-blue-600"><Layers size={20} /></span>
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Flashcards</h1>
+          <h1 className="text-xl font-semibold text-slate-900">Vocab Flashcards</h1>
           <p className="text-slate-400 text-sm mt-0.5">{subtitle}</p>
         </div>
       </div>
@@ -78,7 +78,10 @@ function StudentFlashcards() {
                 </div>
                 {!d.viewedAt && <span className="shrink-0 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-bold text-amber-700">New</span>}
               </div>
-              <p className="mt-3 text-xs text-slate-400">{d.cardCount} card{d.cardCount === 1 ? '' : 's'} · from {d.createdByName} · {fmtDate(d.sharedAt)}</p>
+              <p className="mt-3 text-xs text-slate-400">
+                {d.cardCount} card{d.cardCount === 1 ? '' : 's'} · from {d.createdByName} · {fmtDate(d.sharedAt)}
+                {d.seenCount ? ` · seen ${d.seenCount}/${d.cardCount}` : ''}
+              </p>
               <div className="mt-3"><ProgressBar known={d.knownCount} total={d.cardCount} /></div>
               <p className="mt-3 text-sm font-semibold text-blue-600 group-hover:underline">
                 {d.knownCount >= d.cardCount && d.cardCount > 0 ? 'Review again →' : d.lastStudiedAt ? 'Continue studying →' : 'Start studying →'}
@@ -160,7 +163,7 @@ function ManageFlashcards() {
   return (
     <div>
       <PageHeader
-        subtitle={isAdmin ? 'Create topic flashcards and share them with any student' : 'Create topic flashcards and share them with your students'}
+        subtitle={isAdmin ? 'Create vocab decks (word, hint, meaning) and share them with any student' : 'Create vocab decks (word, hint, meaning) and share them with your students'}
         action={<Button icon={<Plus size={16} />} onClick={() => openEditor()}>New deck</Button>}
       />
 
@@ -223,21 +226,24 @@ function ManageFlashcards() {
                 </div>
                 {isOpen && d.shares.length > 0 && (
                   <div className="border-t border-slate-100 px-4 py-3">
-                    <table className="w-full text-sm">
-                      <thead className="text-xs text-slate-400">
-                        <tr><th className="text-left font-semibold pb-2">Student</th><th className="text-left font-semibold pb-2">Shared</th><th className="text-left font-semibold pb-2">Opened</th><th className="text-left font-semibold pb-2 w-48">Cards known</th></tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-50">
-                        {d.shares.map((s) => (
-                          <tr key={s.studentId}>
-                            <td className="py-2 font-medium text-slate-800">{s.studentName}</td>
-                            <td className="py-2 text-slate-500">{fmtDate(s.sharedAt)}</td>
-                            <td className="py-2">{s.viewedAt ? <span className="text-emerald-700">{fmtDate(s.viewedAt)}</span> : <span className="text-slate-400">Not yet</span>}</td>
-                            <td className="py-2"><ProgressBar known={s.knownCount} total={d.cardCount} /></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <ul className="divide-y divide-slate-50 text-sm">
+                      <li className="hidden sm:grid grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,0.8fr))_minmax(0,1.4fr)] gap-3 pb-2 text-xs font-semibold text-slate-400">
+                        <span>Student</span><span>Shared</span><span>Opened</span><span>Cards seen</span><span>Last studied</span><span>Cards known</span>
+                      </li>
+                      {d.shares.map((s) => (
+                        <li key={s.studentId} className="grid grid-cols-2 sm:grid-cols-[minmax(0,1.4fr)_repeat(4,minmax(0,0.8fr))_minmax(0,1.4fr)] items-center gap-x-3 gap-y-1 py-2">
+                          <span className="col-span-2 sm:col-span-1 truncate font-medium text-slate-800">{s.studentName}</span>
+                          <span className="text-xs sm:text-sm text-slate-500"><span className="sm:hidden">Shared </span>{fmtDate(s.sharedAt)}</span>
+                          <span className="text-xs sm:text-sm">
+                            <span className="sm:hidden text-slate-500">Opened </span>
+                            {s.viewedAt ? <span className="text-emerald-700">{fmtDate(s.viewedAt)}</span> : <span className="text-slate-400">Not yet</span>}
+                          </span>
+                          <span className="text-xs sm:text-sm text-slate-600"><span className="sm:hidden text-slate-500">Seen </span>{s.seenCount ?? 0} / {d.cardCount}</span>
+                          <span className="text-xs sm:text-sm text-slate-500"><span className="sm:hidden">Last studied </span>{s.lastStudiedAt ? fmtDate(s.lastStudiedAt) : '—'}</span>
+                          <span className="col-span-2 sm:col-span-1"><ProgressBar known={s.knownCount} total={d.cardCount} /></span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>
@@ -256,7 +262,7 @@ function ManageFlashcards() {
         onSaved={load}
       />
 
-      <Modal isOpen={!!toDelete} onClose={() => !deleting && setToDelete(null)} title="Delete flashcards?" size="sm">
+      <Modal isOpen={!!toDelete} onClose={() => !deleting && setToDelete(null)} title="Delete this deck?" size="sm">
         <p className="text-sm text-slate-600">
           “{toDelete?.title}” and its {toDelete?.cardCount} cards will be removed for you
           {toDelete?.shares.length ? ` and the ${toDelete.shares.length} student${toDelete.shares.length === 1 ? '' : 's'} it is shared with` : ''}. This can't be undone.
