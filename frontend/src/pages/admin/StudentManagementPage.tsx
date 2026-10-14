@@ -13,6 +13,7 @@ import { TutorMultiSelect } from '../../components/common/TutorMultiSelect';
 import { TrashModal } from '../../components/common/TrashModal';
 import { StudentNameHover } from '../../components/admin/StudentNameHover';
 import { SubjectPicker } from '../../components/admin/SubjectPicker';
+import { CanAddStudentsToggle } from '../../components/admin/CanAddStudentsToggle';
 import { api, type DbUser, type DbTestPackage } from '../../lib/api';
 import { studentStatusFromDecision } from '../../lib/studentStatus';
 import { practiceSubjectOf } from '../../lib/testCategorize';
@@ -75,9 +76,12 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
   // Manage Accounts tabs. Tutors only see their students; admins also manage tutors.
   const [accountTab, setAccountTab] = useState<'students' | 'tutors' | 'coordinators'>('students');
   const [showAddTutor, setShowAddTutor] = useState(false);
-  const [tutorForm, setTutorForm] = useState({ firstName: '', lastName: '', email: '' });
+  const [tutorForm, setTutorForm] = useState({ firstName: '', lastName: '', email: '', canAddStudents: false });
   const [tutorAddError, setTutorAddError] = useState('');
   const [tutorAddLoading, setTutorAddLoading] = useState(false);
+  // Tutors may add students only when an admin allowed it ("Can add student accounts").
+  const [tutorCanAdd, setTutorCanAdd] = useState(false);
+  const canAddAccounts = !isTutor || tutorCanAdd;
   const [confirmDeleteStudent, setConfirmDeleteStudent] = useState<DbUser | null>(null);
   const [deleteStudentLoading, setDeleteStudentLoading] = useState(false);
   const [showTrashModal, setShowTrashModal] = useState(false);
@@ -323,6 +327,10 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
     ]);
   };
   useEffect(() => { reload(); }, [dbId, isTutor]);
+  useEffect(() => {
+    if (!isTutor || !dbId) return;
+    api.getUser(dbId).then((r) => setTutorCanAdd(r.user.canAddStudents === true)).catch(() => {});
+  }, [dbId, isTutor]);
   useEffect(() => {
     api.getPublishedTests().then((r) => setPublishedTests((r.tests as DbTest[]).filter((t) => t.status === 'PUBLISHED'))).catch(() => {});
     api.getTestPackages().then((r) => setPackages(r.packages)).catch(() => {});
@@ -675,7 +683,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
     setTutorAddError(''); setTutorAddLoading(true);
     try {
       const name = `${tutorForm.firstName} ${tutorForm.lastName}`.trim() || email.split('@')[0];
-      const res = await api.createUser({ name, email, role: 'TUTOR' });
+      const res = await api.createUser({ name, email, role: 'TUTOR', canAddStudents: tutorForm.canAddStudents });
       setShowAddTutor(false);
       if (res.tempPassword) setCreatedPassword({ name, email, password: res.tempPassword });
       reload();
@@ -832,7 +840,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
         </div>
     
         {/* Action buttons */}
-        <Button variant="secondary" size="sm" icon={<Upload size={13} />} onClick={() => setShowBulkModal(true)}>Bulk Upload</Button>
+        {canAddAccounts && <Button variant="secondary" size="sm" icon={<Upload size={13} />} onClick={() => setShowBulkModal(true)}>Bulk Upload</Button>}
         {!accountsPage && <Button variant="secondary" size="sm" icon={<Pencil size={13} />} onClick={() => { setManageSearch(''); setAccountTab('students'); setShowManageModal(true); }}>Manage Accounts</Button>}
       </div>
     );
@@ -861,13 +869,13 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                 {accountTab !== 'coordinators' && (
                   <Button size="sm" variant="secondary" icon={<Trash size={13} />} onClick={() => setShowTrashModal(true)}>Trash</Button>
                 )}
-                <Button
+                {canAddAccounts && <Button
                   size="sm"
                   icon={<Plus size={13} />}
                   disabled={accountTab === 'coordinators'}
                   onClick={() => {
                     if (accountTab === 'tutors') {
-                      setTutorForm({ firstName: '', lastName: '', email: '' }); setTutorAddError('');
+                      setTutorForm({ firstName: '', lastName: '', email: '', canAddStudents: false }); setTutorAddError('');
                       setShowManageModal(false);
                       setShowAddTutor(true);
                       return;
@@ -880,7 +888,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                   }}
                 >
                   Add Account
-                </Button>
+                </Button>}
               </div>
               {accountTab === 'students' && (
               <div className="max-h-[65vh] overflow-y-auto divide-y divide-slate-100 border border-slate-100 rounded-lg">
@@ -1750,6 +1758,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
           </div>
           <input type="email" placeholder="Email" value={tutorForm.email} onChange={(e) => setTutorForm((f) => ({ ...f, email: e.target.value }))}
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          <CanAddStudentsToggle value={tutorForm.canAddStudents} onChange={(v) => setTutorForm((f) => ({ ...f, canAddStudents: v }))} />
           {tutorAddError && <p className="text-xs text-red-600">{tutorAddError}</p>}
           <p className="text-xs text-slate-500">Subjects and pay rate can be set later on the Tutors page.</p>
         </div>

@@ -51,6 +51,7 @@ export async function GET(
         email: user.email,
         role: user.role.toLowerCase(),
         isDemo: perms.accountType === 'DEMO',
+        canAddStudents: perms.canAddStudents === true,
         createdAt: user.createdAt,
         deletedAt: user.deletedAt,
         // Kept for back-compat with callers that only render one tutor.
@@ -157,7 +158,7 @@ export async function PATCH(
       phone, parentPhone, dob, schoolName, diagnosticDecision,
       board, timezone, firstClassDate, programVariant, mockVariant,
       accommodation, stage, onboarded,
-      manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate,
+      manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate, canAddStudents,
       salarySettlements, paidSessionIds,
     } = body as {
       name?: string
@@ -187,6 +188,7 @@ export async function PATCH(
       manualDiagRW?: number | null
       manualDiagMath?: number | null
       hourlyRate?: number | null
+      canAddStudents?: boolean
       salarySettlements?: any[]
       paidSessionIds?: string[]
     }
@@ -267,6 +269,7 @@ export async function PATCH(
     // Compensation data — only an admin/super-admin may set this, never the tutor
     // editing their own profile (the self-edit path above allows requester.id === userId).
     if (isAdmin && hourlyRate !== undefined) permissions.hourlyRate = hourlyRate
+    if (isAdmin && canAddStudents !== undefined) permissions.canAddStudents = canAddStudents === true
     if (isAdmin && salarySettlements !== undefined) permissions.salarySettlements = salarySettlements
     if (isAdmin && paidSessionIds !== undefined) permissions.paidSessionIds = paidSessionIds
 
@@ -320,6 +323,7 @@ export async function PATCH(
         name: (user as unknown as { name?: string | null }).name ?? permissions.displayName as string ?? user.email.split('@')[0],
         email: user.email,
         role: user.role.toLowerCase(),
+        canAddStudents: permissions.canAddStudents === true,
         createdAt: user.createdAt,
         ...(tutors ? { tutors, tutorId: tutors[0]?.id ?? null, tutorName: tutors[0]?.name ?? null } : {}),
         grade: permissions.grade ?? null,
