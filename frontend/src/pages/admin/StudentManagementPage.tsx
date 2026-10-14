@@ -797,7 +797,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
     return !q || t.name.toLowerCase().includes(q) || t.email.toLowerCase().includes(q);
   });
 
-  // Student counts, With Tutors, Bulk Upload (+ Manage Accounts for tutors). Admins see these on the Accounts page.
+  // Student counts, With Tutors, Bulk Upload (+ Manage Accounts for tutors). Shown to tutors only (removed from the admin Accounts page, 14 Oct).
   const headerChips = () => {
     const activeCount = students.filter(s => s.diagnosticDecision === 'keep').length;
     const inactiveCount = students.filter(s => s.diagnosticDecision === 'leave').length;
@@ -1005,12 +1005,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
   return (
     <div className="space-y-5">
 
-      {accountsPage && (
-        <>
-          {headerChips()}
-          <Card>{accountsPanel}</Card>
-        </>
-      )}
+      {accountsPage && <Card>{accountsPanel}</Card>}
 
       {!accountsPage && mainView === 'analysis' && (
         <>
