@@ -6,6 +6,9 @@ import { DashboardLayout } from './components/layout/DashboardLayout';
 
 // Auth — kept eager so the login screen paints instantly (it's the common entry).
 import { LoginPage } from './pages/auth/LoginPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
+import { AuthCallbackPage } from './pages/auth/AuthCallbackPage';
+import { ChangeTempPasswordPage } from './pages/auth/ChangeTempPasswordPage';
 
 // All other pages are code-split so each route's JS (and heavy deps like pdf.js,
 // KaTeX and recharts) only loads when that route is actually visited.
@@ -61,8 +64,10 @@ function PageFallback() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // Temporary password from an admin/coordinator: set a new one first.
+  if (user?.mustChangePassword) return <ChangeTempPasswordPage />;
   return <>{children}</>;
 }
 
@@ -118,6 +123,8 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
       {/* Full-screen test pages (no dashboard layout) */}
       <Route path="/test-instructions/:testId" element={

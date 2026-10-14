@@ -10,6 +10,8 @@ export interface User {
   avatar?: string;
   /** Tutor account flagged as a coordinator (sees Accounts, may add tutors and students). */
   isCoordinator?: boolean;
+  /** Logged in with a temporary password: must set a new one first. */
+  mustChangePassword?: boolean;
   assignedTutorId?: string;
   assignedStudentIds?: string[];
   targetDate?: string | null;

@@ -227,6 +227,8 @@ export interface DbUser {
   canAddStudents?: boolean
   /** Tutor account flagged as a coordinator: may add tutors and students. */
   coordinator?: boolean
+  /** Account still uses a temporary password (only meaningful for the signed-in user). */
+  mustChangePassword?: boolean
   phone?: string | null
   parentPhone?: string | null
   dob?: string | null
@@ -426,6 +428,8 @@ export const api = {
     avatar?: string | null
     hourlyRate?: number | null
     canAddStudents?: boolean
+    /** The signed-in user set their own password; clears the temporary-password flag. */
+    passwordChanged?: boolean
     notifications?: Record<string, boolean>
     phone?: string
     parentPhone?: string
