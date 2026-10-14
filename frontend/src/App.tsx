@@ -141,6 +141,7 @@ const router = createBrowserRouter(
         {/* Admin + Super Admin */}
         <Route path="tests" element={<TestsPage />} />
         <Route path="test-builder" element={<TestBuilderPage />} />
+        <Route path="accounts" element={<StudentManagementPage accountsPage />} />
         <Route path="students" element={<StudentManagementPage />} />
         <Route path="students/:id" element={<AdminStudentProfilePage />} />
         <Route path="free-test-leads" element={<AdminFreeTestLeadsPage />} />

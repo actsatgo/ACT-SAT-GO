@@ -54,7 +54,7 @@ const isMath = (test: any): boolean => {
  * (assigned students only). The screen is the same; only the data scope and
  * a few tutor-only side effects differ.
  */
-export function StudentManagementPage() {
+export function StudentManagementPage({ accountsPage = false }: { accountsPage?: boolean } = {}) {
   const navigate = useNavigate();
   const { user, dbId } = useAuthStore();
   const isTutor = user?.role === 'tutor';
@@ -72,6 +72,12 @@ export function StudentManagementPage() {
   const [showBulkModal, setShowBulkModal] = useState(false);
   const [showManageModal, setShowManageModal] = useState(false);
   const [manageSearch, setManageSearch] = useState('');
+  // Manage Accounts tabs. Tutors only see their students; admins also manage tutors.
+  const [accountTab, setAccountTab] = useState<'students' | 'tutors' | 'coordinators'>('students');
+  const [showAddTutor, setShowAddTutor] = useState(false);
+  const [tutorForm, setTutorForm] = useState({ firstName: '', lastName: '', email: '' });
+  const [tutorAddError, setTutorAddError] = useState('');
+  const [tutorAddLoading, setTutorAddLoading] = useState(false);
   const [confirmDeleteStudent, setConfirmDeleteStudent] = useState<DbUser | null>(null);
   const [deleteStudentLoading, setDeleteStudentLoading] = useState(false);
   const [showTrashModal, setShowTrashModal] = useState(false);
@@ -497,7 +503,7 @@ export function StudentManagementPage() {
   // On back-navigation the component remounts with empty state — restore from
   // sessionStorage first (valid for 5 min) to avoid re-fetching everything.
   useEffect(() => {
-    if (mainView !== 'analysis' || students.length === 0 || studentAnalysisData.length > 0) return;
+    if (accountsPage || mainView !== 'analysis' || students.length === 0 || studentAnalysisData.length > 0) return;
     try {
       const cached = JSON.parse(sessionStorage.getItem(analysisCacheKey) ?? 'null');
       if (cached && Date.now() - cached.ts < 5 * 60 * 1000) {
@@ -663,6 +669,23 @@ export function StudentManagementPage() {
     setShowAddModal(true);
   };
 
+  const handleAddTutor = async () => {
+    const email = tutorForm.email.trim();
+    if (!email) return;
+    setTutorAddError(''); setTutorAddLoading(true);
+    try {
+      const name = `${tutorForm.firstName} ${tutorForm.lastName}`.trim() || email.split('@')[0];
+      const res = await api.createUser({ name, email, role: 'TUTOR' });
+      setShowAddTutor(false);
+      if (res.tempPassword) setCreatedPassword({ name, email, password: res.tempPassword });
+      reload();
+    } catch (e) {
+      setTutorAddError((e as Error).message || 'Failed to create tutor');
+    } finally {
+      setTutorAddLoading(false);
+    }
+  };
+
   const handleDeleteStudent = async () => {
     if (!confirmDeleteStudent) return;
     setDeleteStudentLoading(true);
@@ -766,52 +789,232 @@ export function StudentManagementPage() {
   // ── Derived data ──────────────────────────────────────────────────────────
   // display variables cleaned up as student list was consolidated
 
+  const accountTabs: { key: 'students' | 'tutors' | 'coordinators'; label: string }[] = isTutor
+    ? [{ key: 'students', label: 'Students' }]
+    : [{ key: 'students', label: 'Students' }, { key: 'tutors', label: 'Tutors' }, { key: 'coordinators', label: 'Coordinators' }];
+  const filteredTutors = tutors.filter((t) => {
+    const q = manageSearch.toLowerCase();
+    return !q || t.name.toLowerCase().includes(q) || t.email.toLowerCase().includes(q);
+  });
+
+  // Student counts, With Tutors, Bulk Upload (+ Manage Accounts for tutors). Admins see these on the Accounts page.
+  const headerChips = () => {
+    const activeCount = students.filter(s => s.diagnosticDecision === 'keep').length;
+    const inactiveCount = students.filter(s => s.diagnosticDecision === 'leave').length;
+    const pendingCount = students.filter(s => !s.diagnosticDecision).length;
+    return (
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Total Students chip */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-sm">
+          <span className="font-bold text-blue-600">
+            {activityFilter === 'active' ? activeCount : activityFilter === 'inactive' ? inactiveCount : activityFilter === 'pending' ? pendingCount : students.length}
+          </span>
+          <span className="text-slate-600 font-medium">Total Students</span>
+          <span className="text-blue-200 mx-0.5">|</span>
+          <button
+            onClick={() => setActivityFilter(f => f === 'active' ? 'all' : 'active')}
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${activityFilter === 'active' ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
+          >{activeCount} Active</button>
+          <button
+            onClick={() => setActivityFilter(f => f === 'inactive' ? 'all' : 'inactive')}
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${activityFilter === 'inactive' ? 'bg-rose-500 text-white' : 'bg-rose-100 text-rose-700 hover:bg-rose-200'}`}
+          >{inactiveCount} Inactive</button>
+          <button
+            onClick={() => setActivityFilter(f => f === 'pending' ? 'all' : 'pending')}
+            className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${activityFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}
+          >{pendingCount} Pending</button>
+        </div>
+    
+        {/* With Tutors chip */}
+        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-sm">
+          <span className="font-bold text-emerald-600">{students.filter(s => (s.tutors?.length ?? 0) > 0 || s.tutorId).length}</span>
+          <span className="text-slate-600 font-medium">With Tutors</span>
+        </div>
+    
+        {/* Action buttons */}
+        <Button variant="secondary" size="sm" icon={<Upload size={13} />} onClick={() => setShowBulkModal(true)}>Bulk Upload</Button>
+        {!accountsPage && <Button variant="secondary" size="sm" icon={<Pencil size={13} />} onClick={() => { setManageSearch(''); setAccountTab('students'); setShowManageModal(true); }}>Manage Accounts</Button>}
+      </div>
+    );
+  };
+
+  // Manage Accounts content: inline on the Accounts page (admins), in a modal for tutors.
+  const accountsPanel = (
+            <div className="space-y-3">
+              <div className="flex gap-1 border-b border-slate-200">
+                {accountTabs.map((t) => (
+                  <button key={t.key} onClick={() => { setAccountTab(t.key); setManageSearch(''); }}
+                    className={`px-3 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors ${accountTab === t.key ? 'border-blue-600 text-blue-700' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Search by name or email…"
+                  value={manageSearch}
+                  onChange={(e) => setManageSearch(e.target.value)}
+                  disabled={accountTab === 'coordinators'}
+                  className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50"
+                />
+                {accountTab !== 'coordinators' && (
+                  <Button size="sm" variant="secondary" icon={<Trash size={13} />} onClick={() => setShowTrashModal(true)}>Trash</Button>
+                )}
+                <Button
+                  size="sm"
+                  icon={<Plus size={13} />}
+                  disabled={accountTab === 'coordinators'}
+                  onClick={() => {
+                    if (accountTab === 'tutors') {
+                      setTutorForm({ firstName: '', lastName: '', email: '' }); setTutorAddError('');
+                      setShowManageModal(false);
+                      setShowAddTutor(true);
+                      return;
+                    }
+                    setIsEditing(false);
+    setEditingStudentId(null);
+                    setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '', subjects: [] as string[] });
+                    setShowManageModal(false);
+                    setShowAddModal(true);
+                  }}
+                >
+                  Add Account
+                </Button>
+              </div>
+              {accountTab === 'students' && (
+              <div className="max-h-[65vh] overflow-y-auto divide-y divide-slate-100 border border-slate-100 rounded-lg">
+                {students.filter((s) =>
+                  (activityFilter === 'all' || studentStatusFromDecision(s.diagnosticDecision) === activityFilter) && (manageSearch
+                    ? s.name.toLowerCase().includes(manageSearch.toLowerCase()) || s.email.toLowerCase().includes(manageSearch.toLowerCase())
+                    : true)
+                ).length === 0 ? (
+                  <p className="px-3 py-6 text-center text-sm text-slate-400">No students found</p>
+                ) : (
+                  students
+                    .filter((s) =>
+                      (activityFilter === 'all' || studentStatusFromDecision(s.diagnosticDecision) === activityFilter) && (manageSearch
+                        ? s.name.toLowerCase().includes(manageSearch.toLowerCase()) || s.email.toLowerCase().includes(manageSearch.toLowerCase())
+                        : true)
+                    )
+                    .map((student) => (
+                      <div key={student.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                          {student.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-semibold text-slate-900 text-sm truncate">{student.name}</p>
+                        </div>
+                        <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/50 flex-shrink-0">
+                          <button
+                            onClick={() => handleTableUpdateDecision(student.id, 'keep')}
+                            className={`px-2 py-0.5 text-[11px] font-bold rounded transition-all ${
+                              student.diagnosticDecision === 'keep'
+                                ? 'bg-emerald-500 text-white shadow-sm'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                            }`}
+                            title="Mark student Active (kept after diagnostic)"
+                          >
+                            Active
+                          </button>
+                          <button
+                            onClick={() => handleTableUpdateDecision(student.id, 'leave')}
+                            className={`px-2 py-0.5 text-[11px] font-bold rounded transition-all ${
+                              student.diagnosticDecision === 'leave'
+                                ? 'bg-rose-500 text-white shadow-sm'
+                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+                            }`}
+                            title="Mark student Inactive (left / not kept)"
+                          >
+                            Inactive
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => startEditStudent(student)}
+                          className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                          title="Edit"
+                        >
+                          <Pencil size={14} />
+                        </button>
+                        <button
+                          onClick={() => setResetPasswordTarget(student)}
+                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Reset Password"
+                        >
+                          <KeyRound size={14} />
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteStudent(student)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))
+                )}
+              </div>
+              )}
+              {accountTab === 'tutors' && (
+              <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100 border border-slate-100 rounded-lg">
+                {filteredTutors.length === 0 ? (
+                  <p className="px-3 py-6 text-center text-sm text-slate-400">No tutors found</p>
+                ) : filteredTutors.map((tutor) => (
+                  <div key={tutor.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                      {tutor.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-slate-900 text-sm truncate">{tutor.name}</p>
+                      <p className="text-xs text-slate-500 truncate">{tutor.email}</p>
+                    </div>
+                    <button
+                      onClick={() => { setShowManageModal(false); navigate('/tutors'); }}
+                      className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                      title="Edit (opens the Tutors page)"
+                    >
+                      <Pencil size={14} />
+                    </button>
+                    <button
+                      onClick={() => setResetPasswordTarget(tutor)}
+                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Reset Password"
+                    >
+                      <KeyRound size={14} />
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteStudent(tutor)}
+                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              )}
+              {accountTab === 'coordinators' && (
+                <p className="px-3 py-8 text-center text-sm text-slate-500 border border-slate-100 rounded-lg">
+                  Coordinator accounts aren't set up in the portal yet.
+                </p>
+              )}
+            </div>
+  );
+
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-5">
 
-      {mainView === 'analysis' && (
+      {accountsPage && (
         <>
-      {/* ── Stat chips + Header actions ── */}
-      {(() => {
-        const activeCount = students.filter(s => s.diagnosticDecision === 'keep').length;
-        const inactiveCount = students.filter(s => s.diagnosticDecision === 'leave').length;
-        const pendingCount = students.filter(s => !s.diagnosticDecision).length;
-        return (
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Total Students chip */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-sm">
-              <span className="font-bold text-blue-600">
-                {activityFilter === 'active' ? activeCount : activityFilter === 'inactive' ? inactiveCount : activityFilter === 'pending' ? pendingCount : students.length}
-              </span>
-              <span className="text-slate-600 font-medium">Total Students</span>
-              <span className="text-blue-200 mx-0.5">|</span>
-              <button
-                onClick={() => setActivityFilter(f => f === 'active' ? 'all' : 'active')}
-                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${activityFilter === 'active' ? 'bg-emerald-500 text-white' : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200'}`}
-              >{activeCount} Active</button>
-              <button
-                onClick={() => setActivityFilter(f => f === 'inactive' ? 'all' : 'inactive')}
-                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${activityFilter === 'inactive' ? 'bg-rose-500 text-white' : 'bg-rose-100 text-rose-700 hover:bg-rose-200'}`}
-              >{inactiveCount} Inactive</button>
-              <button
-                onClick={() => setActivityFilter(f => f === 'pending' ? 'all' : 'pending')}
-                className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${activityFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}
-              >{pendingCount} Pending</button>
-            </div>
+          {headerChips()}
+          <Card>{accountsPanel}</Card>
+        </>
+      )}
 
-            {/* With Tutors chip */}
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 bg-emerald-50 text-sm">
-              <span className="font-bold text-emerald-600">{students.filter(s => (s.tutors?.length ?? 0) > 0 || s.tutorId).length}</span>
-              <span className="text-slate-600 font-medium">With Tutors</span>
-            </div>
-
-            {/* Action buttons */}
-            <Button variant="secondary" size="sm" icon={<Upload size={13} />} onClick={() => setShowBulkModal(true)}>Bulk Upload</Button>
-            <Button variant="secondary" size="sm" icon={<Pencil size={13} />} onClick={() => { setManageSearch(''); setShowManageModal(true); }}>Manage Students</Button>
-          </div>
-        );
-      })()}
+      {!accountsPage && mainView === 'analysis' && (
+        <>
+      {!accountsPage && isTutor && headerChips()}
 
       {/* ── COMPREHENSIVE ANALYSIS VIEW ── */}
       <div className="space-y-5">
@@ -981,7 +1184,7 @@ export function StudentManagementPage() {
         </>
       )}
 
-      {mainView === 'test_analysis' && (
+      {!accountsPage && mainView === 'test_analysis' && (
         <div className="space-y-5 animate-fadeIn">
           {/* Back navigation */}
           <div className="flex items-center gap-4">
@@ -1522,108 +1725,37 @@ export function StudentManagementPage() {
         </div>
       </Modal>
 
-      {/* ── Manage Students Modal (edit / delete) ── */}
-      <Modal isOpen={showManageModal} onClose={() => { setShowManageModal(false); setManageSearch(''); }} title="Manage Students" size="md">
-        <div className="space-y-3">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              placeholder="Search by name or email…"
-              value={manageSearch}
-              onChange={(e) => setManageSearch(e.target.value)}
-              className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <Button size="sm" variant="secondary" icon={<Trash size={13} />} onClick={() => setShowTrashModal(true)}>Trash</Button>
-            <Button
-              size="sm"
-              icon={<Plus size={13} />}
-              onClick={() => {
-                setIsEditing(false);
-                setEditingStudentId(null);
-                setAddForm({ firstName: '', lastName: '', email: '', grade: '', targetScore: '', targetDate: '', tutorIds: [], phone: '', parentPhone: '', dob: '', schoolName: '', board: '', timezone: 'Asia/Kolkata', firstClassDate: '', programVariant: '', mockVariant: '', accommodation: false, stage: '', onboarded: false, manualDiagTotal: '', manualDiagRW: '', manualDiagMath: '', subjects: [] as string[] });
-                setShowManageModal(false);
-                setShowAddModal(true);
-              }}
-            >
-              Add Student
+      {/* ── Manage Accounts Modal: Students / Tutors / Coordinators (edit / delete) ── */}
+      <Modal isOpen={showManageModal} onClose={() => { setShowManageModal(false); setManageSearch(''); }} title="Manage Accounts" size="lg">
+        {accountsPanel}
+      </Modal>
+
+      {/* ── Add Tutor account (from Manage Accounts) ── */}
+      <Modal isOpen={showAddTutor} onClose={() => setShowAddTutor(false)} title="Add Tutor Account" size="sm"
+        footer={
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" size="sm" onClick={() => setShowAddTutor(false)}>Cancel</Button>
+            <Button size="sm" onClick={handleAddTutor} disabled={tutorAddLoading || !tutorForm.email.trim()}>
+              {tutorAddLoading ? 'Creating…' : 'Create Account'}
             </Button>
           </div>
-          <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100 border border-slate-100 rounded-lg">
-            {students.filter((s) =>
-              manageSearch
-                ? s.name.toLowerCase().includes(manageSearch.toLowerCase()) || s.email.toLowerCase().includes(manageSearch.toLowerCase())
-                : true
-            ).length === 0 ? (
-              <p className="px-3 py-6 text-center text-sm text-slate-400">No students found</p>
-            ) : (
-              students
-                .filter((s) =>
-                  manageSearch
-                    ? s.name.toLowerCase().includes(manageSearch.toLowerCase()) || s.email.toLowerCase().includes(manageSearch.toLowerCase())
-                    : true
-                )
-                .map((student) => (
-                  <div key={student.id} className="flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {student.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-slate-900 text-sm truncate">{student.name}</p>
-                    </div>
-                    <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/50 flex-shrink-0">
-                      <button
-                        onClick={() => handleTableUpdateDecision(student.id, 'keep')}
-                        className={`px-2 py-0.5 text-[11px] font-bold rounded transition-all ${
-                          student.diagnosticDecision === 'keep'
-                            ? 'bg-emerald-500 text-white shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                        }`}
-                        title="Mark student Active (kept after diagnostic)"
-                      >
-                        Active
-                      </button>
-                      <button
-                        onClick={() => handleTableUpdateDecision(student.id, 'leave')}
-                        className={`px-2 py-0.5 text-[11px] font-bold rounded transition-all ${
-                          student.diagnosticDecision === 'leave'
-                            ? 'bg-rose-500 text-white shadow-sm'
-                            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                        }`}
-                        title="Mark student Inactive (left / not kept)"
-                      >
-                        Inactive
-                      </button>
-                    </div>
-                    <button
-                      onClick={() => startEditStudent(student)}
-                      className="p-1.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                      title="Edit"
-                    >
-                      <Pencil size={14} />
-                    </button>
-                    <button
-                      onClick={() => setResetPasswordTarget(student)}
-                      className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Reset Password"
-                    >
-                      <KeyRound size={14} />
-                    </button>
-                    <button
-                      onClick={() => setConfirmDeleteStudent(student)}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                ))
-            )}
+        }>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-2">
+            <input type="text" placeholder="First name" value={tutorForm.firstName} onChange={(e) => setTutorForm((f) => ({ ...f, firstName: e.target.value }))}
+              className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+            <input type="text" placeholder="Last name" value={tutorForm.lastName} onChange={(e) => setTutorForm((f) => ({ ...f, lastName: e.target.value }))}
+              className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
+          <input type="email" placeholder="Email" value={tutorForm.email} onChange={(e) => setTutorForm((f) => ({ ...f, email: e.target.value }))}
+            className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+          {tutorAddError && <p className="text-xs text-red-600">{tutorAddError}</p>}
+          <p className="text-xs text-slate-500">Subjects and pay rate can be set later on the Tutors page.</p>
         </div>
       </Modal>
 
       {/* Delete Confirmation Modal — moves to Trash, not a permanent delete. */}
-      <Modal isOpen={!!confirmDeleteStudent} onClose={() => setConfirmDeleteStudent(null)} title="Move Student to Trash" size="sm"
+      <Modal isOpen={!!confirmDeleteStudent} onClose={() => setConfirmDeleteStudent(null)} title="Move to Trash" size="sm"
         footer={
           <div className="flex justify-end gap-2">
             <Button variant="secondary" size="sm" onClick={() => setConfirmDeleteStudent(null)}>Cancel</Button>
@@ -1652,11 +1784,12 @@ export function StudentManagementPage() {
         )}
       </Modal>
 
-      <TrashModal isOpen={showTrashModal} onClose={() => setShowTrashModal(false)} role="STUDENT" entityLabel="Student" onChanged={reload} />
+      <TrashModal isOpen={showTrashModal} onClose={() => setShowTrashModal(false)}
+        role={accountTab === 'tutors' ? 'TUTOR' : 'STUDENT'} entityLabel={accountTab === 'tutors' ? 'Tutor' : 'Student'} onChanged={reload} />
 
       {/* ── Temp Password Modal — backdrop click disabled so a stray click can't lose
            a password that's never shown again (it's never stored in plaintext). ── */}
-      <Modal isOpen={!!createdPassword} onClose={() => { setCreatedPassword(null); setCopiedPassword(false); }} title="Student Created" size="sm"
+      <Modal isOpen={!!createdPassword} onClose={() => { setCreatedPassword(null); setCopiedPassword(false); }} title="Account Created" size="sm"
         closeOnBackdrop={false}
         footer={<Button size="sm" onClick={() => { setCreatedPassword(null); setCopiedPassword(false); }}>Done, I've saved this</Button>}>
         {createdPassword && (
@@ -1680,7 +1813,7 @@ export function StudentManagementPage() {
                 </button>
               </div>
               <p className="text-xs text-slate-500 mt-2">
-                Copy this now — it won't be shown again. If it's lost, use "Reset Password" on this student later to generate a new one.
+                Copy this now — it won't be shown again. If it's lost, use "Reset Password" on this account later to generate a new one.
               </p>
             </div>
           </div>
