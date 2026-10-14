@@ -8,6 +8,7 @@ import { Modal } from '../../components/common/Modal';
 import { DataTable } from '../../components/common/DataTable';
 import { SearchableSelect } from '../../components/common/SearchableSelect';
 import { TrashModal } from '../../components/common/TrashModal';
+import { CanAddStudentsToggle } from '../../components/admin/CanAddStudentsToggle';
 import { api, type DbUser } from '../../lib/api';
 import { TUTOR_SUBJECTS } from '../../lib/sessionLog';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -70,10 +71,10 @@ export function TutorManagementPage() {
 
   // Forms & Loading states
   const [assignedStudentIds, setAssignedStudentIds] = useState<string[]>([]);
-  const [addForm, setAddForm] = useState({ firstName: '', lastName: '', email: '', specializations: [] as string[], hourlyRate: '' });
+  const [addForm, setAddForm] = useState({ firstName: '', lastName: '', email: '', specializations: [] as string[], hourlyRate: '', canAddStudents: false });
   const [addError, setAddError] = useState('');
   const [addLoading, setAddLoading] = useState(false);
-  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', specializations: [] as string[], hourlyRate: '' });
+  const [editForm, setEditForm] = useState({ firstName: '', lastName: '', specializations: [] as string[], hourlyRate: '', canAddStudents: false });
   const [editError, setEditError] = useState('');
   const [editLoading, setEditLoading] = useState(false);
   const [saveLoading, setSaveLoading] = useState(false);
@@ -114,6 +115,7 @@ export function TutorManagementPage() {
       lastName: parts.slice(1).join(' '),
       specializations: (tutor.specialization as string[]) ?? [],
       hourlyRate: tutor.hourlyRate != null ? String(tutor.hourlyRate) : '',
+      canAddStudents: tutor.canAddStudents === true,
     });
     setEditError('');
     setShowEditModal(tutor);
@@ -128,6 +130,7 @@ export function TutorManagementPage() {
         name: fullName,
         specialization: editForm.specializations,
         hourlyRate: editForm.hourlyRate ? Number(editForm.hourlyRate) : null,
+        canAddStudents: editForm.canAddStudents,
       });
       setShowEditModal(null);
       reload();
@@ -183,9 +186,10 @@ export function TutorManagementPage() {
         role: 'TUTOR',
         specialization: addForm.specializations.length ? addForm.specializations : undefined,
         hourlyRate: addForm.hourlyRate ? Number(addForm.hourlyRate) : undefined,
+        canAddStudents: addForm.canAddStudents,
       });
       setShowAddModal(false);
-      setAddForm({ firstName: '', lastName: '', email: '', specializations: [], hourlyRate: '' });
+      setAddForm({ firstName: '', lastName: '', email: '', specializations: [], hourlyRate: '', canAddStudents: false });
       if (res.tempPassword) setCreatedPassword({ name: fullName, email: addForm.email, password: res.tempPassword });
       reload();
     } catch (e) {
@@ -458,7 +462,7 @@ export function TutorManagementPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button size="sm" variant="secondary" icon={<Trash size={13} />} onClick={() => setShowTrashModal(true)}>Trash</Button>
-              <Button size="sm" icon={<Plus size={13} />} onClick={() => { setAddForm({ firstName: '', lastName: '', email: '', specializations: [], hourlyRate: '' }); setShowAddModal(true); }}>Add Tutor</Button>
+              <Button size="sm" icon={<Plus size={13} />} onClick={() => { setAddForm({ firstName: '', lastName: '', email: '', specializations: [], hourlyRate: '', canAddStudents: false }); setShowAddModal(true); }}>Add Tutor</Button>
             </div>
           </div>
 
@@ -673,6 +677,7 @@ export function TutorManagementPage() {
             <input type="email" value={addForm.email} onChange={(e) => setAddForm((f) => ({ ...f, email: e.target.value }))}
               className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="tutor@example.com" />
           </div>
+          <CanAddStudentsToggle value={addForm.canAddStudents} onChange={(v) => setAddForm((f) => ({ ...f, canAddStudents: v }))} />
           {user?.role === 'super_admin' && (
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">Hourly Rate</label>
@@ -712,6 +717,7 @@ export function TutorManagementPage() {
           }>
           <div className="space-y-3">
             {editError && <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">{editError}</p>}
+            <CanAddStudentsToggle value={editForm.canAddStudents} onChange={(v) => setEditForm((f) => ({ ...f, canAddStudents: v }))} />
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">First Name</label>

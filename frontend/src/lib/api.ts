@@ -221,6 +221,8 @@ export interface DbUser {
   specialization?: string[]
   /** Tutor compensation rate. Only ever present in the response for an admin/super-admin caller. */
   hourlyRate?: number | null
+  /** Tutor may create student accounts (set by an admin). */
+  canAddStudents?: boolean
   phone?: string | null
   parentPhone?: string | null
   dob?: string | null
@@ -388,6 +390,7 @@ export const api = {
     specialization?: string[]
     /** Tutor compensation rate — only applied when role is 'TUTOR'. */
     hourlyRate?: number | null
+    canAddStudents?: boolean
     phone?: string
     parentPhone?: string
     dob?: string
@@ -416,6 +419,7 @@ export const api = {
     tutorIds?: string[]
     /** Tutor compensation rate — silently ignored server-side unless the caller is an admin. */
     hourlyRate?: number | null
+    canAddStudents?: boolean
     notifications?: Record<string, boolean>
     phone?: string
     parentPhone?: string
