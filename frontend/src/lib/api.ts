@@ -533,6 +533,17 @@ export const api = {
   getAttemptFresh: (attemptId: string) => request<{ attempt: unknown }>(`/api/attempts/${attemptId}`),
   getStudentAttempts: (studentId: string) =>
     cachedGet<{ attempts: unknown[] }>(`/api/students/${studentId}/attempts`, SHORT_TTL),
+  /** Everything the admin Students analysis table needs, for every student in scope, in one request. */
+  getStudentsAnalysisSummary: () =>
+    request<{ students: Record<string, {
+      attempts: unknown[]
+      latestScore: number
+      lastTrend: { testTitle: string; date: string } | null
+      sectionStats: Array<{ sectionName: string; correct: number; incorrect: number; skipped: number; totalQuestions: number }>
+    }> }>('/api/students/analysis-summary'),
+  /** Light list: each attempt's test (title/category/subCategory/section names), score and dates — no questions or answers. */
+  getStudentAttemptSummaries: (studentId: string) =>
+    cachedGet<{ attempts: unknown[] }>(`/api/students/${studentId}/attempts?summary=1`, SHORT_TTL),
   getAssignedTests: (studentId: string) =>
     cachedGet<{ assignedTests: unknown[] }>(`/api/students/${studentId}/assigned-tests`, SHORT_TTL),
 
@@ -783,6 +794,16 @@ export const api = {
       `/api/class-progress?tutorId=${tutorId}&studentId=${studentId}`,
       SHORT_TTL,
     ),
+  /** Session logs for many pairs in one request: admins get all pairs (or narrow by tutorId/studentId), tutors/students their own. Keyed "tutorId:studentId". */
+  getClassProgressBatch: (params?: { tutorId?: string; studentId?: string }) => {
+    const qs = new URLSearchParams()
+    if (params?.tutorId) qs.set('tutorId', params.tutorId)
+    if (params?.studentId) qs.set('studentId', params.studentId)
+    return cachedGet<{ entries: Record<string, ClassProgressEntry[]> }>(
+      `/api/class-progress/batch${qs.toString() ? '?' + qs.toString() : ''}`,
+      SHORT_TTL,
+    )
+  },
   addClassProgress: (tutorId: string, studentId: string, body: ClassProgressInput) =>
     request<{ entry: ClassProgressEntry }>('/api/class-progress', {
       method: 'POST',

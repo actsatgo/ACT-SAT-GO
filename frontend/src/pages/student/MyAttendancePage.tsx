@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CalendarCheck, Loader2, Clock } from 'lucide-react';
-import { api } from '../../lib/api';
+import { api, type ClassProgressEntry } from '../../lib/api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Badge } from '../../components/common/Badge';
 
@@ -45,12 +45,9 @@ export function MyAttendancePage() {
     setLoading(true);
     api.getTutorAssignments({ studentId: dbId })
       .then(async ({ assignments }) => {
-        const lists = await Promise.all(
-          assignments.map(a =>
-            api.getClassProgress(a.tutorId, dbId)
-              .then(r => r.entries.map(e => ({ ...e, homework: e.homework ?? '', tutorName: a.tutor.name })))
-              .catch(() => [] as AttendanceEntry[])
-          )
+        const byPair = await api.getClassProgressBatch({ studentId: dbId }).then(r => r.entries).catch(() => ({} as Record<string, ClassProgressEntry[]>));
+        const lists = assignments.map(a =>
+          (byPair[`${a.tutorId}:${dbId}`] ?? []).map(e => ({ ...e, homework: e.homework ?? '', tutorName: a.tutor.name }))
         );
         if (cancelled) return;
         const merged = lists.flat().sort((a, b) =>
