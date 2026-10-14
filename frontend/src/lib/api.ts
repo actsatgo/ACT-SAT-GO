@@ -225,6 +225,8 @@ export interface DbUser {
   hourlyRate?: number | null
   /** Tutor may create student accounts (set by an admin). */
   canAddStudents?: boolean
+  /** Tutor account flagged as a coordinator: may add tutors and students. */
+  coordinator?: boolean
   phone?: string | null
   parentPhone?: string | null
   dob?: string | null
@@ -392,6 +394,7 @@ export const api = {
     specialization?: string[]
     /** Tutor compensation rate — only applied when role is 'TUTOR'. */
     hourlyRate?: number | null
+    coordinator?: boolean
     canAddStudents?: boolean
     phone?: string
     parentPhone?: string

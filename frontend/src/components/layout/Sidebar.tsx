@@ -140,7 +140,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
 
   const filteredNav = user?.isDemo
     ? demoNavItems
-    : navItems.filter((item) => user && item.roles.includes(user.role));
+    : navItems.filter((item) => user && (item.roles.includes(user.role) || (item.path === '/accounts' && user.isCoordinator)));
 
   const handleLogout = () => {
     logout();
@@ -323,7 +323,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
             {!collapsed && (
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{user.name}</p>
-                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">{user.isDemo ? 'Demo Student' : roleLabels[user.role]}</p>
+                <p className="text-[10px] text-slate-400 uppercase tracking-wider font-medium">{user.isDemo ? 'Demo Student' : user.isCoordinator ? 'Coordinator' : roleLabels[user.role]}</p>
               </div>
             )}
           </button>

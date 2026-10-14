@@ -8,6 +8,8 @@ export interface User {
   /** Free-demo-test signup from the website: may only take their single assigned demo test. */
   isDemo?: boolean;
   avatar?: string;
+  /** Tutor account flagged as a coordinator (sees Accounts, may add tutors and students). */
+  isCoordinator?: boolean;
   assignedTutorId?: string;
   assignedStudentIds?: string[];
   targetDate?: string | null;
