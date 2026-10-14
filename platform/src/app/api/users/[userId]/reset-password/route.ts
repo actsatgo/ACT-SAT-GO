@@ -35,5 +35,9 @@ export async function POST(
     return NextResponse.json({ error: `Supabase Auth: ${error.message}` }, { status: 400 })
   }
 
+  // A new temporary password: ask for a new one on next login.
+  const perms = (user.permissions ?? {}) as Record<string, unknown>
+  await prisma.user.update({ where: { id: userId }, data: { permissions: { ...perms, mustChangePassword: true } as any } })
+
   return NextResponse.json({ tempPassword })
 }

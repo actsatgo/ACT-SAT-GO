@@ -14,6 +14,7 @@ export function dbUserToAuthUser(u: DbUser): User {
     isDemo: Boolean(u.isDemo),
     avatar: u.avatar ?? undefined,
     isCoordinator: u.coordinator === true,
+    mustChangePassword: u.mustChangePassword === true,
     assignedTutorId: u.tutorId ?? undefined,
     assignedStudentIds: u.studentIds ?? [],
     targetDate: u.targetDate ?? null,
