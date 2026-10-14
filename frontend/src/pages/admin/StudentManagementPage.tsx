@@ -756,43 +756,47 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
     }
   };
 
-  const handleTableUpdateDecision = (studentId: string, value: 'keep' | 'leave') => {
-    const currentDecision =
-      studentAnalysisData.find(s => s.studentId === studentId)?.diagnosticDecision ??
-      students.find(s => s.id === studentId)?.diagnosticDecision ??
-      null;
-    const isCurrentlySelected = currentDecision === value;
-    const nextValue = isCurrentlySelected ? null : value;
+  // Every account is either Active or Inactive; an account with no status yet counts as Active.
+  const handleTableUpdateDecision = (accountId: string, value: 'keep' | 'leave') => {
+    const account = students.find(s => s.id === accountId) ?? tutors.find(t => t.id === accountId);
+    const current = account?.diagnosticDecision === 'leave' ? 'leave' : 'keep';
+    if (current === value) return;
 
-    api.updateUser(studentId, { diagnosticDecision: nextValue })
+    api.updateUser(accountId, { diagnosticDecision: value })
       .then(({ user }) => {
+        const decision = user.diagnosticDecision ?? null;
         setStudentAnalysisData(prev =>
-          prev.map(s =>
-            s.studentId === studentId
-              ? { ...s, diagnosticDecision: user.diagnosticDecision ?? null }
-              : s
-          )
+          prev.map(s => (s.studentId === accountId ? { ...s, diagnosticDecision: decision } : s))
         );
-        setStudents(prev =>
-          prev.map(s =>
-            s.id === studentId
-              ? { ...s, diagnosticDecision: user.diagnosticDecision ?? null }
-              : s
-          )
-        );
-
-        if (user.diagnosticDecision === 'keep') {
-          toast.success(`Student marked Active`);
-        } else if (user.diagnosticDecision === 'leave') {
-          toast.success(`Student marked Inactive`);
-        } else {
-          toast.success(`Student status reset to Pending`);
-        }
+        setStudents(prev => prev.map(s => (s.id === accountId ? { ...s, diagnosticDecision: decision } : s)));
+        setTutors(prev => prev.map(t => (t.id === accountId ? { ...t, diagnosticDecision: decision } : t)));
+        toast.success(`${account?.name ?? 'Account'} marked ${value === 'keep' ? 'Active' : 'Inactive'}`);
       })
       .catch((err) => {
-        console.error('Failed to update student decision', err);
-        toast.error('Failed to update student decision');
+        console.error('Failed to update account status', err);
+        toast.error('Failed to update account status');
       });
+  };
+
+  const statusToggle = (account: DbUser) => {
+    const inactive = account.diagnosticDecision === 'leave';
+    const btn = (value: 'keep' | 'leave', label: string, on: boolean, onCls: string) => (
+      <button
+        onClick={() => handleTableUpdateDecision(account.id, value)}
+        className={`px-[32px] py-1 text-[14px] font-bold rounded transition-all ${
+          on ? `${onCls} text-white shadow-sm` : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
+        }`}
+        title={`Mark ${label}`}
+      >
+        {label}
+      </button>
+    );
+    return (
+      <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/50 flex-shrink-0">
+        {btn('keep', 'Active', !inactive, 'bg-emerald-500')}
+        {btn('leave', 'Inactive', inactive, 'bg-rose-500')}
+      </div>
+    );
   };
 
   // ── Derived data ──────────────────────────────────────────────────────────
@@ -808,15 +812,14 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
 
   // Student counts, With Tutors, Bulk Upload (+ Manage Accounts for tutors). Shown to tutors only (removed from the admin Accounts page, 14 Oct).
   const headerChips = () => {
-    const activeCount = students.filter(s => s.diagnosticDecision === 'keep').length;
+    const activeCount = students.filter(s => s.diagnosticDecision !== 'leave').length;
     const inactiveCount = students.filter(s => s.diagnosticDecision === 'leave').length;
-    const pendingCount = students.filter(s => !s.diagnosticDecision).length;
     return (
       <div className="flex flex-wrap items-center gap-2">
         {/* Total Students chip */}
         <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-sm">
           <span className="font-bold text-blue-600">
-            {activityFilter === 'active' ? activeCount : activityFilter === 'inactive' ? inactiveCount : activityFilter === 'pending' ? pendingCount : students.length}
+            {activityFilter === 'active' ? activeCount : activityFilter === 'inactive' ? inactiveCount : students.length}
           </span>
           <span className="text-slate-600 font-medium">Total Students</span>
           <span className="text-blue-200 mx-0.5">|</span>
@@ -828,10 +831,6 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
             onClick={() => setActivityFilter(f => f === 'inactive' ? 'all' : 'inactive')}
             className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${activityFilter === 'inactive' ? 'bg-rose-500 text-white' : 'bg-rose-100 text-rose-700 hover:bg-rose-200'}`}
           >{inactiveCount} Inactive</button>
-          <button
-            onClick={() => setActivityFilter(f => f === 'pending' ? 'all' : 'pending')}
-            className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold transition-colors ${activityFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-amber-100 text-amber-700 hover:bg-amber-200'}`}
-          >{pendingCount} Pending</button>
         </div>
     
         {/* With Tutors chip */}
@@ -912,30 +911,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-slate-900 text-[21px] leading-tight truncate">{student.name}</p>
                         </div>
-                        <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/50 flex-shrink-0">
-                          <button
-                            onClick={() => handleTableUpdateDecision(student.id, 'keep')}
-                            className={`px-[32px] py-1 text-[14px] font-bold rounded transition-all ${
-                              student.diagnosticDecision === 'keep'
-                                ? 'bg-emerald-500 text-white shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                            }`}
-                            title="Mark student Active (kept after diagnostic)"
-                          >
-                            Active
-                          </button>
-                          <button
-                            onClick={() => handleTableUpdateDecision(student.id, 'leave')}
-                            className={`px-[32px] py-1 text-[14px] font-bold rounded transition-all ${
-                              student.diagnosticDecision === 'leave'
-                                ? 'bg-rose-500 text-white shadow-sm'
-                                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
-                            }`}
-                            title="Mark student Inactive (left / not kept)"
-                          >
-                            Inactive
-                          </button>
-                        </div>
+                        {statusToggle(student)}
                         {/* Row actions: edit, reset password, delete. */}
                         <div className="flex items-center">
                           <button
@@ -976,6 +952,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                       <p className="font-semibold text-slate-900 text-[21px] leading-tight truncate">{tutor.name}</p>
                       <p className="text-xs text-slate-500 truncate">{tutor.email}</p>
                     </div>
+                    {statusToggle(tutor)}
                     {/* Row actions: edit, reset password, delete. */}
                     <div className="flex items-center">
                       <button
