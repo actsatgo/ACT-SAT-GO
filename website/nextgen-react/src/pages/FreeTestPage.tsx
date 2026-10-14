@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { APP_LOGIN_URL, PLATFORM_API_BASE, QUERY_API_BASE } from '../config';
+import { FREE_TEST_LOGIN_URL, PLATFORM_API_BASE, QUERY_API_BASE } from '../config';
 import { WHATSAPP_HREF, CALL_HREF } from '../components/WhatsAppButton';
 import { trackLead, leadSource } from '../lib/analytics';
 import { STATS } from '../site';
@@ -60,6 +60,11 @@ export function FreeTestPage() {
     targetScore: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  // Phone OTP: the code is texted to the number and checked on register.
+  const [otpCode, setOtpCode] = useState('');
+  const [otpSentTo, setOtpSentTo] = useState<string | null>(null);
+  const [otpSending, setOtpSending] = useState(false);
+  const [otpMessage, setOtpMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [alreadyRegistered, setAlreadyRegistered] = useState(false);
@@ -83,8 +88,38 @@ export function FreeTestPage() {
   }, []);
 
   const loginHref = (email: string) => {
-    const sep = APP_LOGIN_URL.includes('?') ? '&' : '?';
-    return `${APP_LOGIN_URL}${sep}email=${encodeURIComponent(email)}&demo=1`;
+    const sep = FREE_TEST_LOGIN_URL.includes('?') ? '&' : '?';
+    return `${FREE_TEST_LOGIN_URL}${sep}email=${encodeURIComponent(email)}&demo=1`;
+  };
+
+  const currentPhone = `${form.phoneCountryCode} ${form.phoneLocalNumber}`.trim();
+
+  const handleSendOtp = async () => {
+    setError(null);
+    setOtpMessage(null);
+    if (!form.phoneLocalNumber.trim()) {
+      setError('Please enter your phone number first.');
+      return;
+    }
+    setOtpSending(true);
+    try {
+      const res = await fetch(`${PLATFORM_API_BASE}/api/free-tests/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: currentPhone }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || 'Could not send the code. Please try again.');
+        return;
+      }
+      setOtpSentTo(currentPhone);
+      setOtpMessage(`We sent a code to ${currentPhone}.`);
+    } catch {
+      setError('Could not send the code. Please check your connection and try again.');
+    } finally {
+      setOtpSending(false);
+    }
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -94,6 +129,10 @@ export function FreeTestPage() {
 
     if (!form.name.trim() || !form.email.trim() || !form.phoneLocalNumber.trim()) {
       setError('Please fill in your full name, email, and phone number.');
+      return;
+    }
+    if (otpSentTo !== currentPhone || !otpCode.trim()) {
+      setError('Please verify your phone number: tap "Send code" and enter the code we text you.');
       return;
     }
     if (form.password.length < MIN_PASSWORD) {
@@ -117,6 +156,7 @@ export function FreeTestPage() {
           email: form.email.trim(),
           phone: fullPhone,
           password: form.password,
+          otpCode: otpCode.trim(),
           exam: form.exam,
           grade: form.grade,
           school: form.school.trim(),
@@ -429,7 +469,29 @@ export function FreeTestPage() {
                           value={form.phoneLocalNumber}
                           onChange={(e) => setForm({ ...form, phoneLocalNumber: e.target.value })}
                         />
+                        <button
+                          type="button"
+                          className="ft-otp-btn"
+                          onClick={handleSendOtp}
+                          disabled={otpSending || !form.phoneLocalNumber.trim()}
+                        >
+                          {otpSending ? 'Sending…' : otpSentTo === currentPhone ? 'Resend code' : 'Send code'}
+                        </button>
                       </div>
+                      {otpSentTo === currentPhone && (
+                        <input
+                          id="ft-otp"
+                          type="text"
+                          inputMode="numeric"
+                          autoComplete="one-time-code"
+                          maxLength={10}
+                          className="ft-input ft-otp-input"
+                          placeholder="Enter the code we texted you"
+                          value={otpCode}
+                          onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                        />
+                      )}
+                      {otpMessage && otpSentTo === currentPhone && <p className="ft-otp-note">{otpMessage}</p>}
                     </div>
                   </div>
 
@@ -549,7 +611,7 @@ export function FreeTestPage() {
 
                   <p className="ft-guarantee">
                     🔒 100% Free • No credit card • Already registered?{' '}
-                    <a href={APP_LOGIN_URL} style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'underline' }}>Log in</a>
+                    <a href={FREE_TEST_LOGIN_URL} style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'underline' }}>Log in</a>
                   </p>
                 </form>
               </div>
