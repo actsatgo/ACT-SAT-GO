@@ -19,13 +19,7 @@ export const QUERY_API_BASE =
 // Set VITE_PLATFORM_API_BASE=http://localhost:3000 in .env when running the
 // platform locally.
 export const PLATFORM_API_BASE =
-  import.meta.env.VITE_PLATFORM_API_BASE ?? 'https://scorpigo-platform.onrender.com';
-
-// Login page for Free Demo Test accounts. Those accounts are created on the
-// Scorpigo portal (PLATFORM_API_BASE above), so they log in there, while the
-// header "Login" button (APP_LOGIN_URL) keeps serving enrolled students.
-export const FREE_TEST_LOGIN_URL =
-  import.meta.env.VITE_FREE_TEST_LOGIN_URL ?? 'https://scorpigo.vercel.app/login';
+  import.meta.env.VITE_PLATFORM_API_BASE ?? 'https://act-sat-go.onrender.com';
 
 // Meta (Facebook) Pixel ID from Meta Events Manager, used for lead tracking on
 // the consultation forms. Override with VITE_META_PIXEL_ID in a .env file.
