@@ -5,6 +5,9 @@
 //   ASSIGNED ──(student submits summary)──▶ SUBMITTED ──(tutor approves)──▶ APPROVED
 //                                              │
 //                                              └─(tutor requests revision)─▶ NEEDS_REVISION ──(resubmit)──▶ SUBMITTED
+//
+// While SUBMITTED (not reviewed yet) the student may resubmit freely. Every
+// submission gets AI feedback (lib/articleFeedback.ts).
 
 export const STATUS = {
   ASSIGNED: 'ASSIGNED',
@@ -22,6 +25,7 @@ export const LIMITS = {
   sourceUrl: 500,
   summary: 10_000,
   feedback: 2_000,
+  instructions: 2_000,
   minSummaryWords: { min: 10, max: 500, default: 50 },
 }
 
@@ -36,6 +40,7 @@ export interface ArticleInput {
   subject: string | null
   body: string
   sourceUrl: string | null
+  instructions: string | null
   minSummaryWords: number
 }
 
@@ -47,6 +52,7 @@ export function parseArticleInput(raw: unknown): { error: string } | { value: Ar
   const subject = str(b.subject) || null
   const body = typeof b.body === 'string' ? b.body.replace(/\r\n/g, '\n').trim() : ''
   const sourceUrl = str(b.sourceUrl) || null
+  const instructions = typeof b.instructions === 'string' ? b.instructions.replace(/\r\n/g, '\n').trim() || null : null
   const min = b.minSummaryWords === undefined || b.minSummaryWords === null || b.minSummaryWords === ''
     ? LIMITS.minSummaryWords.default
     : Number(b.minSummaryWords)
@@ -66,10 +72,13 @@ export function parseArticleInput(raw: unknown): { error: string } | { value: Ar
       return { error: 'Source link must be a full web address starting with https://' }
     }
   }
+  if (instructions && instructions.length > LIMITS.instructions) {
+    return { error: `Instructions must be at most ${LIMITS.instructions.toLocaleString()} characters` }
+  }
   if (!Number.isInteger(min) || min < LIMITS.minSummaryWords.min || min > LIMITS.minSummaryWords.max) {
     return { error: `Minimum summary length must be between ${LIMITS.minSummaryWords.min} and ${LIMITS.minSummaryWords.max} words` }
   }
-  return { value: { title, topic, subject, body, sourceUrl, minSummaryWords: min } }
+  return { value: { title, topic, subject, body, sourceUrl, instructions, minSummaryWords: min } }
 }
 
 /** Optional due date: undefined = not provided, null = clear it. */

@@ -3,14 +3,14 @@ import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { ensureFlashcardTables } from '@/lib/flashcardTables'
 import {
-  allowedStudentIds, canAuthor, isAdmin, json, knownCount, notifyStudentsOfDeck, parseDeckInput,
+  allowedStudentIds, canAuthor, isAdmin, json, knownCount, notifyStudentsOfDeck, parseDeckInput, seenCount,
 } from '@/lib/flashcards'
 
 // GET /api/flashcards
 //   STUDENT → decks shared with them (with their own progress)
 //   TUTOR   → decks they created (with each student's progress)
 //   ADMIN   → every deck (add ?mine=1 for only their own)
-// POST /api/flashcards  { title, topic, description?, subject?, cards: [{front, back}], studentIds?: [] }
+// POST /api/flashcards  { title, topic, description?, subject?, cards: [{front, back, hint?, example?}], studentIds?: [] }
 
 export async function GET(request: NextRequest) {
   try {
@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
         where: { studentId: user.id },
         orderBy: { sharedAt: 'desc' },
         select: {
-          sharedAt: true, viewedAt: true, lastStudiedAt: true, knownCardIds: true,
+          sharedAt: true, viewedAt: true, lastStudiedAt: true, knownCardIds: true, seenCardIds: true,
           deck: {
             select: {
               id: true, title: true, topic: true, description: true, subject: true, updatedAt: true,
@@ -49,6 +49,7 @@ export async function GET(request: NextRequest) {
             viewedAt: s.viewedAt,
             lastStudiedAt: s.lastStudiedAt,
             knownCount: knownCount(s.knownCardIds, ids),
+            seenCount: seenCount(s.seenCardIds, s.knownCardIds, ids),
           }
         }),
       })
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
         shares: {
           orderBy: { sharedAt: 'asc' },
           select: {
-            studentId: true, sharedAt: true, viewedAt: true, lastStudiedAt: true, knownCardIds: true,
+            studentId: true, sharedAt: true, viewedAt: true, lastStudiedAt: true, knownCardIds: true, seenCardIds: true,
             student: { select: { name: true, email: true } },
           },
         },
@@ -94,6 +95,7 @@ export async function GET(request: NextRequest) {
             viewedAt: s.viewedAt,
             lastStudiedAt: s.lastStudiedAt,
             knownCount: knownCount(s.knownCardIds, ids),
+            seenCount: seenCount(s.seenCardIds, s.knownCardIds, ids),
           })),
         }
       }),
@@ -120,7 +122,7 @@ export async function POST(request: NextRequest) {
     const deck = await prisma.flashcardDeck.create({
       data: {
         title, topic, description, subject, createdById: user.id,
-        cards: { create: cards.map((c, i) => ({ front: c.front, back: c.back, orderIndex: i })) },
+        cards: { create: cards.map((c, i) => ({ front: c.front, back: c.back, hint: c.hint, example: c.example, orderIndex: i })) },
         shares: { create: studentIds.map((studentId) => ({ studentId })) },
       },
       select: { id: true },

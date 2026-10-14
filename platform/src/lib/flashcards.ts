@@ -12,10 +12,12 @@ export const LIMITS = {
   subject: 60,
   description: 5000,
   cardText: 2000,
+  hint: 500,
+  example: 1000,
   cards: 200,
 }
 
-export interface CardInput { front: string; back: string }
+export interface CardInput { front: string; back: string; hint: string | null; example: string | null }
 export interface DeckInput {
   title: string
   topic: string
@@ -51,7 +53,11 @@ export function parseDeckInput(body: unknown): { error: string } | { value: Deck
     if (front.length > LIMITS.cardText || back.length > LIMITS.cardText) {
       return { error: `Card text must be at most ${LIMITS.cardText} characters per side` }
     }
-    cards.push({ front, back })
+    const hint = str(c.hint) || null
+    const example = str(c.example) || null
+    if (hint && hint.length > LIMITS.hint) return { error: `A hint must be at most ${LIMITS.hint} characters` }
+    if (example && example.length > LIMITS.example) return { error: `An example must be at most ${LIMITS.example} characters` }
+    cards.push({ front, back, hint, example })
   }
   if (cards.length === 0) return { error: 'Add at least one card' }
   if (cards.length > LIMITS.cards) return { error: `A deck can have at most ${LIMITS.cards} cards` }
@@ -73,4 +79,14 @@ export async function notifyStudentsOfDeck(
 
 export function knownCount(known: unknown, cardIds: Set<string>): number {
   return Array.isArray(known) ? known.filter((id) => typeof id === 'string' && cardIds.has(id)).length : 0
+}
+
+/** Card ids from a stored JSON list that still belong to the deck. */
+export function validIds(raw: unknown, cardIds: Set<string>): string[] {
+  return Array.isArray(raw) ? [...new Set(raw.filter((id): id is string => typeof id === 'string' && cardIds.has(id)))] : []
+}
+
+/** Cards the student has seen: flipped or marked at least once (known cards count as seen). */
+export function seenCount(seen: unknown, known: unknown, cardIds: Set<string>): number {
+  return new Set([...validIds(seen, cardIds), ...validIds(known, cardIds)]).size
 }

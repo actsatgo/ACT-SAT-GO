@@ -57,6 +57,12 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$`,
 ]
 
+// Same as migration 10_article_ai_feedback_flashcard_hints.
+const COLUMNS = [
+  `ALTER TABLE "Article" ADD COLUMN IF NOT EXISTS "instructions" TEXT`,
+  `ALTER TABLE "ArticleAssignment" ADD COLUMN IF NOT EXISTS "submissions" JSONB`,
+]
+
 let ready: Promise<void> | null = null
 
 export function ensureArticleTables(): Promise<void> {
@@ -64,9 +70,12 @@ export function ensureArticleTables(): Promise<void> {
     const rows = await prisma.$queryRawUnsafe<{ t: string | null }[]>(
       `SELECT to_regclass('public."ArticleAssignment"')::text AS t`,
     )
-    if (rows[0]?.t) return
-    console.warn('[articles] tables missing (migration 9 not applied) — creating them')
-    for (const sql of DDL) await prisma.$executeRawUnsafe(sql)
+    if (!rows[0]?.t) {
+      console.warn('[articles] tables missing (migration 9 not applied) — creating them')
+      for (const sql of DDL) await prisma.$executeRawUnsafe(sql)
+    }
+    // Columns added later (migration 10). Cheap no-ops once they exist.
+    for (const sql of COLUMNS) await prisma.$executeRawUnsafe(sql)
   })().catch((err) => {
     ready = null // retry on the next request
     console.error('[articles] could not ensure tables:', err)

@@ -56,6 +56,13 @@ EXCEPTION WHEN duplicate_object THEN NULL;
 END $$`,
 ]
 
+// Same as migration 10_article_ai_feedback_flashcard_hints.
+const COLUMNS = [
+  `ALTER TABLE "FlashcardCard" ADD COLUMN IF NOT EXISTS "hint" TEXT`,
+  `ALTER TABLE "FlashcardCard" ADD COLUMN IF NOT EXISTS "example" TEXT`,
+  `ALTER TABLE "FlashcardShare" ADD COLUMN IF NOT EXISTS "seenCardIds" JSONB`,
+]
+
 let ready: Promise<void> | null = null
 
 export function ensureFlashcardTables(): Promise<void> {
@@ -63,9 +70,12 @@ export function ensureFlashcardTables(): Promise<void> {
     const rows = await prisma.$queryRawUnsafe<{ t: string | null }[]>(
       `SELECT to_regclass('public."FlashcardShare"')::text AS t`,
     )
-    if (rows[0]?.t) return
-    console.warn('[flashcards] tables missing (migration 9 not applied) — creating them')
-    for (const sql of DDL) await prisma.$executeRawUnsafe(sql)
+    if (!rows[0]?.t) {
+      console.warn('[flashcards] tables missing (migration 9 not applied) — creating them')
+      for (const sql of DDL) await prisma.$executeRawUnsafe(sql)
+    }
+    // Columns added later (migration 10). Cheap no-ops once they exist.
+    for (const sql of COLUMNS) await prisma.$executeRawUnsafe(sql)
   })().catch((err) => {
     ready = null // retry on the next request
     console.error('[flashcards] could not ensure tables:', err)

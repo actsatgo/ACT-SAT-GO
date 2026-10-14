@@ -9,7 +9,7 @@ import { wordCount } from './ArticleBody';
 // Create / edit an article and choose which students must read and summarise it.
 
 const SUBJECTS = ['SAT Math', 'SAT Reading & Writing', 'ACT English', 'ACT Math', 'ACT Reading', 'ACT Science', 'AP', 'General'];
-const LIMITS = { title: 160, topic: 120, subject: 60, body: 60_000, sourceUrl: 500, minWords: { min: 10, max: 500 } };
+const LIMITS = { title: 160, topic: 120, subject: 60, body: 60_000, sourceUrl: 500, instructions: 2_000, minWords: { min: 10, max: 500 } };
 
 /** yyyy-mm-dd (local) for an <input type="date">. */
 const toDateInput = (iso: string | null | undefined) => {
@@ -40,6 +40,7 @@ export function ArticleEditorModal({
   const [subject, setSubject] = useState('');
   const [body, setBody] = useState('');
   const [sourceUrl, setSourceUrl] = useState('');
+  const [instructions, setInstructions] = useState('');
   const [minWords, setMinWords] = useState('50');
   const [due, setDue] = useState('');
   const [assigned, setAssigned] = useState<Set<string>>(new Set());
@@ -54,6 +55,7 @@ export function ArticleEditorModal({
     setSubject(article?.subject ?? '');
     setBody(article?.body ?? '');
     setSourceUrl(article?.sourceUrl ?? '');
+    setInstructions(article?.instructions ?? '');
     setMinWords(String(article?.minSummaryWords ?? 50));
     setDue(toDateInput(article?.assignments?.find((a) => a.dueAt)?.dueAt));
     setAssigned(new Set((article?.assignments ?? []).map((a) => a.studentId)));
@@ -93,6 +95,7 @@ export function ArticleEditorModal({
       subject: subject.trim() || undefined,
       body,
       sourceUrl: sourceUrl.trim() || undefined,
+      instructions: instructions.trim(),
       minSummaryWords: Number(minWords),
     };
     const dueAt = fromDateInput(due);
@@ -144,6 +147,11 @@ export function ArticleEditorModal({
           <label className="block sm:col-span-2">
             <span className="text-xs font-semibold text-slate-600">Source link <span className="font-normal text-slate-400">(optional — shown to students as “Read the original”)</span></span>
             <input className={`${inputCls} mt-1`} value={sourceUrl} maxLength={LIMITS.sourceUrl} onChange={(e) => setSourceUrl(e.target.value)} placeholder="https://…" inputMode="url" />
+          </label>
+          <label className="block sm:col-span-2">
+            <span className="text-xs font-semibold text-slate-600">Instructions for students <span className="font-normal text-slate-400">(optional — shown above the summary box)</span></span>
+            <textarea className={`${inputCls} mt-1 min-h-[70px]`} value={instructions} maxLength={LIMITS.instructions} onChange={(e) => setInstructions(e.target.value)}
+              placeholder="e.g. Focus on the author's main argument and the two pieces of evidence they use." />
           </label>
           <label className="block">
             <span className="text-xs font-semibold text-slate-600">Minimum summary length (words)</span>

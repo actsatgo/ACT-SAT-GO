@@ -8,30 +8,42 @@ import { api, type DbUser, type FlashcardDeckDetail } from '../../lib/api';
 // Create / edit a flashcard deck and choose who it is shared with.
 
 const SUBJECTS = ['SAT Math', 'SAT Reading & Writing', 'ACT English', 'ACT Math', 'ACT Reading', 'ACT Science', 'AP', 'General'];
-const LIMITS = { title: 120, topic: 120, description: 5000, cardText: 2000, cards: 200 };
+const LIMITS = { title: 120, topic: 120, description: 5000, cardText: 2000, hint: 500, example: 1000, cards: 200 };
 
-interface EditableCard { key: string; id?: string; front: string; back: string }
+interface EditableCard { key: string; id?: string; front: string; back: string; hint: string; example: string }
+type ParsedCard = Omit<EditableCard, 'key' | 'id'>;
 
 let keySeq = 0;
 const newKey = () => `c${++keySeq}`;
-const blankCard = (): EditableCard => ({ key: newKey(), front: '', back: '' });
+const blankCard = (): EditableCard => ({ key: newKey(), front: '', back: '', hint: '', example: '' });
 
 /**
- * Turns pasted lines into cards. Each line is one card, split on the first
- * tab, " | ", " - ", " – " or ": " (in that order of preference).
+ * Turns pasted lines into cards, one card per line.
+ * With "|" or tabs:  word | hint | meaning | example   (example optional;
+ *                    a 2-field line "word | meaning" has no hint).
+ * Otherwise the line is split once on " - ", " – ", " — " or ": " into word and meaning.
  */
-export function parseBulkCards(text: string): { cards: Array<{ front: string; back: string }>; skipped: number } {
-  const cards: Array<{ front: string; back: string }> = [];
+export function parseBulkCards(text: string): { cards: ParsedCard[]; skipped: number } {
+  const cards: ParsedCard[] = [];
   let skipped = 0;
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim();
     if (!line) continue;
-    const sep = ['\t', ' | ', '|', ' - ', ' – ', ' — ', ': '].find((s) => line.includes(s));
+    const multi = line.includes('|') ? '|' : line.includes('\t') ? '\t' : null;
+    if (multi) {
+      const f = line.split(multi).map((x) => x.trim());
+      const card = f.length === 2
+        ? { front: f[0], hint: '', back: f[1], example: '' }
+        : { front: f[0], hint: f[1] ?? '', back: f[2] ?? '', example: f.slice(3).join(` ${multi} `).trim() };
+      if (card.front && card.back) cards.push(card); else skipped++;
+      continue;
+    }
+    const sep = [' - ', ' – ', ' — ', ': '].find((s) => line.includes(s));
     if (!sep) { skipped++; continue; }
     const i = line.indexOf(sep);
     const front = line.slice(0, i).trim();
     const back = line.slice(i + sep.length).trim();
-    if (front && back) cards.push({ front, back }); else skipped++;
+    if (front && back) cards.push({ front, back, hint: '', example: '' }); else skipped++;
   }
   return { cards, skipped };
 }
@@ -71,7 +83,9 @@ export function DeckEditorModal({
     setTopic(deck?.topic ?? '');
     setSubject(deck?.subject ?? '');
     setDescription(deck?.description ?? '');
-    setCards(deck?.cards.length ? deck.cards.map((c) => ({ key: newKey(), id: c.id, front: c.front, back: c.back })) : [blankCard(), blankCard()]);
+    setCards(deck?.cards.length
+      ? deck.cards.map((c) => ({ key: newKey(), id: c.id, front: c.front, back: c.back, hint: c.hint ?? '', example: c.example ?? '' }))
+      : [blankCard(), blankCard()]);
     setShared(new Set(initialSharedIds ?? []));
     setStudentQuery('');
     setBulkOpen(false);
@@ -79,7 +93,7 @@ export function DeckEditorModal({
     setError(null);
   }, [isOpen, deck, initialSharedIds]);
 
-  const filledCards = cards.filter((c) => c.front.trim() || c.back.trim());
+  const filledCards = cards.filter((c) => c.front.trim() || c.back.trim() || c.hint.trim() || c.example.trim());
   const filteredStudents = useMemo(() => {
     const q = studentQuery.trim().toLowerCase();
     const list = [...students].sort((a, b) => (a.name || a.email).localeCompare(b.name || b.email));
@@ -101,10 +115,10 @@ export function DeckEditorModal({
   const importBulk = () => {
     const { cards: parsed, skipped } = parseBulkCards(bulkText);
     if (parsed.length === 0) {
-      toast.error('No cards found — put one card per line, e.g. "Slope | rise over run"');
+      toast.error('No cards found — put one card per line, e.g. "ubiquitous | think: everywhere | found everywhere"');
       return;
     }
-    setCards((cs) => [...cs.filter((c) => c.front.trim() || c.back.trim()), ...parsed.map((p) => ({ key: newKey(), ...p }))]);
+    setCards((cs) => [...cs.filter((c) => c.front.trim() || c.back.trim() || c.hint.trim() || c.example.trim()), ...parsed.map((p) => ({ key: newKey(), ...p }))].slice(0, LIMITS.cards));
     setBulkText('');
     setBulkOpen(false);
     toast.success(`Added ${parsed.length} card${parsed.length === 1 ? '' : 's'}${skipped ? ` (${skipped} line${skipped === 1 ? '' : 's'} skipped)` : ''}`);
@@ -118,10 +132,12 @@ export function DeckEditorModal({
     if (filledCards.length === 0) return 'Add at least one card.';
     if (filledCards.length > LIMITS.cards) return `A deck can have at most ${LIMITS.cards} cards.`;
     const bad = filledCards.findIndex((c) => !c.front.trim() || !c.back.trim());
-    if (bad >= 0) return `Card ${cards.indexOf(filledCards[bad]) + 1} needs both a front and a back.`;
+    if (bad >= 0) return `Card ${cards.indexOf(filledCards[bad]) + 1} needs both a word (front) and a meaning (back).`;
     if (filledCards.some((c) => c.front.length > LIMITS.cardText || c.back.length > LIMITS.cardText)) {
       return `Each side of a card must be under ${LIMITS.cardText} characters.`;
     }
+    if (filledCards.some((c) => c.hint.length > LIMITS.hint)) return `Hints must be under ${LIMITS.hint} characters.`;
+    if (filledCards.some((c) => c.example.length > LIMITS.example)) return `Examples must be under ${LIMITS.example} characters.`;
     return null;
   };
 
@@ -135,7 +151,7 @@ export function DeckEditorModal({
       topic: topic.trim(),
       subject: subject.trim() || undefined,
       description: description.trim() || undefined,
-      cards: filledCards.map((c) => ({ id: c.id, front: c.front, back: c.back })),
+      cards: filledCards.map((c) => ({ id: c.id, front: c.front, back: c.back, hint: c.hint.trim() || undefined, example: c.example.trim() || undefined })),
     };
     try {
       if (deck) {
@@ -158,17 +174,17 @@ export function DeckEditorModal({
   const inputCls = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500';
 
   return (
-    <Modal isOpen={isOpen} onClose={() => !saving && onClose()} title={deck ? 'Edit flashcards' : 'New flashcards'} size="xl" closeOnBackdrop={false}>
+    <Modal isOpen={isOpen} onClose={() => !saving && onClose()} title={deck ? 'Edit vocab deck' : 'New vocab deck'} size="xl" closeOnBackdrop={false}>
       <div className="space-y-6">
         {/* Topic */}
         <section className="grid gap-4 sm:grid-cols-2">
           <label className="block sm:col-span-2">
             <span className="text-xs font-semibold text-slate-600">Deck title</span>
-            <input className={`${inputCls} mt-1`} value={title} maxLength={LIMITS.title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Linear equations — key ideas" />
+            <input className={`${inputCls} mt-1`} value={title} maxLength={LIMITS.title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. SAT words — week 3" />
           </label>
           <label className="block">
             <span className="text-xs font-semibold text-slate-600">Topic</span>
-            <input className={`${inputCls} mt-1`} value={topic} maxLength={LIMITS.topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Slope and intercepts" />
+            <input className={`${inputCls} mt-1`} value={topic} maxLength={LIMITS.topic} onChange={(e) => setTopic(e.target.value)} placeholder="e.g. Words about change" />
           </label>
           <label className="block">
             <span className="text-xs font-semibold text-slate-600">Subject <span className="font-normal text-slate-400">(optional)</span></span>
@@ -194,9 +210,12 @@ export function DeckEditorModal({
 
           {bulkOpen && (
             <div className="mb-4 rounded-xl border border-blue-100 bg-blue-50/50 p-3">
-              <p className="text-xs text-slate-600 mb-2">One card per line: <code className="bg-white px-1 rounded">front | back</code>. A tab, “ - ” or “: ” also works.</p>
-              <textarea className={`${inputCls} min-h-[110px] font-mono text-xs`} value={bulkText} onChange={(e) => setBulkText(e.target.value)}
-                placeholder={'Slope formula | (y2 − y1) / (x2 − x1)\nParallel lines | same slope\nPerpendicular lines | slopes are negative reciprocals'} />
+              <p className="text-xs text-slate-600 mb-2">
+                One card per line: <code className="bg-white px-1 rounded break-all">word | hint | meaning | example</code>. The example is optional;
+                {' '}<code className="bg-white px-1 rounded">word | meaning</code> (no hint) also works.
+              </p>
+              <textarea className={`${inputCls} min-h-[130px] font-mono text-xs`} value={bulkText} onChange={(e) => setBulkText(e.target.value)}
+                placeholder={'ubiquitous | think: everywhere | present or found everywhere | Phones are ubiquitous in schools.\nephemeral | lasts a day | lasting a very short time\nmitigate | opposite of worsen | to make less severe'} />
               <div className="mt-2 flex justify-end gap-2">
                 <Button size="sm" variant="ghost" onClick={() => setBulkOpen(false)}>Cancel</Button>
                 <Button size="sm" onClick={importBulk}>Add these cards</Button>
@@ -217,9 +236,13 @@ export function DeckEditorModal({
                 </div>
                 <div className="grid gap-2 sm:grid-cols-2">
                   <textarea className={`${inputCls} min-h-[64px]`} value={c.front} maxLength={LIMITS.cardText} onChange={(e) => updateCard(c.key, { front: e.target.value })}
-                    placeholder="Front — term or question" aria-label={`Card ${i + 1} front`} />
+                    placeholder="Front — word or term" aria-label={`Card ${i + 1} front`} />
                   <textarea className={`${inputCls} min-h-[64px]`} value={c.back} maxLength={LIMITS.cardText} onChange={(e) => updateCard(c.key, { back: e.target.value })}
-                    placeholder="Back — definition, answer or explanation" aria-label={`Card ${i + 1} back`} />
+                    placeholder="Back — meaning" aria-label={`Card ${i + 1} back`} />
+                  <input className={inputCls} value={c.hint} maxLength={LIMITS.hint} onChange={(e) => updateCard(c.key, { hint: e.target.value })}
+                    placeholder="Hint (optional)" aria-label={`Card ${i + 1} hint`} />
+                  <input className={inputCls} value={c.example} maxLength={LIMITS.example} onChange={(e) => updateCard(c.key, { example: e.target.value })}
+                    placeholder="Example sentence (optional)" aria-label={`Card ${i + 1} example`} />
                 </div>
               </li>
             ))}
