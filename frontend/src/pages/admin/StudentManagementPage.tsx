@@ -916,7 +916,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                         <div className="inline-flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200/50 flex-shrink-0">
                           <button
                             onClick={() => handleTableUpdateDecision(student.id, 'keep')}
-                            className={`px-[26px] py-0.5 text-[11px] font-bold rounded transition-all ${
+                            className={`px-[32px] py-1 text-[14px] font-bold rounded transition-all ${
                               student.diagnosticDecision === 'keep'
                                 ? 'bg-emerald-500 text-white shadow-sm'
                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
@@ -927,7 +927,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                           </button>
                           <button
                             onClick={() => handleTableUpdateDecision(student.id, 'leave')}
-                            className={`px-[26px] py-0.5 text-[11px] font-bold rounded transition-all ${
+                            className={`px-[32px] py-1 text-[14px] font-bold rounded transition-all ${
                               student.diagnosticDecision === 'leave'
                                 ? 'bg-rose-500 text-white shadow-sm'
                                 : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/50'
