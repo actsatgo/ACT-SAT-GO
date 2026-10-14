@@ -1065,12 +1065,12 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
             placeholder="Search by name or email…"
             value={analysisSearchTerm}
             onChange={(e) => setAnalysisSearchTerm(e.target.value)}
-            className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 min-w-0 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <select
             value={analysisSortBy}
             onChange={(e) => setAnalysisSortBy(e.target.value as any)}
-            className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="max-md:max-w-[9.5rem] px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option value="name">Sort by Name</option>
             <option value="diagnostics">Sort by Diagnostics</option>
@@ -1084,7 +1084,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
             <table className="w-full text-sm">
               <thead className="sticky top-0 bg-white z-20">
                 <tr className="bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                  <th className="px-4 py-2 text-center align-middle text-[15px] font-bold text-blue-950 whitespace-nowrap sticky left-0 bg-blue-50 bg-none z-30" rowSpan={2}>Students</th>
+                  <th className="px-4 py-2 max-md:px-3 text-center align-middle text-[15px] font-bold text-blue-950 whitespace-nowrap sticky left-0 bg-blue-50 bg-none z-30" rowSpan={2}>Students</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" colSpan={6}>Total Assessment</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap border-l border-blue-200" rowSpan={2}>Test Report</th>
                   <th className="px-4 py-2 text-center text-[15px] font-bold text-blue-950 whitespace-nowrap" rowSpan={2}>Performance</th>
@@ -1123,8 +1123,8 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                      })
                     .map((row, idx) => (
                       <tr key={row.studentId} className={`group/row border-b border-slate-100 hover:bg-blue-50/40 transition-colors ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'}`}>
-                        <td className={`px-4 py-3 sticky left-0 transition-colors z-10 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} group-hover/row:bg-blue-50`}>
-                          <div className="flex items-center gap-3 min-w-[200px]">
+                        <td className={`px-4 py-3 max-md:px-3 sticky left-0 transition-colors z-10 ${idx % 2 === 0 ? 'bg-white' : 'bg-slate-50'} group-hover/row:bg-blue-50`}>
+                          <div className="flex items-center gap-3 min-w-[200px] max-md:min-w-[150px] max-md:gap-2">
                           <StudentNameHover
                             studentId={row.studentId}
                             name={row.studentName}

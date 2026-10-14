@@ -39,6 +39,18 @@ export function SecurePdfViewer({ document: doc, canPrint, watermark, onClose }:
   const pagesRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  // Phones: open the document fitted to the screen width instead of at 125%.
+  useEffect(() => {
+    if (!pdf || !window.matchMedia('(max-width: 767px)').matches) return;
+    let cancelled = false;
+    pdf.getPage(1).then((page) => {
+      if (cancelled) return;
+      const w = page.getViewport({ scale: 1 }).width;
+      if (w > 0) setScale(Math.min(1.25, Math.max(0.4, +((window.innerWidth - 16) / w).toFixed(2))));
+    }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [pdf]);
+
   // Browser full screen for the reader itself (DESMOS and link panels live inside it).
   useEffect(() => {
     const onChange = () => setIsFullscreen(document.fullscreenElement === rootRef.current);
@@ -177,7 +189,7 @@ export function SecurePdfViewer({ document: doc, canPrint, watermark, onClose }:
   return (
     <div ref={rootRef} className="fixed inset-0 z-[70] flex flex-col bg-slate-800/95" onContextMenu={canPrint ? undefined : (e) => e.preventDefault()}>
       {/* Toolbar */}
-      <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-900 text-white shadow">
+      <div className="flex items-center gap-3 px-4 py-2.5 max-md:gap-1 max-md:px-2 bg-slate-900 text-white shadow">
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold">{doc.title}</p>
           <p className="text-[11px] text-slate-400">
@@ -190,18 +202,18 @@ export function SecurePdfViewer({ document: doc, canPrint, watermark, onClose }:
         <button onClick={() => setScale((s) => Math.max(0.5, +(s - 0.25).toFixed(2)))} className="p-2 rounded-lg hover:bg-slate-700" title="Zoom out">
           <ZoomOut size={18} />
         </button>
-        <span className="w-12 text-center text-xs tabular-nums">{Math.round(scale * 100)}%</span>
+        <span className="w-12 max-md:w-9 text-center text-xs tabular-nums">{Math.round(scale * 100)}%</span>
         <button onClick={() => setScale((s) => Math.min(3, +(s + 0.25).toFixed(2)))} className="p-2 rounded-lg hover:bg-slate-700" title="Zoom in">
           <ZoomIn size={18} />
         </button>
         <button
           onClick={() => setDesmosOpen((o) => !o)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border ${desmosOpen ? 'bg-white text-slate-900 border-white' : 'border-slate-500 hover:bg-slate-700'}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 max-md:px-2 rounded-lg text-xs font-semibold border ${desmosOpen ? 'bg-white text-slate-900 border-white' : 'border-slate-500 hover:bg-slate-700'}`}
           title="DESMOS calculator"
         >
-          <Calculator size={15} /> DESMOS
+          <Calculator size={15} /> <span className="hidden sm:inline">DESMOS</span>
         </button>
-        <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-slate-700" title={isFullscreen ? 'Exit full screen' : 'Full screen'}>
+        <button onClick={toggleFullscreen} className="p-2 rounded-lg hover:bg-slate-700 max-md:hidden" title={isFullscreen ? 'Exit full screen' : 'Full screen'}>
           {isFullscreen ? <Minimize2 size={18} /> : <Maximize2 size={18} />}
         </button>
         {canPrint && (
@@ -220,7 +232,7 @@ export function SecurePdfViewer({ document: doc, canPrint, watermark, onClose }:
       </div>
 
       {/* Pages */}
-      <div ref={pagesRef} className="flex-1 overflow-auto py-6" style={{ userSelect: 'none' }}>
+      <div ref={pagesRef} className="flex-1 overflow-auto py-6 max-md:py-2" style={{ userSelect: 'none' }}>
         {error ? (
           <p className="mt-20 text-center text-sm text-red-300">{error}</p>
         ) : !pdf ? (

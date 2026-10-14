@@ -1,6 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, BarChart3, Settings,
   LogOut, GraduationCap, ClipboardList, ChevronLeft, ChevronRight, X,
@@ -121,7 +121,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
   // Collapsed sidebar: hovering an icon shows the tab's name in a small label
   // to its right (portalled so the narrow sidebar never clips it).
   const [tip, setTip] = React.useState<{ label: string; top: number; left: number } | null>(null);
-  const tipProps = (label: string) => collapsed ? {
+  const tipProps = (label: string, collapsed: boolean) => collapsed ? {
     onMouseEnter: (e: React.MouseEvent<HTMLElement>) => {
       const r = e.currentTarget.getBoundingClientRect();
       setTip({ label, top: r.top + r.height / 2, left: r.right + 10 });
@@ -132,6 +132,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
 
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const [expandedItems, setExpandedItems] = React.useState<Record<string, boolean>>({});
   const [nextSatDate, setNextSatDate] = React.useState<string | null>(null);
 
@@ -139,6 +140,21 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
     if (!user || user.role === 'student') return;
     api.getSettings().then((r) => setNextSatDate(r.nextSatDate)).catch(() => {});
   }, [user?.role]);
+
+  // Phone drawer: close on any route change, close on Escape, and stop the page
+  // behind it from scrolling while it is open.
+  React.useEffect(() => { setMobileOpen(false); }, [pathname, setMobileOpen]);
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMobileOpen(false); };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [mobileOpen, setMobileOpen]);
 
   const toggleExpand = (e: React.MouseEvent, path: string) => {
     e.preventDefault();
@@ -157,7 +173,9 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
   // Called as a function, not rendered as <SidebarContent />: a component defined
   // inside Sidebar is a new type on every render, so each hover label (state change)
   // remounted the whole menu and threw away its scroll position.
-  const sidebarContent = () => (
+  // `collapsed` is a parameter so the phone drawer always renders the full,
+  // labelled menu even when the desktop sidebar is collapsed.
+  const sidebarContent = (collapsed: boolean) => (
     <div className="flex flex-col h-full bg-[#0B1E36] border-r border-white/5 transition-all duration-300">
       {/* Logo */}
       <div className={`flex items-center gap-2.5 px-4 py-4 border-b border-white/5 ${collapsed ? 'justify-center px-2' : ''}`}>
@@ -201,7 +219,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
                     : 'text-slate-300 hover:text-white hover:bg-white/5'
                 } ${collapsed ? 'justify-center' : ''}`
               }
-              {...tipProps(item.label)}
+              {...tipProps(item.label, collapsed)}
             >
               {({ isActive }) => (
                 <>
@@ -324,7 +342,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
         )}
 
         {user && (
-          <button type="button" onClick={() => { navigate('/profile'); setMobileOpen(false); }} title={collapsed ? undefined : 'My Profile'} {...tipProps('My Profile')}
+          <button type="button" onClick={() => { navigate('/profile'); setMobileOpen(false); }} title={collapsed ? undefined : 'My Profile'} {...tipProps('My Profile', collapsed)}
             className={`w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-xl mb-2 hover:bg-white/5 transition-colors ${collapsed ? 'justify-center px-0' : ''}`}>
             <UserAvatar name={user.name} src={user.avatar} className="w-8 h-8 bg-blue-600 text-white text-sm" />
             {!collapsed && (
@@ -339,7 +357,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
         <button
           onClick={handleLogout}
           className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200 text-[16px] font-medium group ${collapsed ? 'justify-center' : ''}`}
-          {...tipProps('Sign Out')}
+          {...tipProps('Sign Out', collapsed)}
         >
           <LogOut size={18} className="flex-shrink-0 group-hover:-translate-x-1 transition-transform" />
           {!collapsed && <span>Sign Out</span>}
@@ -369,12 +387,13 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
 
       {/* Mobile drawer */}
       <aside
+        inert={!mobileOpen}
         className={`
-          fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out md:hidden shadow-2xl
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
+          fixed inset-y-0 left-0 z-50 w-72 max-w-[85vw] transform transition-transform duration-300 ease-in-out md:hidden
+          ${mobileOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
         `}
       >
-        {sidebarContent()}
+        {sidebarContent(false)}
       </aside>
 
       {/* Desktop sidebar */}
@@ -385,7 +404,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
           h-screen sticky top-0 flex-shrink-0 shadow-lg border-r border-white/5 z-50
         `}
       >
-        {sidebarContent()}
+        {sidebarContent(collapsed)}
         {/* Collapse toggle */}
         <button
           onClick={() => setCollapsed(!collapsed)}

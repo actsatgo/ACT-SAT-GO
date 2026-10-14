@@ -377,9 +377,9 @@ export function TutorDashboard() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-md:flex max-md:flex-col">
       {/* Greetings & Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="max-md:-order-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-slate-900">
             {greetingForHour(today.getHours())}, {user?.name?.split(' ')[0]}!
@@ -391,7 +391,7 @@ export function TutorDashboard() {
       </div>
 
       {/* Info Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="max-md:-order-2 grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
             <CalendarDays size={16} />
@@ -442,7 +442,7 @@ export function TutorDashboard() {
       </div>
 
       {/* Tabs Selector Navigation */}
-      <div className="flex border-b border-slate-200 gap-4 pb-px">
+      <div className="max-md:-order-2 flex border-b border-slate-200 gap-4 pb-px">
         <button 
           onClick={() => setActiveTab('overview')} 
           className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2 -mb-px ${
@@ -705,8 +705,9 @@ export function TutorDashboard() {
             </div>
           </div>
 
+          {/* On phones this card is pulled up right under the tabs (CSS order) so a tutor sees homework status first. */}
           {/* Assigned Homework & Tests Overview across enrolled students */}
-          <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-100 overflow-hidden max-md:-order-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-50/40 via-white to-slate-50">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
@@ -801,8 +802,8 @@ export function TutorDashboard() {
                     }
 
                     return (
-                      <div key={a.assignmentId} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-blue-50/30 transition-colors">
-                        <Link to={`/student/${a.studentId}`} className="flex items-center gap-3 min-w-0 flex-1 group">
+                      <div key={a.assignmentId} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-blue-50/30 transition-colors max-md:flex-wrap max-md:gap-y-2 max-md:px-4">
+                        <Link to={`/student/${a.studentId}`} className="flex items-center gap-3 min-w-0 flex-1 group max-md:basis-full">
                           <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                             {a.studentName.charAt(0).toUpperCase()}
                           </div>
@@ -826,8 +827,8 @@ export function TutorDashboard() {
                           </div>
                         </Link>
 
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          <span className={`hidden sm:inline-block px-2 py-0.5 rounded text-xs border ${dueColor}`}>
+                        <div className="flex items-center gap-3 flex-shrink-0 max-md:w-full max-md:pl-11 max-md:gap-2">
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs border whitespace-nowrap ${dueColor}`}>
                             {dueText}
                           </span>
 
@@ -846,7 +847,7 @@ export function TutorDashboard() {
 
                           <button
                             onClick={() => navigate(`/test-instructions/${a.testId}?preview=true`)}
-                            className="px-2 py-1 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1"
+                            className="px-2 py-1 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1 max-md:ml-auto"
                             title="Open and preview test"
                           >
                             <Eye size={12} /> Open

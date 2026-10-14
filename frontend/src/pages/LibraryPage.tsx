@@ -116,7 +116,7 @@ export function LibraryPage() {
                 <th className="px-4 py-3 text-left font-semibold">Document</th>
                 <th className="px-4 py-3 text-left font-semibold hidden sm:table-cell">{isAdmin ? 'Uploaded' : 'Assigned'}</th>
                 {isAdmin && <th className="px-4 py-3 text-left font-semibold hidden md:table-cell">Assigned to</th>}
-                <th className="px-4 py-3 text-right font-semibold">Actions</th>
+                <th className={`px-4 py-3 text-right font-semibold ${isAdmin ? 'max-md:hidden' : ''}`}>Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -134,6 +134,16 @@ export function LibraryPage() {
                         </span>
                       </span>
                     </button>
+                    {/* Admin on phones: actions sit under the title instead of a cramped side column */}
+                    {isAdmin && (
+                      <div className="md:hidden mt-2 pl-12 flex items-center gap-1.5">
+                        <Button size="sm" variant="secondary" icon={<Eye size={14} />} onClick={() => setViewing(doc)}>View</Button>
+                        <Button size="sm" icon={<Users size={14} />} onClick={() => setAssigning(doc)}>Assign</Button>
+                        <button onClick={() => remove(doc)} className="ml-auto p-2 rounded-lg text-slate-400 hover:text-red-600 hover:bg-red-50" aria-label="Delete">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-slate-600 hidden sm:table-cell whitespace-nowrap">
                     {formatDate(isAdmin ? doc.createdAt : doc.assignedAt)}
@@ -143,7 +153,7 @@ export function LibraryPage() {
                       <AssigneeSummary doc={doc} />
                     </td>
                   )}
-                  <td className="px-4 py-3">
+                  <td className={`px-4 py-3 ${isAdmin ? 'max-md:hidden' : ''}`}>
                     <div className="flex items-center justify-end gap-1.5">
                       <Button size="sm" variant="secondary" icon={<Eye size={14} />} onClick={() => setViewing(doc)}>View</Button>
                       {isAdmin && (

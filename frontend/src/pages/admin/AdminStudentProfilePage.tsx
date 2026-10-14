@@ -795,7 +795,7 @@ export function AdminStudentProfilePage() {
 
             {/* Filter Pills & Search */}
             <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/50">
-              <div className="flex items-center gap-1.5 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap max-md:flex-nowrap max-md:overflow-x-auto max-md:-mx-4 max-md:px-4 max-md:pb-1">
                 {[
                   { key: 'all', label: 'All', count: assignedCounts.all },
                   { key: 'homework', label: 'Homework', count: assignedCounts.homework },
@@ -809,7 +809,7 @@ export function AdminStudentProfilePage() {
                     <button
                       key={tab.key}
                       onClick={() => setAssignedFilter(tab.key as any)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
+                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 max-md:flex-shrink-0 max-md:whitespace-nowrap ${
                         active ? 'bg-blue-600 text-white shadow-sm' : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200/70'
                       }`}
                     >
@@ -851,7 +851,67 @@ export function AdminStudentProfilePage() {
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <>
+              {/* Phones: one card per assignment (status and due date up front) instead of the wide table. */}
+              <ul className="md:hidden divide-y divide-slate-100">
+                {filteredAssignedTests.map((item) => {
+                  const dueInfo = formatTestDueDate(item.dueDate);
+                  const totalQs = item.sections?.reduce((acc, s) => acc + (s._count?.questions ?? 0), 0) || item.totalQuestions || 0;
+                  const totalMins = item.sections?.reduce((acc, s) => acc + s.durationMinutes, 0) || 0;
+                  const reviewId = item.submittedAttemptId || item.latestAttemptId;
+                  return (
+                    <li key={item.assignmentId} className="px-4 py-3 space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-semibold text-slate-900 text-sm leading-snug">{item.title}</p>
+                          <p className="text-xs text-slate-400 mt-0.5">
+                            {[totalQs > 0 ? `${totalQs} questions` : null, totalMins > 0 ? `${totalMins} mins` : null, `${item.usedAttempts}/${item.maxAttempts} attempts`].filter(Boolean).join(' • ')}
+                          </p>
+                        </div>
+                        <div className="flex-shrink-0">{getStatusBadge(item.status)}</div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {getTestBadge(item)}
+                        <span className={`inline-block px-2 py-0.5 rounded text-xs border ${dueInfo.style}`}>{dueInfo.label}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        {reviewId && (
+                          <button
+                            onClick={() => navigate(`/test-review/${reviewId}`)}
+                            className="px-3 py-1.5 text-xs font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
+                          >
+                            Review
+                          </button>
+                        )}
+                        <button
+                          onClick={() => navigate(`/test-instructions/${item.testId}?preview=true`)}
+                          className="px-3 py-1.5 text-xs font-semibold text-slate-600 bg-white hover:bg-slate-50 rounded-lg transition-colors border border-slate-200 flex items-center gap-1"
+                        >
+                          <Eye size={12} /> Preview
+                        </button>
+                        <button
+                          onClick={() => {
+                            setRescheduleTarget({ assignmentId: item.assignmentId, title: item.title });
+                            setRescheduleValue(isoToLocalDateTimeInput(item.dueDate));
+                          }}
+                          className="ml-auto p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          aria-label="Reschedule due date"
+                        >
+                          <CalendarClock size={16} />
+                        </button>
+                        <button
+                          onClick={() => setUnassignTarget({ assignmentId: item.assignmentId, title: item.title })}
+                          className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                          aria-label="Unassign this test/homework"
+                        >
+                          <UserMinus size={16} />
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+              <div className="overflow-x-auto hidden md:block">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-slate-50/80 border-b border-slate-200 text-slate-600 text-xs font-semibold">
@@ -952,6 +1012,7 @@ export function AdminStudentProfilePage() {
                   </tbody>
                 </table>
               </div>
+              </>
             )}
           </div>
 
