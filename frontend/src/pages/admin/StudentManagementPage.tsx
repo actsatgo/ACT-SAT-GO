@@ -909,7 +909,8 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                       <div key={student.id} className="group flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
                         <UserAvatar name={student.name} src={student.avatar} className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 text-white text-xs" />
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-slate-900 text-[21px] leading-tight truncate">{student.name}</p>
+                          <button type="button" onClick={() => { setShowManageModal(false); navigate(isTutor ? `/student/${student.id}` : `/students/${student.id}`); }}
+                            className="block max-w-full text-left font-semibold text-slate-900 text-[21px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{student.name}</button>
                         </div>
                         {statusToggle(student)}
                         {/* Row actions: edit, reset password, delete. */}
@@ -958,7 +959,8 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                   <div key={tutor.id} className="group flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
                     <UserAvatar name={tutor.name} src={tutor.avatar} className="w-8 h-8 bg-gradient-to-br from-violet-400 to-violet-600 text-white text-xs" />
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-slate-900 text-[21px] leading-tight truncate">{tutor.name}</p>
+                      <button type="button" onClick={() => { setShowManageModal(false); navigate(`/tutors?tutor=${tutor.id}`); }}
+                        className="block max-w-full text-left font-semibold text-slate-900 text-[21px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{tutor.name}</button>
                       <p className="text-xs text-slate-500 truncate">{tutor.email}</p>
                     </div>
                     {statusToggle(tutor)}

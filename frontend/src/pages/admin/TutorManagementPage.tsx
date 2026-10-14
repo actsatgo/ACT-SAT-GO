@@ -69,6 +69,15 @@ export function TutorManagementPage() {
   const [showEditModal, setShowEditModal] = useState<DbUser | null>(null);
   const [showTrashModal, setShowTrashModal] = useState(false);
 
+  // /tutors?tutor=<id> (from Accounts) opens that tutor's dashboard.
+  const openTutorId = searchParams.get('tutor');
+  useEffect(() => {
+    if (!openTutorId || tutors.length === 0) return;
+    const t = tutors.find((x) => x.id === openTutorId);
+    if (t) setShowAnalyticsModal(t);
+    setSearchParams((p) => { p.delete('tutor'); return p; }, { replace: true });
+  }, [openTutorId, tutors]);
+
   // Forms & Loading states
   const [assignedStudentIds, setAssignedStudentIds] = useState<string[]>([]);
   const [addForm, setAddForm] = useState({ firstName: '', lastName: '', email: '', specializations: [] as string[], hourlyRate: '', canAddStudents: false });
