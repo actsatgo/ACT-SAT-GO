@@ -6,6 +6,7 @@ import { Card } from '../../components/common/Card';
 import { useAuthStore } from '../../store/useAuthStore';
 import { api } from '../../lib/api';
 import { supabase } from '../../lib/supabase';
+import { UserAvatar, imageFileToAvatar } from '../../components/common/UserAvatar';
 
 type TabKey = 'profile' | 'notifications' | 'platform' | 'security';
 
@@ -33,6 +34,29 @@ export function SettingsPage({ mode = 'settings' }: { mode?: 'settings' | 'profi
   });
 
   const isSuperAdmin = user?.role === 'super_admin';
+
+  // Profile picture: cropped and shrunk in the browser, saved on the account.
+  const [photoSaving, setPhotoSaving] = useState(false);
+  const [photoError, setPhotoError] = useState('');
+  const savePhoto = async (avatar: string | null) => {
+    if (!user) return;
+    setPhotoError(''); setPhotoSaving(true);
+    try {
+      await api.updateUser(user.id, { avatar });
+      updateUser({ avatar: avatar ?? undefined });
+    } catch (e) {
+      setPhotoError((e as Error).message || 'Could not save the photo');
+    } finally {
+      setPhotoSaving(false);
+    }
+  };
+  const handlePhoto = async (file: File) => {
+    try {
+      savePhoto(await imageFileToAvatar(file));
+    } catch (e) {
+      setPhotoError((e as Error).message);
+    }
+  };
 
   const [nextSatDate, setNextSatDate] = useState('');
   const [nextSatDateSaved, setNextSatDateSaved] = useState(false);
@@ -148,13 +172,20 @@ export function SettingsPage({ mode = 'settings' }: { mode?: 'settings' | 'profi
             <Card>
               <h2 className="font-semibold text-slate-900 mb-5">Profile Information</h2>
               <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
-                <div className="w-16 h-16 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-700 text-2xl font-bold flex-shrink-0">
-                  {user?.name?.charAt(0) ?? 'U'}
-                </div>
+                <UserAvatar name={user?.name} src={user?.avatar} className="w-16 h-16 bg-blue-100 text-blue-700 text-2xl" />
                 <div>
                   <p className="font-semibold text-slate-900">{user?.name}</p>
                   <p className="text-sm text-slate-500">{user?.email}</p>
-                  <Button variant="ghost" size="sm" className="mt-1 px-0 text-blue-600 hover:text-blue-700">Change photo</Button>
+                  <div className="flex items-center gap-3 mt-1">
+                    <label className={`text-sm font-medium text-blue-600 hover:text-blue-700 cursor-pointer ${photoSaving ? 'opacity-50 pointer-events-none' : ''}`}>
+                      {photoSaving ? 'Saving…' : user?.avatar ? 'Change photo' : 'Add photo'}
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) handlePhoto(f); }} />
+                    </label>
+                    {user?.avatar && !photoSaving && (
+                      <button type="button" onClick={() => savePhoto(null)} className="text-sm text-slate-500 hover:text-red-600">Remove</button>
+                    )}
+                  </div>
+                  {photoError && <p className="text-xs text-red-600 mt-1">{photoError}</p>}
                 </div>
               </div>
               <div className="space-y-4">

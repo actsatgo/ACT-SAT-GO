@@ -51,6 +51,9 @@ export async function GET(
         email: user.email,
         role: user.role.toLowerCase(),
         isDemo: perms.accountType === 'DEMO',
+        canAddStudents: perms.canAddStudents === true,
+        coordinator: perms.coordinator === true,
+        avatar: (perms.avatar as string | undefined) ?? null,
         createdAt: user.createdAt,
         deletedAt: user.deletedAt,
         // Kept for back-compat with callers that only render one tutor.
@@ -157,7 +160,7 @@ export async function PATCH(
       phone, parentPhone, dob, schoolName, diagnosticDecision,
       board, timezone, firstClassDate, programVariant, mockVariant,
       accommodation, stage, onboarded,
-      manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate,
+      manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate, canAddStudents, avatar,
       salarySettlements, paidSessionIds,
     } = body as {
       name?: string
@@ -187,6 +190,8 @@ export async function PATCH(
       manualDiagRW?: number | null
       manualDiagMath?: number | null
       hourlyRate?: number | null
+      canAddStudents?: boolean
+      avatar?: string | null
       salarySettlements?: any[]
       paidSessionIds?: string[]
     }
@@ -267,6 +272,14 @@ export async function PATCH(
     // Compensation data — only an admin/super-admin may set this, never the tutor
     // editing their own profile (the self-edit path above allows requester.id === userId).
     if (isAdmin && hourlyRate !== undefined) permissions.hourlyRate = hourlyRate
+    // Profile picture: a small image data URL made in the browser ('' or null removes it).
+    if (avatar !== undefined) {
+      if (!avatar) delete permissions.avatar
+      else if (typeof avatar !== 'string' || !/^data:image\/(jpeg|png|webp);base64,/.test(avatar) || avatar.length > 200_000) {
+        return NextResponse.json({ error: 'Profile picture must be a JPEG, PNG or WebP image under 150 KB' }, { status: 400 })
+      } else permissions.avatar = avatar
+    }
+    if (isAdmin && canAddStudents !== undefined) permissions.canAddStudents = canAddStudents === true
     if (isAdmin && salarySettlements !== undefined) permissions.salarySettlements = salarySettlements
     if (isAdmin && paidSessionIds !== undefined) permissions.paidSessionIds = paidSessionIds
 
@@ -320,6 +333,8 @@ export async function PATCH(
         name: (user as unknown as { name?: string | null }).name ?? permissions.displayName as string ?? user.email.split('@')[0],
         email: user.email,
         role: user.role.toLowerCase(),
+        canAddStudents: permissions.canAddStudents === true,
+        avatar: (permissions.avatar as string | undefined) ?? null,
         createdAt: user.createdAt,
         ...(tutors ? { tutors, tutorId: tutors[0]?.id ?? null, tutorName: tutors[0]?.name ?? null } : {}),
         grade: permissions.grade ?? null,
