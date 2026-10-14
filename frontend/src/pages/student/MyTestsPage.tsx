@@ -1,11 +1,14 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, FileSearch, Clock, Target, Loader2, BookOpen, Search, X, CheckCircle, ListTodo } from 'lucide-react';
+import { Play, FileSearch, Clock, Target, Loader2, BookOpen, Search, X, CheckCircle, ListTodo, Laptop } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { loadStudentAnalytics, computeSatScore, type QRecord } from '../../lib/analyticsData';
 import { resolveScoreMode } from '../../lib/testCategorize';
 import { formatDate } from '../../lib/utils';
+import { useTestBlockedDevice } from '../../hooks/useTestBlockedDevice';
+import { isTestBlockedDevice, TEST_DEVICE_MESSAGE } from '../../lib/testDevice';
+import { TestDeviceDialog } from '../../components/common/TestDeviceNotice';
 
 interface ApiTest {
   assignmentId: string;
@@ -118,6 +121,9 @@ export function MyTestsPage() {
   const [tab, setTab] = useState<'todo' | 'completed'>('todo');
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterKey | null>(null);
+  // Tests can't be started/resumed on phones — tapping Start shows a notice instead.
+  const testBlocked = useTestBlockedDevice();
+  const [deviceNotice, setDeviceNotice] = useState(false);
 
   useEffect(() => {
     if (!dbId) { setLoading(false); return; }
@@ -174,13 +180,14 @@ export function MyTestsPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <TestDeviceDialog open={deviceNotice} onClose={() => setDeviceNotice(false)} />
+      <div className="flex items-center justify-between gap-4 flex-wrap max-md:gap-3">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-slate-900">My Tests</h1>
           <p className="text-slate-500 text-sm mt-0.5">{tests.length} test{tests.length !== 1 ? 's' : ''} assigned</p>
         </div>
         {tests.length > 0 && (
-          <div className="relative w-56">
+          <div className="relative w-56 max-sm:w-full">
             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               value={search}
@@ -196,6 +203,13 @@ export function MyTestsPage() {
           </div>
         )}
       </div>
+
+      {testBlocked && pending.length > 0 && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2.5 text-sm text-[#1b3d6e]">
+          <Laptop size={18} className="flex-shrink-0 mt-0.5" />
+          <p><span className="font-semibold">{TEST_DEVICE_MESSAGE}.</span> You can still review your completed tests here.</p>
+        </div>
+      )}
 
       {tests.length > 0 && (
         <div className="inline-flex items-center gap-1 bg-slate-100 rounded-xl p-1">
@@ -225,7 +239,7 @@ export function MyTestsPage() {
       )}
 
       {tests.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5 max-md:flex-nowrap max-md:overflow-x-auto max-md:-mx-3 max-md:px-3 max-md:pb-1">
           {/* Custom-exam students only see tabs that have tests (no empty SAT tabs). */}
           {TEST_FILTERS.filter(f => user?.track !== 'CUSTOM' || pool.some(f.match)).map(f => {
             const count = pool.filter(f.match).length;
@@ -234,7 +248,7 @@ export function MyTestsPage() {
                 key={f.key}
                 onClick={() => count > 0 && setActiveFilter(activeFilter === f.key ? null : f.key)}
                 disabled={count === 0}
-                className={`text-xs font-medium px-3 py-1 rounded-full border transition-all flex items-center gap-1.5 ${
+                className={`text-xs font-medium px-3 py-1 rounded-full border transition-all flex items-center gap-1.5 max-md:flex-shrink-0 max-md:whitespace-nowrap ${
                   activeFilter === f.key
                     ? 'bg-[#1b3d6e] text-white border-[#1b3d6e]'
                     : count === 0
@@ -280,9 +294,11 @@ export function MyTestsPage() {
               const isInProgress = test.status === 'In Progress';
               const usedAttempts = Math.max(test.maxAttempts - test.remainingAttempts, 0);
               const isRetake = !isInProgress && usedAttempts > 0;
-              const go = () => isInProgress && test.inProgressAttemptId
-                ? navigate(`/test/${test.testId}?attemptId=${test.inProgressAttemptId}`)
-                : navigate(`/test-instructions/${test.testId}`);
+              const go = () => {
+                if (isTestBlockedDevice()) { setDeviceNotice(true); return; }
+                if (isInProgress && test.inProgressAttemptId) navigate(`/test/${test.testId}?attemptId=${test.inProgressAttemptId}`);
+                else navigate(`/test-instructions/${test.testId}`);
+              };
               return (
                 <div key={test.assignmentId} onClick={go} className="bg-white border-2 border-[#1b3d6e]/20 rounded-xl p-3 cursor-pointer hover:border-[#1b3d6e]/40 transition-colors flex flex-col gap-1.5">
                   <div className="flex items-center gap-1 flex-wrap">
@@ -315,7 +331,7 @@ export function MyTestsPage() {
                     onClick={(e) => { e.stopPropagation(); go(); }}
                     className="mt-auto w-full flex items-center justify-center gap-1.5 bg-[#1b3d6e] text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-[#15305a] transition-colors"
                   >
-                    <Play size={12} />
+                    {testBlocked ? <Laptop size={12} /> : <Play size={12} />}
                     {isInProgress ? 'Continue' : isRetake ? 'Retake' : 'Start Test'}
                   </button>
                 </div>

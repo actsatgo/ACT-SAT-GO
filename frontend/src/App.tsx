@@ -1,8 +1,10 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { createBrowserRouter, RouterProvider, createRoutesFromElements, Route, Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuthStore } from './store/useAuthStore';
 import { DashboardLayout } from './components/layout/DashboardLayout';
+import { TestDeviceBlockedPage } from './components/common/TestDeviceNotice';
+import { useTestBlockedDevice } from './hooks/useTestBlockedDevice';
 
 // Auth — kept eager so the login screen paints instantly (it's the common entry).
 import { LoginPage } from './pages/auth/LoginPage';
@@ -99,6 +101,21 @@ function DemoGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+// Students can't start or resume a test on a phone: the test routes render a
+// full-page notice instead (the test screens themselves are untouched). Staff
+// previews (?preview=true from admin/tutor pages) are left alone.
+// Once a test has opened it is never torn down by a later resize (a desktop
+// window dragged narrow mid-test must not lose the student's test); while
+// blocked, widening the window lets the test open.
+function TestDeviceGuard({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthStore();
+  const blocked = useTestBlockedDevice();
+  const opened = useRef(false);
+  if (blocked && !opened.current && user?.role === 'student') return <TestDeviceBlockedPage />;
+  opened.current = true;
+  return <>{children}</>;
+}
+
 function DashboardRouter() {
   const { user } = useAuthStore();
   if (!user) return null;
@@ -134,10 +151,10 @@ const router = createBrowserRouter(
 
       {/* Full-screen test pages (no dashboard layout) */}
       <Route path="/test-instructions/:testId" element={
-        <ProtectedRoute><Suspense fallback={<PageFallback />}><TestInstructionsPage /></Suspense></ProtectedRoute>
+        <ProtectedRoute><TestDeviceGuard><Suspense fallback={<PageFallback />}><TestInstructionsPage /></Suspense></TestDeviceGuard></ProtectedRoute>
       } />
       <Route path="/test/:testId" element={
-        <ProtectedRoute><Suspense fallback={<PageFallback />}><TestInterfacePage /></Suspense></ProtectedRoute>
+        <ProtectedRoute><TestDeviceGuard><Suspense fallback={<PageFallback />}><TestInterfacePage /></Suspense></TestDeviceGuard></ProtectedRoute>
       } />
 
       {/* Dashboard layout — its <Outlet/> is wrapped in Suspense for lazy children */}

@@ -55,11 +55,15 @@ export function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white border-b border-slate-100 px-4 md:px-6 h-13 flex items-center justify-between sticky top-0 z-30">
-      <div className="flex items-center gap-3">
-        <button onClick={onMenuClick} className="md:hidden p-1.5 rounded-lg text-slate-400 hover:bg-slate-50 transition-colors">
-          <Menu size={18} />
+    <header className="bg-white border-b border-slate-100 px-3 md:px-6 h-13 flex items-center justify-between sticky top-0 z-30">
+      <div className="flex items-center gap-2 md:gap-3 min-w-0">
+        <button onClick={onMenuClick} aria-label="Open menu" className="md:hidden -ml-1.5 p-2 rounded-lg text-slate-500 hover:bg-slate-50 active:bg-slate-100 transition-colors">
+          <Menu size={20} />
         </button>
+        {/* Brand on phones only, where the sidebar (and its logo) is tucked into the drawer */}
+        <span className="md:hidden font-extrabold tracking-tight text-[15px] leading-none text-[#0B1E36] whitespace-nowrap truncate">
+          Score&nbsp;<span className="text-amber-500">π</span>&nbsp;Go
+        </span>
       </div>
 
       <div className="flex items-center gap-1">
@@ -69,13 +73,13 @@ export function Header({ onMenuClick }: HeaderProps) {
             className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
               desmosOpen ? 'bg-blue-50 text-blue-700' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50'
             }`}>
-            <Calculator size={16} /> DESMOS
+            <Calculator size={16} /> <span className="hidden sm:inline">DESMOS</span>
           </button>
         )}
 
         {/* Notifications */}
         <div className="relative" ref={notifRef}>
-          <button onClick={() => setNotifOpen(!notifOpen)}
+          <button onClick={() => setNotifOpen(!notifOpen)} aria-label="Notifications"
             className="relative p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-colors">
             <Bell size={16} />
             {unreadCount > 0 && (
@@ -83,7 +87,7 @@ export function Header({ onMenuClick }: HeaderProps) {
             )}
           </button>
           {notifOpen && (
-            <div className="absolute right-0 mt-1 w-72 bg-white rounded-xl border border-slate-100 z-50">
+            <div className="absolute right-0 mt-1 w-72 max-w-[calc(100vw-1.5rem)] bg-white rounded-xl border border-slate-100 z-50">
               <div className="px-4 py-3 border-b border-slate-50 flex items-center justify-between">
                 <p className="text-sm font-medium text-slate-900">Notifications</p>
                 {unreadCount > 0 && (

@@ -1090,7 +1090,7 @@ export function TestsPage() {
             <div
               key={test.id}
               onClick={bundleMode ? () => toggleTestSelection(test.id) : undefined}
-              className={`bg-white border rounded-xl px-4 py-3 flex items-center gap-4 transition-all ${
+              className={`bg-white border rounded-xl px-4 py-3 flex items-center gap-4 max-md:flex-wrap max-md:gap-x-3 max-md:gap-y-2 transition-all ${
                 bundleMode
                   ? `cursor-pointer ${isSelectedForBundle ? 'border-blue-400 ring-2 ring-blue-200 bg-blue-50/40' : 'border-slate-100 hover:border-blue-200'}`
                   : 'border-slate-100 hover:border-slate-200 hover:shadow-sm'
@@ -1113,15 +1113,15 @@ export function TestsPage() {
                 </div>
               )}
 
-              {/* Title + meta */}
-              <div className="min-w-0 flex-1">
+              {/* Title + meta (phones: fills the first row; status + actions wrap below) */}
+              <div className="min-w-0 flex-1 max-md:basis-[calc(100%-3.25rem)]">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-semibold text-slate-900 text-sm leading-tight truncate">{test.title}</h3>
+                  <h3 className="font-semibold text-slate-900 text-sm leading-tight truncate max-md:w-full max-md:whitespace-normal">{test.title}</h3>
                   {cat && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${typeColors[cat] ?? 'bg-slate-100 text-slate-600'}`}>{cat}</span>}
                   {subject && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{subject}</span>}
                   {assignType && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">{assignType}</span>}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 max-md:flex-wrap max-md:gap-y-0.5 max-md:[&>span]:whitespace-nowrap">
                   <span className="flex items-center gap-1"><FileText size={11} /> {totalQ} questions</span>
                   <span className="flex items-center gap-1"><Clock size={11} /> {totalTime} min</span>
                   <span className="flex items-center gap-1"><Users size={11} /> {attemptsCount} attempts</span>
@@ -1130,13 +1130,13 @@ export function TestsPage() {
               </div>
 
               {/* Status */}
-              <Badge variant={statusLower === 'published' ? 'success' : statusLower === 'draft' ? 'warning' : 'default'}>
+              <Badge variant={statusLower === 'published' ? 'success' : statusLower === 'draft' ? 'warning' : 'default'} className={bundleMode ? '' : 'max-md:ml-[3.25rem]'}>
                 {statusLower}
               </Badge>
 
               {/* Actions (hidden while bundling) */}
               {!bundleMode && (
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1 flex-shrink-0 max-md:ml-auto">
                 {statusLower === 'published' && (
                   <Button variant="primary" size="sm" icon={<UserPlus size={13} />} onClick={() => setAssignModal(test)}>
                     Assign
