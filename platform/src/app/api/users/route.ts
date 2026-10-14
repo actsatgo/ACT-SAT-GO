@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
           role: u.role.toLowerCase(),
           isDemo: perms.accountType === 'DEMO',
           canAddStudents: perms.canAddStudents === true,
+          coordinator: perms.coordinator === true,
           avatar: (perms.avatar as string | undefined) ?? null,
           createdAt: u.createdAt,
           deletedAt: u.deletedAt,
@@ -135,12 +136,15 @@ export async function POST(request: NextRequest) {
   try {
     // Staff admins may create any user. A tutor may create STUDENT accounts only
     // when an admin turned on "Can add student accounts" (permissions.canAddStudents);
-    // those students are assigned to that tutor.
+    // those students are assigned to that tutor. A coordinator (a TUTOR flagged
+    // permissions.coordinator by an admin) may create students and tutors; tutors it
+    // creates can never add students themselves.
     const requester = await getCurrentUser(request)
     if (!requester) return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
     const isAdmin = requester.role === 'ADMIN' || requester.role === 'SUPER_ADMIN'
-    const tutorMayAdd = requester.role === 'TUTOR' &&
-      ((requester.permissions ?? {}) as Record<string, unknown>).canAddStudents === true
+    const requesterPerms = (requester.permissions ?? {}) as Record<string, unknown>
+    const isCoordinator = requester.role === 'TUTOR' && requesterPerms.coordinator === true
+    const tutorMayAdd = requester.role === 'TUTOR' && (requesterPerms.canAddStudents === true || isCoordinator)
     if (!isAdmin && !tutorMayAdd) {
       return NextResponse.json({ error: 'Insufficient permissions' }, { status: 403 })
     }
@@ -150,7 +154,7 @@ export async function POST(request: NextRequest) {
       name, email, role, grade, targetScore, targetDate, tutorId, tutorIds, specialization,
       phone, parentPhone, dob, schoolName, board, timezone, firstClassDate,
       programVariant, mockVariant, accommodation, stage, onboarded,
-      manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate, canAddStudents,
+      manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate, canAddStudents, coordinator,
     } = body as {
       name: string
       email: string
@@ -178,6 +182,7 @@ export async function POST(request: NextRequest) {
       manualDiagMath?: number | null
       hourlyRate?: number | null
       canAddStudents?: boolean
+      coordinator?: boolean
     }
 
     // 1. Validation
@@ -194,7 +199,7 @@ export async function POST(request: NextRequest) {
     if (!VALID_ROLES.includes(upperRole)) {
       return NextResponse.json({ error: 'Invalid role value specified' }, { status: 400 })
     }
-    if (!isAdmin && upperRole !== 'STUDENT') {
+    if (!isAdmin && upperRole !== 'STUDENT' && !(isCoordinator && upperRole === 'TUTOR')) {
       return NextResponse.json({ error: 'You can only add student accounts' }, { status: 403 })
     }
 
@@ -272,7 +277,14 @@ export async function POST(request: NextRequest) {
     if (manualDiagMath != null) permissions.manualDiagMath = manualDiagMath
     // Compensation data — only meaningful (and only ever stored) for tutors.
     if (upperRole === 'TUTOR' && hourlyRate != null) permissions.hourlyRate = Number(hourlyRate)
-    if (upperRole === 'TUTOR') permissions.canAddStudents = canAddStudents === true
+    if (upperRole === 'TUTOR') {
+      if (isAdmin && coordinator === true) {
+        permissions.coordinator = true
+        permissions.canAddStudents = true
+      } else {
+        permissions.canAddStudents = isAdmin && canAddStudents === true
+      }
+    }
 
     const user = await prisma.user.create({
       data: {
@@ -286,7 +298,7 @@ export async function POST(request: NextRequest) {
 
     // 5. Assigned tutor relation(s) — a student may have more than one tutor.
     if (upperRole === 'STUDENT') {
-      const ids = isAdmin
+      const ids = isAdmin || isCoordinator
         ? Array.from(new Set(tutorIds?.length ? tutorIds : tutorId ? [tutorId] : []))
         : [requester.id]
       if (ids.length) {

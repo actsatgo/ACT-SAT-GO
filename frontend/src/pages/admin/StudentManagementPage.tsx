@@ -83,7 +83,10 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
   const [tutorAddLoading, setTutorAddLoading] = useState(false);
   // Tutors may add students only when an admin allowed it ("Can add student accounts").
   const [tutorCanAdd, setTutorCanAdd] = useState(false);
-  const canAddAccounts = !isTutor || tutorCanAdd;
+  // Coordinators are tutor accounts an admin flagged as coordinator: on the Accounts
+  // page they see every student and tutor and may add both.
+  const isCoordinatorView = isTutor && accountsPage && user?.isCoordinator === true;
+  const canAddAccounts = !isTutor || tutorCanAdd || user?.isCoordinator === true;
   const [confirmDeleteStudent, setConfirmDeleteStudent] = useState<DbUser | null>(null);
   const [deleteStudentLoading, setDeleteStudentLoading] = useState(false);
   const [showTrashModal, setShowTrashModal] = useState(false);
@@ -322,13 +325,13 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
   const reload = () => {
     if (isTutor && !dbId) return;
     Promise.all([
-      (isTutor
+      (isTutor && !isCoordinatorView
         ? api.getTutorAssignments({ tutorId: dbId! }).then((r) => setStudents(r.assignments.map((a) => a.student as DbUser)))
         : api.getUsersByRole('STUDENT').then((r) => setStudents(r.users ?? []))),
       api.getUsersByRole('TUTOR').then((r) => setTutors(r.users ?? [])),
     ]);
   };
-  useEffect(() => { reload(); }, [dbId, isTutor]);
+  useEffect(() => { reload(); }, [dbId, isTutor, isCoordinatorView]);
   useEffect(() => {
     if (!isTutor || !dbId) return;
     api.getUser(dbId).then((r) => setTutorCanAdd(r.user.canAddStudents === true)).catch(() => {});
@@ -685,7 +688,9 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
     setTutorAddError(''); setTutorAddLoading(true);
     try {
       const name = `${tutorForm.firstName} ${tutorForm.lastName}`.trim() || email.split('@')[0];
-      const res = await api.createUser({ name, email, role: 'TUTOR', canAddStudents: tutorForm.canAddStudents });
+      const res = await api.createUser(accountTab === 'coordinators'
+        ? { name, email, role: 'TUTOR', coordinator: true }
+        : { name, email, role: 'TUTOR', canAddStudents: isTutor ? false : tutorForm.canAddStudents });
       setShowAddTutor(false);
       if (res.tempPassword) setCreatedPassword({ name, email, password: res.tempPassword });
       reload();
@@ -803,13 +808,17 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
   // ── Derived data ──────────────────────────────────────────────────────────
   // display variables cleaned up as student list was consolidated
 
-  const accountTabs: { key: 'students' | 'tutors' | 'coordinators'; label: string }[] = isTutor
+  const accountTabs: { key: 'students' | 'tutors' | 'coordinators'; label: string }[] = isCoordinatorView
+    ? [{ key: 'students', label: 'Students' }, { key: 'tutors', label: 'Tutors' }]
+    : isTutor
     ? [{ key: 'students', label: 'Students' }]
     : [{ key: 'students', label: 'Students' }, { key: 'tutors', label: 'Tutors' }, { key: 'coordinators', label: 'Coordinators' }];
-  const filteredTutors = tutors.filter((t) => {
+  const matchesSearch = (t: DbUser) => {
     const q = manageSearch.toLowerCase();
     return !q || t.name.toLowerCase().includes(q) || t.email.toLowerCase().includes(q);
-  });
+  };
+  const filteredTutors = tutors.filter((t) => !t.coordinator && matchesSearch(t));
+  const filteredCoordinators = tutors.filter((t) => t.coordinator && matchesSearch(t));
 
   // Student counts, With Tutors, Bulk Upload (+ Manage Accounts for tutors). Shown to tutors only (removed from the admin Accounts page, 14 Oct).
   const headerChips = () => {
@@ -847,6 +856,59 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
     );
   };
 
+  // Tutor or coordinator rows in Manage Accounts (both are tutor accounts).
+  const staffList = (list: DbUser[], emptyText: string) => (
+    <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100 border border-slate-100 rounded-lg">
+      {list.length === 0 ? (
+        <p className="px-3 py-6 text-center text-sm text-slate-400">{emptyText}</p>
+      ) : list.map((tutor) => (
+        <div key={tutor.id} className="group flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
+          <UserAvatar name={tutor.name} src={tutor.avatar} className="w-8 h-8 bg-gradient-to-br from-violet-400 to-violet-600 text-white text-xs" />
+          <div className="min-w-0 flex-1">
+            {isTutor ? (
+              <p className="font-semibold text-slate-900 text-[21px] leading-tight truncate">{tutor.name}</p>
+            ) : (
+              <button type="button" onClick={() => { setShowManageModal(false); navigate(`/tutors?tutor=${tutor.id}`); }}
+                className="block max-w-full text-left font-semibold text-slate-900 text-[21px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{tutor.name}</button>
+            )}
+            <p className="text-xs text-slate-500 truncate">{tutor.email}</p>
+          </div>
+          {!isTutor && statusToggle(tutor)}
+          {/* Row actions: edit, reset password, delete (admins only). */}
+          {!isTutor && <div className="flex items-center">
+            <HoverLabel label="Edit">
+              <button
+                onClick={() => { setShowManageModal(false); navigate('/tutors'); }}
+                className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                aria-label="Edit (opens the Tutors page)"
+              >
+                <Pencil size={18} />
+              </button>
+            </HoverLabel>
+            <HoverLabel label="Reset Password">
+              <button
+                onClick={() => setResetPasswordTarget(tutor)}
+                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                aria-label="Reset Password"
+              >
+                <KeyRound size={18} />
+              </button>
+            </HoverLabel>
+            <HoverLabel label="Delete">
+              <button
+                onClick={() => setConfirmDeleteStudent(tutor)}
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                aria-label="Delete"
+              >
+                <Trash2 size={18} />
+              </button>
+            </HoverLabel>
+          </div>}
+        </div>
+      ))}
+    </div>
+  );
+
   // Manage Accounts content: inline on the Accounts page (admins), in a modal for tutors.
   const accountsPanel = (
             <div className="space-y-3">
@@ -864,18 +926,16 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                   placeholder="Search by name or email…"
                   value={manageSearch}
                   onChange={(e) => setManageSearch(e.target.value)}
-                  disabled={accountTab === 'coordinators'}
                   className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-slate-50"
                 />
-                {accountTab !== 'coordinators' && (
+                {!isTutor && (
                   <Button size="sm" variant="secondary" icon={<Trash size={13} />} onClick={() => setShowTrashModal(true)}>Trash</Button>
                 )}
                 {canAddAccounts && <Button
                   size="sm"
                   icon={<Plus size={13} />}
-                  disabled={accountTab === 'coordinators'}
                   onClick={() => {
-                    if (accountTab === 'tutors') {
+                    if (accountTab === 'tutors' || accountTab === 'coordinators') {
                       setTutorForm({ firstName: '', lastName: '', email: '', canAddStudents: false }); setTutorAddError('');
                       setShowManageModal(false);
                       setShowAddTutor(true);
@@ -910,12 +970,14 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                       <div key={student.id} className="group flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
                         <UserAvatar name={student.name} src={student.avatar} className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 text-white text-xs" />
                         <div className="min-w-0 flex-1">
-                          <button type="button" onClick={() => { setShowManageModal(false); navigate(isTutor ? `/student/${student.id}` : `/students/${student.id}`); }}
-                            className="block max-w-full text-left font-semibold text-slate-900 text-[21px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{student.name}</button>
+                          {isCoordinatorView ? (
+                            <p className="font-semibold text-slate-900 text-[21px] leading-tight truncate">{student.name}</p>
+                          ) : <button type="button" onClick={() => { setShowManageModal(false); navigate(isTutor ? `/student/${student.id}` : `/students/${student.id}`); }}
+                            className="block max-w-full text-left font-semibold text-slate-900 text-[21px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{student.name}</button>}
                         </div>
-                        {statusToggle(student)}
-                        {/* Row actions: edit, reset password, delete. */}
-                        <div className="flex items-center">
+                        {!isTutor && statusToggle(student)}
+                        {/* Row actions: edit, reset password, delete (admins only). */}
+                        {!isTutor && <div className="flex items-center">
                           <HoverLabel label="Edit">
                             <button
                               onClick={() => startEditStudent(student)}
@@ -943,64 +1005,14 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                               <Trash2 size={18} />
                             </button>
                           </HoverLabel>
-                        </div>
+                        </div>}
                       </div>
                     ))
                 )}
               </div>
               )}
-              {accountTab === 'tutors' && (
-              <div className="max-h-[60vh] overflow-y-auto divide-y divide-slate-100 border border-slate-100 rounded-lg">
-                {filteredTutors.length === 0 ? (
-                  <p className="px-3 py-6 text-center text-sm text-slate-400">No tutors found</p>
-                ) : filteredTutors.map((tutor) => (
-                  <div key={tutor.id} className="group flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
-                    <UserAvatar name={tutor.name} src={tutor.avatar} className="w-8 h-8 bg-gradient-to-br from-violet-400 to-violet-600 text-white text-xs" />
-                    <div className="min-w-0 flex-1">
-                      <button type="button" onClick={() => { setShowManageModal(false); navigate(`/tutors?tutor=${tutor.id}`); }}
-                        className="block max-w-full text-left font-semibold text-slate-900 text-[21px] leading-tight truncate hover:text-blue-700 hover:underline" title="Open profile">{tutor.name}</button>
-                      <p className="text-xs text-slate-500 truncate">{tutor.email}</p>
-                    </div>
-                    {statusToggle(tutor)}
-                    {/* Row actions: edit, reset password, delete. */}
-                    <div className="flex items-center">
-                      <HoverLabel label="Edit">
-                        <button
-                          onClick={() => { setShowManageModal(false); navigate('/tutors'); }}
-                          className="p-2 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                          aria-label="Edit (opens the Tutors page)"
-                        >
-                          <Pencil size={18} />
-                        </button>
-                      </HoverLabel>
-                      <HoverLabel label="Reset Password">
-                        <button
-                          onClick={() => setResetPasswordTarget(tutor)}
-                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          aria-label="Reset Password"
-                        >
-                          <KeyRound size={18} />
-                        </button>
-                      </HoverLabel>
-                      <HoverLabel label="Delete">
-                        <button
-                          onClick={() => setConfirmDeleteStudent(tutor)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          aria-label="Delete"
-                        >
-                          <Trash2 size={18} />
-                        </button>
-                      </HoverLabel>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              )}
-              {accountTab === 'coordinators' && (
-                <p className="px-3 py-8 text-center text-sm text-slate-500 border border-slate-100 rounded-lg">
-                  Coordinator accounts aren't set up in the portal yet.
-                </p>
-              )}
+              {accountTab === 'tutors' && staffList(filteredTutors, 'No tutors found')}
+              {accountTab === 'coordinators' && staffList(filteredCoordinators, 'No coordinators yet')}
             </div>
   );
 
@@ -1729,7 +1741,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
       </Modal>
 
       {/* ── Add Tutor account (from Manage Accounts) ── */}
-      <Modal isOpen={showAddTutor} onClose={() => setShowAddTutor(false)} title="Add Tutor Account" size="sm"
+      <Modal isOpen={showAddTutor} onClose={() => setShowAddTutor(false)} title={accountTab === 'coordinators' ? 'Add Coordinator Account' : 'Add Tutor Account'} size="sm"
         footer={
           <div className="flex justify-end gap-2">
             <Button variant="secondary" size="sm" onClick={() => setShowAddTutor(false)}>Cancel</Button>
@@ -1747,9 +1759,15 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
           </div>
           <input type="email" placeholder="Email" value={tutorForm.email} onChange={(e) => setTutorForm((f) => ({ ...f, email: e.target.value }))}
             className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-          <CanAddStudentsToggle value={tutorForm.canAddStudents} onChange={(v) => setTutorForm((f) => ({ ...f, canAddStudents: v }))} />
+          {accountTab === 'coordinators' ? (
+            <p className="text-xs text-slate-500">Coordinators can add tutor and student accounts. Tutors they add can't add students.</p>
+          ) : isTutor ? (
+            <p className="text-xs text-slate-500">Tutors you add can't add student accounts themselves.</p>
+          ) : (
+            <CanAddStudentsToggle value={tutorForm.canAddStudents} onChange={(v) => setTutorForm((f) => ({ ...f, canAddStudents: v }))} />
+          )}
           {tutorAddError && <p className="text-xs text-red-600">{tutorAddError}</p>}
-          <p className="text-xs text-slate-500">Subjects and pay rate can be set later on the Tutors page.</p>
+          {!isTutor && <p className="text-xs text-slate-500">Subjects and pay rate can be set later on the Tutors page.</p>}
         </div>
       </Modal>
 
@@ -1784,7 +1802,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
       </Modal>
 
       <TrashModal isOpen={showTrashModal} onClose={() => setShowTrashModal(false)}
-        role={accountTab === 'tutors' ? 'TUTOR' : 'STUDENT'} entityLabel={accountTab === 'tutors' ? 'Tutor' : 'Student'} onChanged={reload} />
+        role={accountTab === 'students' ? 'STUDENT' : 'TUTOR'} entityLabel={accountTab === 'students' ? 'Student' : accountTab === 'tutors' ? 'Tutor' : 'Coordinator'} onChanged={reload} />
 
       {/* ── Temp Password Modal — backdrop click disabled so a stray click can't lose
            a password that's never shown again (it's never stored in plaintext). ── */}

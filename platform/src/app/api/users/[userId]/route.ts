@@ -52,6 +52,7 @@ export async function GET(
         role: user.role.toLowerCase(),
         isDemo: perms.accountType === 'DEMO',
         canAddStudents: perms.canAddStudents === true,
+        coordinator: perms.coordinator === true,
         avatar: (perms.avatar as string | undefined) ?? null,
         createdAt: user.createdAt,
         deletedAt: user.deletedAt,
