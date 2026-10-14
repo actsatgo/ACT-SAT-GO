@@ -302,16 +302,6 @@ export function LoginPage() {
             </button>
           </div>
 
-          <p className="text-sm text-slate-500 text-center mt-4">
-            New to ScoreπGo?{' '}
-            <button
-              type="button"
-              onClick={() => setNotice('Accounts are created by your administrator. Please contact them to get access.')}
-              className="font-semibold text-[#2f6dff] hover:underline"
-            >
-              Create an account
-            </button>
-          </p>
         </div>
       </div>
 
