@@ -1,11 +1,11 @@
 // Student enrollment status, derived from the post-diagnostic decision.
 //   diagnosticDecision === 'keep'  → Active   (kept after diagnostic)
 //   diagnosticDecision === 'leave' → Inactive (not kept, or left mid-sem / after tenure)
-//   null / undefined               → Pending  (diagnostic decision not made yet)
+//   null / undefined               → Active   (every account is Active or Inactive; user, 14 Oct)
 export type StudentStatus = 'active' | 'inactive' | 'pending';
 
 export function studentStatusFromDecision(decision?: 'keep' | 'leave' | null): StudentStatus {
-  return decision === 'keep' ? 'active' : decision === 'leave' ? 'inactive' : 'pending';
+  return decision === 'leave' ? 'inactive' : 'active';
 }
 
 export const STUDENT_STATUS_LABEL: Record<StudentStatus, string> = {

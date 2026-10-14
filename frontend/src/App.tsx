@@ -1,11 +1,16 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { createBrowserRouter, RouterProvider, createRoutesFromElements, Route, Navigate, useLocation } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import { useAuthStore } from './store/useAuthStore';
 import { DashboardLayout } from './components/layout/DashboardLayout';
+import { TestDeviceBlockedPage } from './components/common/TestDeviceNotice';
+import { useTestBlockedDevice } from './hooks/useTestBlockedDevice';
 
 // Auth — kept eager so the login screen paints instantly (it's the common entry).
 import { LoginPage } from './pages/auth/LoginPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
+import { AuthCallbackPage } from './pages/auth/AuthCallbackPage';
+import { ChangeTempPasswordPage } from './pages/auth/ChangeTempPasswordPage';
 
 // All other pages are code-split so each route's JS (and heavy deps like pdf.js,
 // KaTeX and recharts) only loads when that route is actually visited.
@@ -24,15 +29,13 @@ const QuestionBankPage = lazy(() => import('./pages/admin/QuestionBankPage').the
 const SupportPage = lazy(() => import('./pages/admin/SupportPage').then((m) => ({ default: m.SupportPage })));
 const StudentDoubtsAdminPage = lazy(() => import('./pages/admin/StudentDoubtsAdminPage').then((m) => ({ default: m.StudentDoubtsAdminPage })));
 const StudentMistakesPage = lazy(() => import('./pages/admin/StudentMistakesPage').then((m) => ({ default: m.StudentMistakesPage })));
+const TestReportPage = lazy(() => import('./pages/TestReportPage').then((m) => ({ default: m.TestReportPage })));
 const SkillsManagementPage = lazy(() => import('./pages/admin/SkillsManagementPage').then((m) => ({ default: m.SkillsManagementPage })));
 const AdminAttendancePage = lazy(() => import('./pages/admin/AdminAttendancePage').then((m) => ({ default: m.AdminAttendancePage })));
 const AdminFreeTestLeadsPage = lazy(() => import('./pages/admin/AdminFreeTestLeadsPage').then((m) => ({ default: m.AdminFreeTestLeadsPage })));
 
 // Tutor pages
 const TutorDashboard = lazy(() => import('./pages/tutor/TutorDashboard').then((m) => ({ default: m.TutorDashboard })));
-const MyStudentsPage = lazy(() => import('./pages/tutor/MyStudentsPage').then((m) => ({ default: m.MyStudentsPage })));
-const StudentDetailPage = lazy(() => import('./pages/tutor/StudentDetailPage').then((m) => ({ default: m.StudentDetailPage })));
-const TutorAnalyticsPage = lazy(() => import('./pages/tutor/TutorAnalyticsPage').then((m) => ({ default: m.TutorAnalyticsPage })));
 const AttendancePage = lazy(() => import('./pages/tutor/AttendancePage').then((m) => ({ default: m.AttendancePage })));
 
 // Student pages
@@ -49,6 +52,15 @@ const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage')
 const ReviewAttemptsPage = lazy(() => import('./pages/student/ReviewAttemptsPage').then((m) => ({ default: m.ReviewAttemptsPage })));
 const MistakesPage = lazy(() => import('./pages/student/MistakesPage').then((m) => ({ default: m.MistakesPage })));
 const DoubtsPage = lazy(() => import('./pages/student/DoubtsPage').then((m) => ({ default: m.DoubtsPage })));
+const FlashcardsPage = lazy(() => import('./pages/flashcards/FlashcardsPage').then((m) => ({ default: m.FlashcardsPage })));
+const FlashcardStudyPage = lazy(() => import('./pages/flashcards/FlashcardStudyPage').then((m) => ({ default: m.FlashcardStudyPage })));
+const ArticlesPage = lazy(() => import('./pages/articles/ArticlesPage').then((m) => ({ default: m.ArticlesPage })));
+const MaterialsPage = lazy(() => import('./pages/materials/MaterialsPage').then((m) => ({ default: m.MaterialsPage })));
+const MaterialViewerPage = lazy(() => import('./pages/materials/MaterialViewerPage').then((m) => ({ default: m.MaterialViewerPage })));
+const ArticleReadPage = lazy(() => import('./pages/articles/ArticleReadPage').then((m) => ({ default: m.ArticleReadPage })));
+const LiveClassPage = lazy(() => import('./pages/LiveClassPage').then((m) => ({ default: m.LiveClassPage })));
+const PTMReportsPage = lazy(() => import('./pages/PTMReportsPage').then((m) => ({ default: m.PTMReportsPage })));
+const LibraryPage = lazy(() => import('./pages/LibraryPage').then((m) => ({ default: m.LibraryPage })));
 const MyProgressPage = lazy(() => import('./pages/student/MyProgressPage').then((m) => ({ default: m.MyProgressPage })));
 
 function PageFallback() {
@@ -60,8 +72,10 @@ function PageFallback() {
 }
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, user } = useAuthStore();
   if (!isAuthenticated) return <Navigate to="/login" replace />;
+  // Temporary password from an admin/coordinator: set a new one first.
+  if (user?.mustChangePassword) return <ChangeTempPasswordPage />;
   return <>{children}</>;
 }
 
@@ -72,6 +86,7 @@ const DEMO_ALLOWED = [
   /^\/dashboard$/,
   /^\/analytics$/,
   /^\/settings$/,
+  /^\/profile$/,
   /^\/test-instructions\/[^/]+$/,
   /^\/test\/[^/]+$/,
   /^\/test-review\/[^/]+(\/section\/[^/]+)?$/,
@@ -83,6 +98,21 @@ function DemoGuard({ children }: { children: React.ReactNode }) {
   if (user?.isDemo && !DEMO_ALLOWED.some((re) => re.test(pathname))) {
     return <Navigate to="/dashboard" replace />;
   }
+  return <>{children}</>;
+}
+
+// Students can't start or resume a test on a phone: the test routes render a
+// full-page notice instead (the test screens themselves are untouched). Staff
+// previews (?preview=true from admin/tutor pages) are left alone.
+// Once a test has opened it is never torn down by a later resize (a desktop
+// window dragged narrow mid-test must not lose the student's test); while
+// blocked, widening the window lets the test open.
+function TestDeviceGuard({ children }: { children: React.ReactNode }) {
+  const { user } = useAuthStore();
+  const blocked = useTestBlockedDevice();
+  const opened = useRef(false);
+  if (blocked && !opened.current && user?.role === 'student') return <TestDeviceBlockedPage />;
+  opened.current = true;
   return <>{children}</>;
 }
 
@@ -100,8 +130,8 @@ function AnalyticsRouter() {
   const { user } = useAuthStore();
   if (!user) return null;
   if (user.role === 'student') return <AnalyticsPage />;
-  if (user.role === 'tutor') return <TutorAnalyticsPage />;
-  return <AdminAnalyticsPage />;
+  if (user.role === 'tutor') return <AdminAnalyticsPage scope="tutor" />;
+  return <AdminAnalyticsPage scope="all" />;
 }
 
 function AttendanceRouter() {
@@ -116,13 +146,15 @@ const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/auth/callback" element={<AuthCallbackPage />} />
 
       {/* Full-screen test pages (no dashboard layout) */}
       <Route path="/test-instructions/:testId" element={
-        <ProtectedRoute><Suspense fallback={<PageFallback />}><TestInstructionsPage /></Suspense></ProtectedRoute>
+        <ProtectedRoute><TestDeviceGuard><Suspense fallback={<PageFallback />}><TestInstructionsPage /></Suspense></TestDeviceGuard></ProtectedRoute>
       } />
       <Route path="/test/:testId" element={
-        <ProtectedRoute><Suspense fallback={<PageFallback />}><TestInterfacePage /></Suspense></ProtectedRoute>
+        <ProtectedRoute><TestDeviceGuard><Suspense fallback={<PageFallback />}><TestInterfacePage /></Suspense></TestDeviceGuard></ProtectedRoute>
       } />
 
       {/* Dashboard layout — its <Outlet/> is wrapped in Suspense for lazy children */}
@@ -139,6 +171,7 @@ const router = createBrowserRouter(
         {/* Admin + Super Admin */}
         <Route path="tests" element={<TestsPage />} />
         <Route path="test-builder" element={<TestBuilderPage />} />
+        <Route path="accounts" element={<StudentManagementPage accountsPage />} />
         <Route path="students" element={<StudentManagementPage />} />
         <Route path="students/:id" element={<AdminStudentProfilePage />} />
         <Route path="free-test-leads" element={<AdminFreeTestLeadsPage />} />
@@ -160,8 +193,8 @@ const router = createBrowserRouter(
         <Route path="user-management" element={<SuperAdminDashboard />} />
 
         {/* Tutor */}
-        <Route path="my-students" element={<MyStudentsPage />} />
-        <Route path="student/:id" element={<StudentDetailPage />} />
+        <Route path="my-students" element={<StudentManagementPage />} />
+        <Route path="student/:id" element={<AdminStudentProfilePage />} />
         <Route path="analytics" element={<AnalyticsRouter />} />
         <Route path="attendance" element={<AttendanceRouter />} />
 
@@ -172,10 +205,24 @@ const router = createBrowserRouter(
         <Route path="test-review/:attemptId" element={<TestReviewPage />} />
         <Route path="test-review/:attemptId/section/:sectionIdx" element={<SectionReviewPage />} />
         <Route path="mistakes" element={<MistakesPage />} />
+        <Route path="test-report" element={<TestReportPage />} />
         <Route path="doubts" element={<DoubtsPage />} />
 
         {/* Shared */}
+        <Route path="flashcards" element={<FlashcardsPage />} />
+        <Route path="flashcards/:deckId" element={<FlashcardStudyPage />} />
+        <Route path="articles" element={<ArticlesPage />} />
+        <Route path="articles/:articleId" element={<ArticleReadPage />} />
+        <Route path="materials" element={<MaterialsPage />} />
+        <Route path="materials/:materialId" element={<MaterialViewerPage />} />
+        {/* ASG Library — every role; the page shows admins everything, others only what is assigned */}
+        <Route path="library" element={<LibraryPage />} />
+        <Route path="ptm-reports" element={<PTMReportsPage />} />
+        {/* Live Class — tutors and admins start a class, the student joins it */}
+        <Route path="live-class" element={<LiveClassPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        {/* My Profile — opened by clicking your own name (sidebar or top bar) */}
+        <Route path="profile" element={<SettingsPage mode="profile" />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

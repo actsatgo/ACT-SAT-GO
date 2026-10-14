@@ -464,9 +464,11 @@ function PackageAssignModal({ pkg, onClose }: { pkg: DbTestPackage; onClose: () 
 
 // ── Test category filter helpers ──────────────────────────────────────────────
 
-const isTestMock       = (t: ApiTest) => t.category === 'Mock' || t.category === 'Mock Test' || /\bmock\b/i.test(t.title ?? '');
-const isTestDiagnostic = (t: ApiTest) => t.category === 'Diagnostic' || /\bdiagnostic\b/i.test(t.title ?? '');
-const isTestSectional  = (t: ApiTest) => t.category === 'Sectional' || /\bsectional\b/i.test(t.title ?? '');
+// Custom-exam tests (e.g. "IELTS Mock 1") are their own group, never SAT/ACT mocks.
+const isTestCustom     = (t: ApiTest) => (t.category ?? '').toLowerCase() === 'custom';
+const isTestMock       = (t: ApiTest) => !isTestCustom(t) && (t.category === 'Mock' || t.category === 'Mock Test' || /\bmock\b/i.test(t.title ?? ''));
+const isTestDiagnostic = (t: ApiTest) => !isTestCustom(t) && (t.category === 'Diagnostic' || /\bdiagnostic\b/i.test(t.title ?? ''));
+const isTestSectional  = (t: ApiTest) => !isTestCustom(t) && (t.category === 'Sectional' || /\bsectional\b/i.test(t.title ?? ''));
 // Test Builder tags homework as subCategory "{Subject}-Homework" (e.g. "Math-Homework"),
 // which does NOT contain the substring "hw" — match on "homework" instead.
 const isTestHW         = (t: ApiTest) => { const s = (t.subCategory ?? '').toLowerCase(); const ti = (t.title ?? '').toLowerCase(); return s.includes('homework') || ti.includes(' hw') || ti.endsWith('hw') || /\bhw\b/.test(ti) || ti.includes('homework') || /\b(hw|m-hw|r-hw|w-hw|rw-hw|mhw|rhw|whw|rwhw)\b/.test(ti); };
@@ -490,6 +492,7 @@ const TEST_CAT_FILTERS = [
   { key: 'Math Practice'   , match: (t: ApiTest) => isTestMath(t) && isTestPractice(t) },
   { key: 'Reading Practice', match: (t: ApiTest) => isTestReading(t) && isTestPractice(t) },
   { key: 'Writing Practice', match: (t: ApiTest) => isTestWriting(t) && isTestPractice(t) },
+  { key: 'Custom Exams'    , match: isTestCustom },
 ] as const;
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
@@ -1069,7 +1072,8 @@ export function TestsPage() {
           const statusLower = test.status.toLowerCase();
 
           const cat = test.category;
-          const subParts = test.subCategory?.split('-') ?? [];
+          // Custom tests keep the exam name whole (it may contain "-").
+          const subParts = cat === 'Custom' ? [test.subCategory ?? ''] : test.subCategory?.split('-') ?? [];
           const subject = subParts[0];
           const assignType = subParts[1];
           const typeColors: Record<string, string> = {
@@ -1077,6 +1081,7 @@ export function TestsPage() {
             'Sectional':      'bg-emerald-100 text-emerald-800',
             'Practice Sheet': 'bg-purple-100 text-purple-800',
             'Diagnostic':     'bg-amber-100 text-amber-800',
+            'Custom':         'bg-rose-100 text-rose-800',
           };
 
           const isSelectedForBundle = selectedTestIds.has(test.id);
@@ -1085,7 +1090,7 @@ export function TestsPage() {
             <div
               key={test.id}
               onClick={bundleMode ? () => toggleTestSelection(test.id) : undefined}
-              className={`bg-white border rounded-xl px-4 py-3 flex items-center gap-4 transition-all ${
+              className={`bg-white border rounded-xl px-4 py-3 flex items-center gap-4 max-md:flex-wrap max-md:gap-x-3 max-md:gap-y-2 transition-all ${
                 bundleMode
                   ? `cursor-pointer ${isSelectedForBundle ? 'border-blue-400 ring-2 ring-blue-200 bg-blue-50/40' : 'border-slate-100 hover:border-blue-200'}`
                   : 'border-slate-100 hover:border-slate-200 hover:shadow-sm'
@@ -1108,15 +1113,15 @@ export function TestsPage() {
                 </div>
               )}
 
-              {/* Title + meta */}
-              <div className="min-w-0 flex-1">
+              {/* Title + meta (phones: fills the first row; status + actions wrap below) */}
+              <div className="min-w-0 flex-1 max-md:basis-[calc(100%-3.25rem)]">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="font-semibold text-slate-900 text-sm leading-tight truncate">{test.title}</h3>
+                  <h3 className="font-semibold text-slate-900 text-sm leading-tight truncate max-md:w-full max-md:whitespace-normal">{test.title}</h3>
                   {cat && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${typeColors[cat] ?? 'bg-slate-100 text-slate-600'}`}>{cat}</span>}
                   {subject && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">{subject}</span>}
                   {assignType && <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">{assignType}</span>}
                 </div>
-                <div className="flex items-center gap-3 text-xs text-slate-500 mt-1">
+                <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 max-md:flex-wrap max-md:gap-y-0.5 max-md:[&>span]:whitespace-nowrap">
                   <span className="flex items-center gap-1"><FileText size={11} /> {totalQ} questions</span>
                   <span className="flex items-center gap-1"><Clock size={11} /> {totalTime} min</span>
                   <span className="flex items-center gap-1"><Users size={11} /> {attemptsCount} attempts</span>
@@ -1125,13 +1130,13 @@ export function TestsPage() {
               </div>
 
               {/* Status */}
-              <Badge variant={statusLower === 'published' ? 'success' : statusLower === 'draft' ? 'warning' : 'default'}>
+              <Badge variant={statusLower === 'published' ? 'success' : statusLower === 'draft' ? 'warning' : 'default'} className={bundleMode ? '' : 'max-md:ml-[3.25rem]'}>
                 {statusLower}
               </Badge>
 
               {/* Actions (hidden while bundling) */}
               {!bundleMode && (
-              <div className="flex items-center gap-1 flex-shrink-0">
+              <div className="flex items-center gap-1 flex-shrink-0 max-md:ml-auto">
                 {statusLower === 'published' && (
                   <Button variant="primary" size="sm" icon={<UserPlus size={13} />} onClick={() => setAssignModal(test)}>
                     Assign

@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
@@ -50,13 +51,13 @@ enum NotificationType {
 }
 
 model User {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String?
-  email       String   @unique
-  role        Role     @default(STUDENT)
-  permissions Json?    // To handle dynamic RBAC like specific permissions
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  email       String    @unique
+  role        Role      @default(STUDENT)
+  permissions Json? // To handle dynamic RBAC like specific permissions
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   // Soft delete: set when an admin removes this user. Excluded from normal
   // listings and login, but the row (and everything cascading from it —
   // attempts, assignments, tutor links) stays intact until a separate,
@@ -64,8 +65,8 @@ model User {
   deletedAt   DateTime?
 
   // Relations
-  testsCreated Test[]
-  attempts     TestAttempt[]
+  testsCreated    Test[]
+  attempts        TestAttempt[]
   testAssignments TestAssignment[]
   testPackages    TestPackage[]
 
@@ -73,6 +74,20 @@ model User {
   students      TutorAssignment[] @relation("TutorToStudent")
   tutors        TutorAssignment[] @relation("StudentToTutor")
   notifications Notification[]
+
+  // Flashcards: decks a tutor/admin created, and decks shared with a student
+  flashcardDecks  FlashcardDeck[]  @relation("FlashcardDecksCreated")
+  flashcardShares FlashcardShare[] @relation("FlashcardSharesReceived")
+
+  // Articles: ones a tutor/admin wrote, ones assigned to a student, reviews given
+  articlesCreated          Article[]            @relation("ArticlesCreated")
+  articleAssignments       ArticleAssignment[]  @relation("ArticleAssignmentsReceived")
+  articleReviews           ArticleAssignment[]  @relation("ArticleAssignmentsReviewed")
+  materialsCreated         StudyMaterial[]      @relation("StudyMaterialsCreated")
+  materialShares           StudyMaterialShare[] @relation("StudyMaterialSharesReceived")
+  // ASG Library (admin-uploaded PDFs)
+  libraryDocumentsUploaded LibraryDocument[]    @relation("LibraryUploader")
+  libraryAssignments       LibraryAssignment[]  @relation("LibraryAssignee")
 }
 
 model TutorAssignment {
@@ -85,7 +100,6 @@ model TutorAssignment {
   student User @relation("StudentToTutor", fields: [studentId], references: [id], onDelete: Cascade)
 
   @@unique([tutorId, studentId])
-
   @@index([studentId])
 }
 
@@ -95,29 +109,29 @@ model Topic {
   parentId  String?
   createdAt DateTime @default(now())
 
-  parent    Topic?  @relation("SubTopics", fields: [parentId], references: [id])
-  subTopics Topic[] @relation("SubTopics")
+  parent    Topic?     @relation("SubTopics", fields: [parentId], references: [id])
+  subTopics Topic[]    @relation("SubTopics")
   questions Question[]
 }
 
 model Question {
   id               String       @id @default(uuid())
   type             QuestionType
-  content          Json         // Rich text or math
-  options          Json?        // For MCQ/MSQ
-  correctAnswer    Json         // The correct answer(s)
+  content          Json // Rich text or math
+  options          Json? // For MCQ/MSQ
+  correctAnswer    Json // The correct answer(s)
   difficultyLevel  Difficulty
   topicId          String?
   referenceId      String?
   subject          String?
-  parentQuestionId String?      // For linked questions under a passage
+  parentQuestionId String? // For linked questions under a passage
   createdAt        DateTime     @default(now())
 
-  topic            Topic?       @relation(fields: [topicId], references: [id], onDelete: SetNull)
-  parentQuestion   Question?    @relation("ParentChild", fields: [parentQuestionId], references: [id], onDelete: Cascade)
-  childQuestions   Question[]   @relation("ParentChild")
-  testQuestions    TestQuestion[]
-  attemptAnswers   AttemptAnswer[]
+  topic          Topic?          @relation(fields: [topicId], references: [id], onDelete: SetNull)
+  parentQuestion Question?       @relation("ParentChild", fields: [parentQuestionId], references: [id], onDelete: Cascade)
+  childQuestions Question[]      @relation("ParentChild")
+  testQuestions  TestQuestion[]
+  attemptAnswers AttemptAnswer[]
 
   @@index([parentQuestionId])
   @@index([topicId])
@@ -134,11 +148,11 @@ model Test {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  createdBy   User          @relation(fields: [createdById], references: [id])
-  sections    TestSection[]
-  questions   TestQuestion[]
-  attempts    TestAttempt[]
-  assignments TestAssignment[]
+  createdBy    User              @relation(fields: [createdById], references: [id])
+  sections     TestSection[]
+  questions    TestQuestion[]
+  attempts     TestAttempt[]
+  assignments  TestAssignment[]
   packageItems TestPackageItem[]
 }
 
@@ -151,8 +165,8 @@ model TestPackage {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  createdBy   User              @relation(fields: [createdById], references: [id])
-  items       TestPackageItem[]
+  createdBy User              @relation(fields: [createdById], references: [id])
+  items     TestPackageItem[]
 }
 
 model TestPackageItem {
@@ -161,23 +175,22 @@ model TestPackageItem {
   testId     String
   orderIndex Int    @default(0)
 
-  package    TestPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
-  test       Test        @relation(fields: [testId], references: [id], onDelete: Cascade)
+  package TestPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  test    Test        @relation(fields: [testId], references: [id], onDelete: Cascade)
 
   @@unique([packageId, testId])
-
   @@index([testId])
 }
 
 model TestSection {
-  id              String   @id @default(uuid())
+  id              String @id @default(uuid())
   testId          String
   name            String
   durationMinutes Int
   orderIndex      Int
   config          Json?
 
-  test            Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
+  test            Test             @relation(fields: [testId], references: [id], onDelete: Cascade)
   questions       TestQuestion[]
   sectionAttempts SectionAttempt[]
 
@@ -193,12 +206,11 @@ model TestQuestion {
   marksNegative Float  @default(0.0)
   orderIndex    Int
 
-  test          Test        @relation(fields: [testId], references: [id], onDelete: Cascade)
-  section       TestSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
-  question      Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  test     Test        @relation(fields: [testId], references: [id], onDelete: Cascade)
+  section  TestSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([testId, questionId])
-
   @@index([sectionId])
   @@index([questionId])
 }
@@ -222,21 +234,23 @@ model TestAttempt {
   @@index([studentId, startedAt])
   @@index([testId])
   @@index([status, completedAt])
+  @@index([studentId, status, completedAt])
+  @@index([startedAt])
 }
 
 model TestAssignment {
-  id              String   @id @default(uuid())
-  testId           String
-  studentId        String
-  dueAt            DateTime?
-  availableFrom    DateTime?
-  availableUntil   DateTime?
-  maxAttempts      Int      @default(1)
-  isActive         Boolean  @default(true)
-  createdAt        DateTime @default(now())
+  id             String    @id @default(uuid())
+  testId         String
+  studentId      String
+  dueAt          DateTime?
+  availableFrom  DateTime?
+  availableUntil DateTime?
+  maxAttempts    Int       @default(1)
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
 
-  test             Test     @relation(fields: [testId], references: [id], onDelete: Cascade)
-  student          User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  test    Test @relation(fields: [testId], references: [id], onDelete: Cascade)
+  student User @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
   @@index([studentId])
   @@index([testId])
@@ -253,26 +267,26 @@ model SectionAttempt {
   section TestSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
 
   @@unique([attemptId, sectionId])
-
   @@index([sectionId])
 }
 
 model AttemptAnswer {
-  id                 String   @id @default(uuid())
-  attemptId          String
-  questionId         String
-  answerGiven        Json?
-  timeSpentSeconds   Int      @default(0)
-  isFlagged          Boolean  @default(false)
-  doubtStatus        String?
-  updatedAt          DateTime @updatedAt
+  id               String   @id @default(uuid())
+  attemptId        String
+  questionId       String
+  answerGiven      Json?
+  timeSpentSeconds Int      @default(0)
+  isFlagged        Boolean  @default(false)
+  doubtStatus      String?
+  updatedAt        DateTime @updatedAt
 
   attempt  TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   question Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
 
   @@unique([attemptId, questionId])
-
   @@index([questionId])
+  @@index([updatedAt])
+  @@index([doubtStatus])
 }
 
 model CheatingLog {
@@ -298,7 +312,7 @@ model Notification {
   read      Boolean          @default(false)
   createdAt DateTime         @default(now())
 
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
@@ -308,17 +322,192 @@ model Notification {
 // visit-level time analytics are rebuilt from it (src/lib/timeAnalytics.ts),
 // so a bug in the reconstruction can be fixed and re-run on old attempts.
 model AttemptEvent {
-  id         BigInt   @id @default(autoincrement())
+  id         BigInt    @id @default(autoincrement())
   attemptId  String
-  seq        Int      // client counter, defines order
-  eventType  String   @db.VarChar(16)
+  seq        Int // client counter, defines order
+  eventType  String    @db.VarChar(16)
   questionId String?
-  tMs        Int      // ms since the attempt started (monotonic on the client)
-  choice     Json?    // ANSWER only — the raw choice, never its correctness
+  tMs        Int // ms since the attempt started (monotonic on the client)
+  choice     Json? // ANSWER only — the raw choice, never its correctness
   clientWall DateTime? // audit only
-  receivedAt DateTime @default(now())
+  receivedAt DateTime  @default(now())
 
   attempt TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
 
   @@unique([attemptId, seq]) // makes retried batches idempotent
+}
+
+// ── Flashcards ───────────────────────────────────────────────────────────────
+// A tutor (or admin) builds a deck about one topic — a short "about this
+// topic" note plus front/back cards — and shares it with students.
+
+model FlashcardDeck {
+  id          String   @id @default(uuid())
+  title       String
+  topic       String
+  description String? // "About this topic" — shown to students before the cards
+  subject     String? // e.g. "SAT Math", "SAT Reading & Writing", "ACT Science"
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User             @relation("FlashcardDecksCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  cards     FlashcardCard[]
+  shares    FlashcardShare[]
+
+  @@index([createdById])
+}
+
+model FlashcardCard {
+  id         String @id @default(uuid())
+  deckId     String
+  front      String // term / question
+  back       String // definition / answer / explanation
+  hint       String? // optional clue the student can reveal before flipping
+  example    String? // optional example sentence, shown on the back
+  orderIndex Int
+
+  deck FlashcardDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+
+  @@index([deckId])
+}
+
+model FlashcardShare {
+  id            String    @id @default(uuid())
+  deckId        String
+  studentId     String
+  sharedAt      DateTime  @default(now())
+  viewedAt      DateTime? // first time the student opened the deck
+  lastStudiedAt DateTime?
+  knownCardIds  Json? // string[] — cards the student marked "Got it"
+  seenCardIds   Json? // string[] — cards the student has flipped or marked at least once
+
+  deck    FlashcardDeck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  student User          @relation("FlashcardSharesReceived", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([deckId, studentId])
+  @@index([studentId])
+}
+
+// ── Articles ─────────────────────────────────────────────────────────────────
+// A tutor (or admin) assigns an article to read; the student proves they read
+// it by writing a summary in their own words, which the tutor approves or
+// sends back for revision.
+
+model Article {
+  id              String   @id @default(uuid())
+  title           String
+  topic           String?
+  subject         String?
+  body            String // plain text; blank lines separate paragraphs, "## " starts a heading, "- " a bullet
+  sourceUrl       String?
+  instructions    String? // optional note to students on what to focus on in their summary
+  minSummaryWords Int      @default(50)
+  createdById     String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  createdBy   User                @relation("ArticlesCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  assignments ArticleAssignment[]
+
+  @@index([createdById])
+}
+
+model ArticleAssignment {
+  id               String    @id @default(uuid())
+  articleId        String
+  studentId        String
+  assignedAt       DateTime  @default(now())
+  dueAt            DateTime?
+  openedAt         DateTime? // first time the student opened the article
+  status           String    @default("ASSIGNED") @db.VarChar(16) // ASSIGNED | SUBMITTED | NEEDS_REVISION | APPROVED
+  summary          String? // draft or submitted summary
+  summaryWordCount Int       @default(0)
+  copiedRatio      Float? // share of the summary copied word-for-word from the article (0–1)
+  submittedAt      DateTime?
+  submissionCount  Int       @default(0)
+  feedback         String? // tutor's feedback on the latest review
+  submissions      Json? // ArticleSubmission[] (lib/articleFeedback.ts) — every submitted summary with its AI feedback, oldest first
+  reviewedAt       DateTime?
+  reviewedById     String?
+
+  article    Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  student    User    @relation("ArticleAssignmentsReceived", fields: [studentId], references: [id], onDelete: Cascade)
+  reviewedBy User?   @relation("ArticleAssignmentsReviewed", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@unique([articleId, studentId])
+  @@index([studentId])
+}
+
+// ── Protected study materials (phase 2) ──────────────────────────────────────
+// PDFs a tutor/admin shares for reading only. Recipients without download
+// rights get server-rendered, watermarked page images — never the file.
+// Who may download the original: its uploader and admins. So an admin's PDF
+// is view-only for tutors as well as students.
+model StudyMaterial {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  subject     String?
+  fileName    String
+  fileSize    Int
+  pageCount   Int
+  pageSizes   Json // [[widthPt, heightPt], ...] so the viewer can lay out pages before they load
+  storagePath String // Supabase "study-materials" bucket path, or "_local_/..." in dev
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy User                 @relation("StudyMaterialsCreated", fields: [createdById], references: [id], onDelete: Cascade)
+  shares    StudyMaterialShare[]
+
+  @@index([createdById])
+}
+
+model StudyMaterialShare {
+  id         String    @id @default(uuid())
+  materialId String
+  userId     String // a student, or a tutor when an admin shares it
+  sharedAt   DateTime  @default(now())
+  viewedAt   DateTime?
+  lastPage   Int?
+
+  material StudyMaterial @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  user     User          @relation("StudyMaterialSharesReceived", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([materialId, userId])
+  @@index([userId])
+}
+
+// ── ASG Library ──────────────────────────────────────────────────────────────
+// PDFs uploaded by admins. Files live in the private Supabase Storage bucket
+// "library" (never a public URL); students and tutors read them only through
+// GET /api/library/:id/file, which checks for a LibraryAssignment.
+model LibraryDocument {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  fileName     String
+  storagePath  String
+  sizeBytes    Int
+  uploadedById String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  uploadedBy  User?               @relation("LibraryUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+  assignments LibraryAssignment[]
+}
+
+model LibraryAssignment {
+  id           String   @id @default(uuid())
+  documentId   String
+  userId       String
+  assignedById String?
+  createdAt    DateTime @default(now())
+
+  document LibraryDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  user     User            @relation("LibraryAssignee", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, userId])
+  @@index([userId])
 }

@@ -10,10 +10,12 @@ export type EventType =
   | 'ENTER' | 'LEAVE' | 'ANSWER' | 'CLEAR' | 'FLAG' | 'UNFLAG'
   | 'HIDDEN' | 'VISIBLE' | 'IDLE' | 'ACTIVE' | 'HEARTBEAT'
   | 'SUBMIT' | 'MODULE_END' | 'TIME_UP'
+  /** A test-player tracker started (page load / reload / resume). */
+  | 'START'
 
 export const EVENT_TYPES: ReadonlySet<string> = new Set<EventType>([
   'ENTER', 'LEAVE', 'ANSWER', 'CLEAR', 'FLAG', 'UNFLAG', 'HIDDEN', 'VISIBLE',
-  'IDLE', 'ACTIVE', 'HEARTBEAT', 'SUBMIT', 'MODULE_END', 'TIME_UP',
+  'IDLE', 'ACTIVE', 'HEARTBEAT', 'SUBMIT', 'MODULE_END', 'TIME_UP', 'START',
 ])
 
 export interface TrackedEvent {
@@ -73,6 +75,9 @@ export function isEmptyChoice(choice: unknown): boolean {
   return false
 }
 
+/** Silence longer than this (heartbeats are every 10 s) means the player stopped. */
+const RESUME_GAP_MS = 15_000
+
 const sameChoice = (a: unknown, b: unknown) =>
   JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
 
@@ -98,7 +103,7 @@ export function buildVisits(
     if (!open) return
     const end = Math.max(t, open.start)
     if (pausedAt !== null) {
-      open.pauses.push({ start: pausedAt, end })
+      if (end > pausedAt) open.pauses.push({ start: pausedAt, end })
       pausedAt = null
     }
     const pausedMs = open.pauses.reduce((s, p) => s + (p.end - p.start), 0)
@@ -120,13 +125,26 @@ export function buildVisits(
   for (const e of ev) {
     // t is monotonic per tracker segment; never let a late/odd event move time backwards
     const t = Math.max(lastT, Number.isFinite(e.t) ? e.t : lastT)
+    const prevT = lastT
     lastT = t
     const q = e.questionId
     switch (e.type) {
       case 'ENTER': {
         if (!q) break
-        if (open && open.questionId === q) break // duplicate ENTER for the visit already open
-        close(t) // defensive: a LEAVE was lost
+        if (open) {
+          // The page went away (tab closed / refreshed: a trailing HIDDEN with no
+          // VISIBLE) or went silent past a heartbeat (crash): the open visit ended
+          // then, and this ENTER — even for the same question — is a new visit.
+          const interrupted = pausedAt !== null || t - prevT > RESUME_GAP_MS
+          if (!interrupted && open.questionId === q) break // duplicate ENTER for the visit already open
+          if (pausedAt !== null) {
+            const endAt = pausedAt
+            pausedAt = null
+            close(endAt)
+          } else {
+            close(interrupted ? prevT : t) // defensive: a LEAVE was lost
+          }
+        }
         visitCount[q] = (visitCount[q] || 0) + 1
         const entryChoice: unknown = answerNow[q] ?? null
         open = {
@@ -161,6 +179,16 @@ export function buildVisits(
         if (open && pausedAt !== null) {
           open.pauses.push({ start: pausedAt, end: t })
           pausedAt = null
+        }
+        break
+      case 'START':
+        // A new player session (reload / resume). Anything still open belonged
+        // to the previous page and ended at its last recorded event (the last
+        // heartbeat at worst, so at most ~10 s is lost), or when it was hidden.
+        if (open) {
+          const endAt = pausedAt ?? prevT
+          pausedAt = null
+          close(endAt)
         }
         break
       case 'SUBMIT':

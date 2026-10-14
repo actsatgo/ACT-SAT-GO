@@ -63,7 +63,7 @@ export function OptionRenderer({
         ${className}
       `}
     >
-      <div className="flex gap-3">
+      <div className="flex items-center gap-3">
         {/* Option Label */}
         <div className="flex-shrink-0">
           <div

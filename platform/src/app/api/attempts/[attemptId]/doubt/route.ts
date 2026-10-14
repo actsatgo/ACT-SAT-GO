@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser, requireAttemptAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(
@@ -6,6 +7,14 @@ export async function POST(
   { params }: { params: Promise<{ attemptId: string }> }
 ) {
   const { attemptId } = await params
+  const access = await requireAttemptAccess(request, attemptId)
+  if (access !== true) return access
+
+  // Only the student or an admin may change Still Doubt / Cleared; tutors can view only.
+  const user = await getCurrentUser(request)
+  if (user?.role === 'TUTOR') {
+    return NextResponse.json({ error: 'Tutors cannot change doubt status' }, { status: 403 })
+  }
 
   try {
     const { questionId, doubtStatus } = (await request.json()) as {

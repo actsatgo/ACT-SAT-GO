@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireAttemptAccess } from '@/lib/auth'
 import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { redis } from '@/lib/redis'
 import { isAnswerCorrect } from '@/lib/answerCheck'
+import { syncAnswerTimesFromEvents } from '@/lib/answerTimes'
+import { notifyParentTestResult } from '@/lib/whatsapp'
 
 
 // Digital SAT raw→scaled conversion tables, reproduced exactly from the
@@ -39,10 +42,12 @@ function satSectionScore(m1: number, m2: number, total: number, isMath: boolean,
 
 
 export async function POST(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ attemptId: string; sectionId: string }> }
 ) {
   const { attemptId, sectionId } = await params
+  const access = await requireAttemptAccess(request, attemptId)
+  if (access !== true) return access
 
   try {
     // 1. Flush Redis answers → PostgreSQL
@@ -72,6 +77,15 @@ export async function POST(
       })
       await Promise.all(upserts)
       await redis.del(`answers:${attemptId}`)
+    }
+
+    // 1b. Time per question = sum of active visit time from the event log, so
+    // the stored totals match the visit-level Time Analytics chart. Never let
+    // this block a submission.
+    try {
+      await syncAnswerTimesFromEvents(attemptId)
+    } catch (err) {
+      console.error('[Submit] syncAnswerTimesFromEvents failed:', err)
     }
 
     // 2. Mark section complete — upsert in case startSection was never called
@@ -199,9 +213,12 @@ export async function POST(
         const categoryUpper = attempt.test.category?.toUpperCase() || ''
         const titleUpper = attempt.test.title?.toUpperCase() || ''
         
-        const isSAT = categoryUpper === 'SAT' || titleUpper.includes('SAT') || 
-                      (categoryUpper === 'MOCK' && !titleUpper.includes('ACT'));
-        const isACT = categoryUpper === 'ACT' || titleUpper.includes('ACT');
+        // Custom-exam tests (IELTS, school exams…) are never put on an SAT/ACT
+        // scale — they fall through to raw marks below.
+        const isCustom = categoryUpper === 'CUSTOM'
+        const isSAT = !isCustom && (categoryUpper === 'SAT' || titleUpper.includes('SAT') ||
+                      (categoryUpper === 'MOCK' && !titleUpper.includes('ACT')));
+        const isACT = !isCustom && (categoryUpper === 'ACT' || titleUpper.includes('ACT'));
 
         let finalScaledScore = 0
 
@@ -296,6 +313,8 @@ export async function POST(
           where: { id: attemptId },
           data: { status: 'SUBMITTED', totalScore: finalScaledScore, completedAt: new Date() },
         })
+        // Tell the parent on WhatsApp (no-op until WhatsApp is configured; never blocks the submit).
+        void notifyParentTestResult(attemptId)
       }
     }
 

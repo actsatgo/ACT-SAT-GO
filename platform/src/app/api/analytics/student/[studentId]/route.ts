@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireStudentAccess } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { numericValuesEqual } from '@/lib/numericAnswer'
 import { isRawScoredTest } from '@/lib/testCategorize'
@@ -37,46 +38,25 @@ function isAnswerCorrect(given: unknown, correct: unknown): boolean {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ studentId: string }> }
 ) {
   const { studentId } = await params
-  const { searchParams } = new URL(_request.url)
+  const access = await requireStudentAccess(request, studentId)
+  if (access !== true) return access
+  const { searchParams } = new URL(request.url)
   const attemptId = searchParams.get('attemptId')
 
   try {
+    // Light list of every submitted attempt (for the trend and averages). The
+    // full question tree is only needed for the ONE attempt whose section stats
+    // are reported, so it is loaded separately below — loading it for every
+    // attempt made this endpoint O(attempts × questions).
     const attempts = await prisma.testAttempt.findMany({
       where: { studentId, status: 'SUBMITTED' },
-      include: {
-        test: {
-          include: {
-            sections: {
-              orderBy: { orderIndex: 'asc' },
-              include: {
-                questions: {
-                  orderBy: { orderIndex: 'asc' },
-                  include: {
-                    question: {
-                      include: {
-                        childQuestions: {
-                          orderBy: { createdAt: 'asc' },
-                          include: { topic: { select: { name: true } } },
-                        },
-                        topic: { select: { name: true } },
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-        sectionAttempts: {
-          include: {
-            section: { select: { id: true, name: true, durationMinutes: true } },
-          },
-        },
-        answers: true,
+      select: {
+        id: true, totalScore: true, startedAt: true, completedAt: true,
+        test: { select: { title: true, category: true, subCategory: true } },
       },
       orderBy: { completedAt: 'asc' },
     })
@@ -115,33 +95,57 @@ export async function GET(
       topicName: string
     }[] = []
 
-    let latest = attempts[attempts.length - 1]
+    let latestRef = attempts[attempts.length - 1]
     if (attemptId && attempts.length > 0) {
       const found = attempts.find((a) => a.id === attemptId)
       if (found) {
-        latest = found
+        latestRef = found
       }
     }
+    const latest = latestRef
+      ? await prisma.testAttempt.findUnique({
+          where: { id: latestRef.id },
+          include: {
+            test: {
+              include: {
+                sections: {
+                  orderBy: { orderIndex: 'asc' },
+                  include: {
+                    questions: {
+                      orderBy: { orderIndex: 'asc' },
+                      include: {
+                        question: {
+                          include: {
+                            childQuestions: {
+                              orderBy: { createdAt: 'asc' },
+                              include: { topic: { select: { name: true } } },
+                            },
+                            topic: { select: { name: true } },
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            answers: true,
+          },
+        })
+      : null
 
     if (latest) {
       const answerMap = new Map(latest.answers.map((ans) => [ans.questionId, ans]))
-      console.log(`\n[Analytics] ======== PROCESSING ATTEMPT ${latest.id} ========`)
-      console.log(`[Analytics] Attempt has ${latest.answers.length} answers`)
       
-      const timeBreakdown = latest.answers.map(a => `Q${a.questionId.substring(0,8)}=${a.timeSpentSeconds}s`).join(', ')
-      console.log(`[Analytics] Time breakdown: ${timeBreakdown}`)
 
       for (const section of latest.test.sections) {
         let correct = 0, incorrect = 0, skipped = 0
         let timeUsed = 0
         let questionIndex = 1
 
-        // Debug: Log section structure
-        console.log(`[Analytics] Section "${section.name}" has ${section.questions?.length ?? 0} questions`)
 
         // Handle case where questions might be empty (fallback to answer map)
         if (!section.questions || section.questions.length === 0) {
-          console.log(`[Analytics] ⚠️  Section "${section.name}" has no linked questions, using fallback`)
           // Fallback: iterate through answers to at least show time data
           let answerIndex = 1
           for (const [questionId, ans] of answerMap.entries()) {
@@ -164,7 +168,6 @@ export async function GET(
               difficulty: 'unknown',
               topicName: 'General Skill'
             })
-            console.log(`[Analytics]   Q${answerIndex-1}: ${timeSpentSeconds}s (${status})`)
           }
         } else {
           // Flatten questions so PASSAGE parent questions are replaced by their child questions
@@ -221,7 +224,6 @@ export async function GET(
               difficulty: q.difficultyLevel?.toLowerCase() || 'unknown',
               topicName: (q.content as any)?.meta?.domain ?? q.topic?.name ?? 'General Skill'
             })
-            console.log(`[Analytics]   Q${questionIndex-1}: ${timeSpentSeconds}s (${status}) - ${q.topic?.name}`)
           }
         }
 

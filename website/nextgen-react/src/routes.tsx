@@ -51,6 +51,7 @@ const FuturePrograms = page(() => import('./pages/FutureProgramsPage').then((m) 
 const K12 = page(() => import('./pages/K12TutoringPage').then((m) => m.K12TutoringPage));
 const About = page(() => import('./pages/AboutUsPage').then((m) => m.AboutUsPage));
 const Resources = page(() => import('./pages/ResourcesPage').then((m) => m.ResourcesPage));
+const Article = page(() => import('./pages/ArticlePage').then((m) => m.ArticlePage));
 const Enquiry = page(() => import('./pages/EnquiryPage').then((m) => m.EnquiryPage));
 const FreeTest = page(() => import('./pages/FreeTestPage').then((m) => m.FreeTestPage));
 const Careers = page(() => import('./pages/CareersPage').then((m) => m.CareersPage));
@@ -71,6 +72,7 @@ export const ROUTES: AppRoute[] = [
   r('/k-12-tutoring', K12),
   r('/about-us', About),
   r('/resources', Resources),
+  r('/resources/:slug', Article),
   r('/consultation', Enquiry),
   r('/free-test', FreeTest),
   r('/free-test/:testId', FreeTest),

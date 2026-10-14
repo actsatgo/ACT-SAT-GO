@@ -10,7 +10,7 @@ import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { Card } from '../../components/common/Card';
 import { Modal } from '../../components/common/Modal';
-import { api, type DbUser } from '../../lib/api';
+import { api, type ClassProgressEntry, type DbUser } from '../../lib/api';
 import { sortSessionEntries } from '../../lib/sessionLog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatDate } from '../../lib/utils';
@@ -173,21 +173,17 @@ export function AdminTeacherSalaryPage() {
       const tutorNameMap = new Map(tutorUsers.map((u) => [u.id, u.name]));
       const assignments = assignmentsRes.assignments || [];
 
-      const sessionLists = await Promise.all(
-        assignments.map((a) =>
-          api.getClassProgress(a.tutorId, a.studentId)
-            .then((r) =>
-              r.entries.map((e) => ({
-                ...e,
-                homework: e.homework ?? '',
-                tutorId: a.tutorId,
-                tutorName: tutorNameMap.get(a.tutorId) || a.tutor?.name || 'Tutor',
-                studentId: a.studentId,
-                studentName: a.student?.name || 'Student',
-              }))
-            )
-            .catch(() => [] as AttendanceEntry[])
-        )
+      // One request for every pair's session log (was one request per pair).
+      const byPair = await api.getClassProgressBatch().then((r) => r.entries).catch(() => ({} as Record<string, ClassProgressEntry[]>));
+      const sessionLists = assignments.map((a) =>
+        (byPair[`${a.tutorId}:${a.studentId}`] ?? []).map((e) => ({
+          ...e,
+          homework: e.homework ?? '',
+          tutorId: a.tutorId,
+          tutorName: tutorNameMap.get(a.tutorId) || a.tutor?.name || 'Tutor',
+          studentId: a.studentId,
+          studentName: a.student?.name || 'Student',
+        }))
       );
 
       setEntries(sortSessionEntries(sessionLists.flat()));
@@ -695,7 +691,7 @@ export function AdminTeacherSalaryPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2.5">
+            <h1 className="text-xl md:text-2xl font-bold text-slate-900 flex items-center gap-2.5">
               <Banknote className="text-emerald-600" size={26} />
               Teacher Salary &amp; Payouts
             </h1>

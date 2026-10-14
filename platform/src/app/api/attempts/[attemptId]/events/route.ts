@@ -3,6 +3,9 @@ import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { EVENT_TYPES } from '@/lib/timeAnalytics'
+import { syncAnswerTimesFromEvents } from '@/lib/answerTimes'
+import { ensureAttemptEventsTable } from '@/lib/attemptEventsTable'
+import { withTimeout } from '@/lib/withTimeout'
 
 // Test-player event log for visit-level time analytics.
 //
@@ -38,7 +41,14 @@ export async function GET(
   try {
     const { attempt, error } = await loadOwnAttempt(request, attemptId)
     if (error) return error
-    const max = await prisma.attemptEvent.aggregate({ where: { attemptId }, _max: { seq: true, tMs: true } })
+    await ensureAttemptEventsTable()
+    // The test player waits for this before it sends any events, so it must
+    // answer promptly; on an error the player falls back to its own counter.
+    const max = await withTimeout(
+      prisma.attemptEvent.aggregate({ where: { attemptId }, _max: { seq: true, tMs: true } }),
+      8_000,
+      'attempt event state',
+    )
     return NextResponse.json({
       lastSeq: max._max.seq ?? 0,
       lastT: max._max.tMs ?? 0,
@@ -73,6 +83,7 @@ export async function POST(
       return NextResponse.json({ error: 'Attempt is closed' }, { status: 409 })
     }
 
+    await ensureAttemptEventsTable()
     const rows: Prisma.AttemptEventCreateManyInput[] = []
     for (const item of raw) {
       const e = item as Record<string, unknown>
@@ -97,6 +108,12 @@ export async function POST(
     }
     if (rows.length) {
       await prisma.attemptEvent.createMany({ data: rows, skipDuplicates: true })
+      // The final batch can land just after the last module was submitted;
+      // refresh the stored per-question times so they include it.
+      if (attempt!.status !== 'IN_PROGRESS') {
+        await syncAnswerTimesFromEvents(attemptId).catch((err) =>
+          console.error('[events] syncAnswerTimesFromEvents failed:', err))
+      }
     }
     return new NextResponse(null, { status: 204 })
   } catch (err) {

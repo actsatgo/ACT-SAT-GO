@@ -36,7 +36,7 @@ export function invalidateApiCache(prefix: string) {
   for (const key of [...getCache.keys()]) if (key.startsWith(prefix)) getCache.delete(key)
 }
 
-async function cachedGet<T>(path: string, ttlMs: number): Promise<T> {
+async function cachedGet<T>(path: string, ttlMs: number, timeoutMs?: number): Promise<T> {
   const now = Date.now()
   const hit = getCache.get(path)
   if (hit && hit.expiresAt > now) {
@@ -46,7 +46,7 @@ async function cachedGet<T>(path: string, ttlMs: number): Promise<T> {
     for (const [k, v] of getCache) if (v.expiresAt <= now) getCache.delete(k)
     if (getCache.size >= GET_CACHE_MAX) getCache.delete(getCache.keys().next().value as string)
   }
-  const text = requestText(path)
+  const text = requestText(path, undefined, timeoutMs)
   const entry: CacheEntry = { text, expiresAt: now + ttlMs }
   getCache.set(path, entry)
   try {
@@ -63,13 +63,22 @@ async function cachedGet<T>(path: string, ttlMs: number): Promise<T> {
  * every few seconds during a test and must not clear the GET cache, and it
  * uses keepalive so the final batch survives the tab closing.
  */
-export async function postAttemptEvents(attemptId: string, events: unknown[]): Promise<boolean> {
+export async function postAttemptEvents(attemptId: string, events: unknown[], token?: string | null): Promise<boolean> {
   try {
+    const body = JSON.stringify({ events })
+    // With a token passed in, fetch() is called synchronously (no await before
+    // it) — required when the page is unloading, where an awaited token lookup
+    // would never get to send the request.
+    const auth = token !== undefined
+      ? (token ? { Authorization: `Bearer ${token}` } : {})
+      : await authHeaders()
     const res = await fetch(`${BASE}/api/attempts/${attemptId}/events`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', ...(await authHeaders()) },
-      body: JSON.stringify({ events }),
-      keepalive: true,
+      headers: { 'Content-Type': 'application/json', ...auth },
+      body,
+      // keepalive lets the last batch survive the tab closing, but browsers
+      // reject keepalive bodies over 64 KB — only use it for small batches.
+      keepalive: body.length < 60_000,
     })
     // 4xx other than auth/rate errors will never succeed — drop rather than retry forever.
     return res.ok || (res.status >= 400 && res.status < 500 && res.status !== 401 && res.status !== 429)
@@ -139,11 +148,26 @@ export interface TimeAnalyticsResponse {
 const SHORT_TTL = 30_000
 const LONG_TTL = 5 * 60_000
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  return JSON.parse(await requestText(path, options)) as T
+async function request<T>(path: string, options?: RequestInit, timeoutMs?: number): Promise<T> {
+  return JSON.parse(await requestText(path, options, timeoutMs)) as T
 }
 
-async function requestText(path: string, options?: RequestInit): Promise<string> {
+/**
+ * With `timeoutMs`, a request that gets no answer in time fails with status 504
+ * instead of waiting forever (callers show their fallback and can retry).
+ */
+async function requestText(path: string, options?: RequestInit, timeoutMs?: number): Promise<string> {
+  if (timeoutMs && typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout === 'function') {
+    try {
+      return await requestText(path, { ...options, signal: AbortSignal.timeout(timeoutMs) })
+    } catch (err) {
+      if ((err as Error)?.name !== 'TimeoutError') throw err
+      const e = new Error('The server took too long to respond') as Error & { status?: number }
+      e.status = 504
+      throw e
+    }
+  }
+
   const method = (options?.method ?? 'GET').toUpperCase()
   if (method !== 'GET' && method !== 'HEAD') clearApiCache()
 
@@ -180,6 +204,8 @@ export interface DbUser {
   role: string
   /** True for free-demo-test accounts created from the website (permissions.accountType = 'DEMO'). */
   isDemo?: boolean
+  /** Profile picture as a small image data URL, or null. */
+  avatar?: string | null
   createdAt: string
   /** Set when an admin has soft-deleted this user; null/undefined means active. */
   deletedAt?: string | null
@@ -197,6 +223,12 @@ export interface DbUser {
   specialization?: string[]
   /** Tutor compensation rate. Only ever present in the response for an admin/super-admin caller. */
   hourlyRate?: number | null
+  /** Tutor may create student accounts (set by an admin). */
+  canAddStudents?: boolean
+  /** Tutor account flagged as a coordinator: may add tutors and students. */
+  coordinator?: boolean
+  /** Account still uses a temporary password (only meaningful for the signed-in user). */
+  mustChangePassword?: boolean
   phone?: string | null
   parentPhone?: string | null
   dob?: string | null
@@ -205,6 +237,10 @@ export interface DbUser {
   timezone?: string | null
   firstClassDate?: string | null
   programVariant?: string | null
+  /** Exam track: 'SAT' | 'ACT' | 'CUSTOM' (null = not set, treated as SAT) */
+  track?: string | null
+  /** Name of the custom exam when track is CUSTOM, e.g. "IELTS" */
+  customExam?: string | null
   mockVariant?: string | null
   accommodation?: boolean | null
   stage?: number | null
@@ -244,6 +280,17 @@ export interface ClassProgressEntry {
   engagement?: string
   nextSessionGoal?: string
   nextSessionAt?: string
+}
+
+export interface LiveClass {
+  roomId: string
+  studentId: string
+  studentName: string
+  tutorId: string
+  tutorName: string
+  startedAt: string
+  joinUrl: string
+  canEnd: boolean
 }
 
 export interface ClassProgressInput {
@@ -290,6 +337,308 @@ export interface DbTestPackage {
   items: DbTestPackageItem[]
 }
 
+
+// ── Flashcards ───────────────────────────────────────────────────────────────
+export interface FlashcardCard { id: string; front: string; back: string; hint?: string | null; example?: string | null }
+export interface FlashcardShareInfo {
+  studentId: string
+  studentName: string
+  sharedAt: string
+  viewedAt: string | null
+  lastStudiedAt: string | null
+  knownCount: number
+  /** Cards flipped or marked at least once */
+  seenCount: number
+}
+/** A deck as listed for a tutor/admin (with sharing + progress). */
+export interface FlashcardDeckSummary {
+  id: string
+  title: string
+  topic: string
+  description: string | null
+  subject: string | null
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  cardCount: number
+  shares: FlashcardShareInfo[]
+}
+/** A deck as listed for a student (with their own progress). */
+export interface StudentFlashcardDeck {
+  id: string
+  title: string
+  topic: string
+  description: string | null
+  subject: string | null
+  updatedAt: string
+  createdByName: string
+  cardCount: number
+  sharedAt: string
+  viewedAt: string | null
+  lastStudiedAt: string | null
+  knownCount: number
+  /** Cards flipped or marked at least once */
+  seenCount: number
+}
+export interface FlashcardDeckDetail {
+  id: string
+  title: string
+  topic: string
+  description: string | null
+  subject: string | null
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  cards: FlashcardCard[]
+  canEdit: boolean
+  /** Manager view only */
+  shares?: FlashcardShareInfo[]
+  /** Student view only */
+  knownCardIds?: string[]
+  seenCardIds?: string[]
+}
+export interface FlashcardDeckInput {
+  title: string
+  topic: string
+  description?: string
+  subject?: string
+  cards: Array<{ id?: string; front: string; back: string; hint?: string; example?: string }>
+  studentIds?: string[]
+}
+
+// ── Articles ─────────────────────────────────────────────────────────────────
+export type ArticleStatus = 'ASSIGNED' | 'SUBMITTED' | 'NEEDS_REVISION' | 'APPROVED'
+/** Claude's feedback on one submitted summary. "pending" = not generated yet. */
+export interface ArticleAiFeedback {
+  status: 'ready' | 'pending'
+  score?: number
+  strengths?: string[]
+  improvements?: string[]
+  comment?: string
+  generatedAt?: string
+  lastAttemptAt?: string
+  /** Tutors/admins only: why the last attempt failed */
+  error?: string
+}
+export interface ArticleSubmissionRecord {
+  n: number
+  summary: string
+  wordCount: number
+  copiedRatio: number | null
+  submittedAt: string
+  ai: ArticleAiFeedback | null
+}
+/** One student's assignment as a tutor/admin sees it. */
+export interface ArticleAssignmentInfo {
+  studentId: string
+  studentName: string
+  status: ArticleStatus
+  assignedAt: string
+  dueAt: string | null
+  openedAt: string | null
+  submittedAt: string | null
+  reviewedAt: string | null
+  summaryWordCount: number
+  copiedRatio: number | null
+  /** List view: latest submission's AI score / status */
+  aiScore?: number | null
+  aiStatus?: 'ready' | 'pending' | null
+  /** Detail view only — null until the student submits. */
+  summary?: string | null
+  submissionCount?: number
+  feedback?: string | null
+  reviewedByName?: string | null
+  aiFeedback?: ArticleAiFeedback | null
+  /** Every submission, newest first */
+  submissions?: ArticleSubmissionRecord[]
+}
+export interface ArticleSummary {
+  id: string
+  title: string
+  topic: string | null
+  subject: string | null
+  sourceUrl: string | null
+  minSummaryWords: number
+  readMinutes: number
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  assignments: ArticleAssignmentInfo[]
+}
+export interface StudentArticle {
+  id: string
+  title: string
+  topic: string | null
+  subject: string | null
+  readMinutes: number
+  minSummaryWords: number
+  createdByName: string
+  status: ArticleStatus
+  assignedAt: string
+  dueAt: string | null
+  openedAt: string | null
+  submittedAt: string | null
+  reviewedAt: string | null
+  summaryWordCount: number
+  hasFeedback: boolean
+  aiScore?: number | null
+  aiStatus?: 'ready' | 'pending' | null
+}
+export interface MyArticleAssignment {
+  status: ArticleStatus
+  assignedAt: string
+  dueAt: string | null
+  openedAt: string
+  summary: string | null
+  summaryWordCount: number
+  submittedAt: string | null
+  submissionCount: number
+  feedback: string | null
+  reviewedAt: string | null
+  reviewedByName: string | null
+  aiFeedback: ArticleAiFeedback | null
+  /** Every submission, newest first */
+  submissions: ArticleSubmissionRecord[]
+}
+export interface ArticleDetail {
+  id: string
+  title: string
+  topic: string | null
+  subject: string | null
+  body: string
+  sourceUrl: string | null
+  instructions: string | null
+  minSummaryWords: number
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  readMinutes: number
+  maxCopiedRatio: number
+  canEdit: boolean
+  /** Manager view only */
+  assignments?: ArticleAssignmentInfo[]
+  /** Student view only */
+  assignment?: MyArticleAssignment
+}
+export interface ArticleInput {
+  title: string
+  topic?: string
+  subject?: string
+  body: string
+  sourceUrl?: string
+  instructions?: string
+  minSummaryWords?: number
+  dueAt?: string | null
+  studentIds?: string[]
+}
+
+// ── Protected study materials (view-only PDFs) ───────────────────────────────
+export interface MaterialShareInfo {
+  userId: string
+  name: string
+  role: 'STUDENT' | 'TUTOR' | string
+  sharedAt: string
+  viewedAt: string | null
+  lastPage: number | null
+}
+/** A material the user uploaded (or, for admins, any material). */
+export interface ManagedMaterial {
+  id: string
+  title: string
+  description: string | null
+  subject: string | null
+  fileName: string
+  fileSize: number
+  pageCount: number
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  createdByAdmin: boolean
+  shares: MaterialShareInfo[]
+}
+/** A material someone shared with the user. */
+export interface SharedMaterial {
+  id: string
+  title: string
+  description: string | null
+  subject: string | null
+  pageCount: number
+  updatedAt: string
+  createdByName: string
+  sharedAt: string
+  viewedAt: string | null
+  lastPage: number | null
+  canDownload: boolean
+}
+export interface MaterialDetail {
+  id: string
+  title: string
+  description: string | null
+  subject: string | null
+  /** Only for users who may download it */
+  fileName?: string
+  fileSize: number
+  pageCount: number
+  pageSizes: Array<[number, number]>
+  createdById: string
+  createdByName: string
+  createdAt: string
+  updatedAt: string
+  canManage: boolean
+  canDownload: boolean
+  lastPage: number | null
+  watermark: string
+  /** Manager view only */
+  sharedWith?: string[]
+}
+
+// ── ASG Library ──────────────────────────────────────────────────────────────
+export interface LibraryAssignee {
+  id: string
+  name: string | null
+  email: string
+  role: string
+}
+export interface LibraryDocument {
+  id: string
+  title: string
+  description: string | null
+  fileName: string
+  sizeBytes: number
+  createdAt: string
+  updatedAt: string
+  /** Admin listing only. */
+  uploadedByName?: string | null
+  assignees?: LibraryAssignee[]
+  /** Student/tutor listing only: when it was assigned to them. */
+  assignedAt?: string
+}
+
+export interface PtmReport {
+  id: string;
+  ptmDate: string;
+  targetTestDate: string | null;
+  prepStatus: string;
+  mocksCompleted: number;
+  remarks: string;
+  createdAt: string;
+  createdBy: string;
+}
+
+export interface PtmStudent {
+  id: string;
+  name: string;
+  email: string;
+  targetDate: string | null;
+  mocksCompleted: number;
+  reports: PtmReport[];
+}
+
 export const api = {
   // Users
   getUsersByRole: (role?: string, opts?: { deleted?: boolean }) => {
@@ -311,6 +660,8 @@ export const api = {
     specialization?: string[]
     /** Tutor compensation rate — only applied when role is 'TUTOR'. */
     hourlyRate?: number | null
+    coordinator?: boolean
+    canAddStudents?: boolean
     phone?: string
     parentPhone?: string
     dob?: string
@@ -319,6 +670,8 @@ export const api = {
     timezone?: string
     firstClassDate?: string
     programVariant?: string
+    track?: string | null
+    customExam?: string | null
     mockVariant?: string
     accommodation?: boolean
     stage?: number
@@ -338,7 +691,11 @@ export const api = {
     tutorId?: string | null
     tutorIds?: string[]
     /** Tutor compensation rate — silently ignored server-side unless the caller is an admin. */
+    avatar?: string | null
     hourlyRate?: number | null
+    canAddStudents?: boolean
+    /** The signed-in user set their own password; clears the temporary-password flag. */
+    passwordChanged?: boolean
     notifications?: Record<string, boolean>
     phone?: string
     parentPhone?: string
@@ -348,6 +705,8 @@ export const api = {
     timezone?: string
     firstClassDate?: string
     programVariant?: string
+    track?: string | null
+    customExam?: string | null
     mockVariant?: string
     accommodation?: boolean
     stage?: number
@@ -456,6 +815,17 @@ export const api = {
   getAttemptFresh: (attemptId: string) => request<{ attempt: unknown }>(`/api/attempts/${attemptId}`),
   getStudentAttempts: (studentId: string) =>
     cachedGet<{ attempts: unknown[] }>(`/api/students/${studentId}/attempts`, SHORT_TTL),
+  /** Everything the admin Students analysis table needs, for every student in scope, in one request. */
+  getStudentsAnalysisSummary: () =>
+    request<{ students: Record<string, {
+      attempts: unknown[]
+      latestScore: number
+      lastTrend: { testTitle: string; date: string } | null
+      sectionStats: Array<{ sectionName: string; correct: number; incorrect: number; skipped: number; totalQuestions: number }>
+    }> }>('/api/students/analysis-summary'),
+  /** Light list: each attempt's test (title/category/subCategory/section names), score and dates — no questions or answers. */
+  getStudentAttemptSummaries: (studentId: string) =>
+    cachedGet<{ attempts: unknown[] }>(`/api/students/${studentId}/attempts?summary=1`, SHORT_TTL),
   getAssignedTests: (studentId: string) =>
     cachedGet<{ assignedTests: unknown[] }>(`/api/students/${studentId}/assigned-tests`, SHORT_TTL),
 
@@ -496,11 +866,122 @@ export const api = {
       `/api/attempts/${attemptId}/sections/${sectionId}/submit`,
       { method: 'POST' }
     ),
+  // Flashcards
+  getFlashcardDecks: () =>
+    request<{ decks: FlashcardDeckSummary[] | StudentFlashcardDeck[] }>('/api/flashcards'),
+  getFlashcardDeck: (deckId: string) =>
+    request<{ deck: FlashcardDeckDetail }>(`/api/flashcards/${deckId}`),
+  createFlashcardDeck: (body: FlashcardDeckInput) =>
+    request<{ id: string; sharedWith: number }>('/api/flashcards', { method: 'POST', body: JSON.stringify(body) }),
+  updateFlashcardDeck: (deckId: string, body: FlashcardDeckInput) =>
+    request<{ id: string }>(`/api/flashcards/${deckId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteFlashcardDeck: (deckId: string) =>
+    request<{ success: boolean }>(`/api/flashcards/${deckId}`, { method: 'DELETE' }),
+  setFlashcardShares: (deckId: string, studentIds: string[]) =>
+    request<{ added: number; removed: number; total: number }>(`/api/flashcards/${deckId}/shares`, {
+      method: 'PUT', body: JSON.stringify({ studentIds }),
+    }),
+  saveFlashcardProgress: (deckId: string, knownCardIds: string[], seenCardIds?: string[]) =>
+    request<{ knownCount: number; seenCount: number; cardCount: number }>(`/api/flashcards/${deckId}/progress`, {
+      method: 'PUT', body: JSON.stringify({ knownCardIds, seenCardIds }),
+    }),
+
+  // Articles
+  getArticles: () =>
+    request<{ articles: ArticleSummary[] | StudentArticle[] }>('/api/articles'),
+  getArticle: (articleId: string) =>
+    request<{ article: ArticleDetail }>(`/api/articles/${articleId}`),
+  createArticle: (body: ArticleInput) =>
+    request<{ id: string; assignedTo: number }>('/api/articles', { method: 'POST', body: JSON.stringify(body) }),
+  updateArticle: (articleId: string, body: ArticleInput) =>
+    request<{ id: string }>(`/api/articles/${articleId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteArticle: (articleId: string) =>
+    request<{ success: boolean }>(`/api/articles/${articleId}`, { method: 'DELETE' }),
+  setArticleAssignments: (articleId: string, studentIds: string[], dueAt?: string | null) =>
+    request<{ added: number; removed: number; total: number }>(`/api/articles/${articleId}/assignments`, {
+      method: 'PUT', body: JSON.stringify({ studentIds, dueAt }),
+    }),
+  saveArticleSummary: (articleId: string, summary: string, submit: boolean) =>
+    request<{ status: ArticleStatus; summaryWordCount: number; copiedRatio?: number; aiFeedback?: ArticleAiFeedback | null }>(`/api/articles/${articleId}/summary`, {
+      method: 'PUT', body: JSON.stringify({ summary, submit }),
+    }),
+  /** Retry Claude's feedback on the latest submission (studentId: tutors/admins only). */
+  requestArticleFeedback: (articleId: string, studentId?: string) =>
+    request<{ aiFeedback: ArticleAiFeedback | null }>(`/api/articles/${articleId}/feedback`, {
+      method: 'POST', body: JSON.stringify({ studentId }),
+    }),
+  reviewArticleSummary: (articleId: string, studentId: string, decision: 'approve' | 'revise', feedback?: string) =>
+    request<{ status: ArticleStatus }>(`/api/articles/${articleId}/review`, {
+      method: 'PUT', body: JSON.stringify({ studentId, decision, feedback }),
+    }),
+
+  // Protected study materials
+  getMaterials: () =>
+    request<{ shared: SharedMaterial[]; mine: ManagedMaterial[] }>('/api/materials'),
+  getMaterial: (materialId: string) =>
+    request<{ material: MaterialDetail }>(`/api/materials/${materialId}`),
+  /** Multipart upload with progress (0–1). */
+  uploadMaterial: async (
+    input: { file: File; title: string; description?: string; subject?: string; recipientIds: string[] },
+    onProgress?: (fraction: number) => void,
+  ) => {
+    clearApiCache()
+    const form = new FormData()
+    form.append('file', input.file)
+    form.append('title', input.title)
+    if (input.description) form.append('description', input.description)
+    if (input.subject) form.append('subject', input.subject)
+    form.append('recipientIds', JSON.stringify(input.recipientIds))
+    const headers = await authHeaders()
+    return new Promise<{ id: string; pageCount: number; sharedWith: number }>((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', `${BASE}/api/materials`)
+      for (const [k, v] of Object.entries(headers)) xhr.setRequestHeader(k, v)
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(e.loaded / e.total) }
+      xhr.onload = () => {
+        let body: { error?: string } & Record<string, unknown> = {}
+        try { body = JSON.parse(xhr.responseText) } catch { /* non-JSON error page */ }
+        if (xhr.status >= 200 && xhr.status < 300) resolve(body as unknown as { id: string; pageCount: number; sharedWith: number })
+        else reject(new Error(body.error || (xhr.status === 413 ? 'The PDF is too large' : 'Upload failed')))
+      }
+      xhr.onerror = () => reject(new Error('Upload failed — check your connection'))
+      xhr.send(form)
+    })
+  },
+  updateMaterial: (materialId: string, body: { title: string; description?: string; subject?: string }) =>
+    request<{ id: string }>(`/api/materials/${materialId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteMaterial: (materialId: string) =>
+    request<{ success: boolean }>(`/api/materials/${materialId}`, { method: 'DELETE' }),
+  setMaterialShares: (materialId: string, recipientIds: string[]) =>
+    request<{ added: number; removed: number; total: number }>(`/api/materials/${materialId}/shares`, {
+      method: 'PUT', body: JSON.stringify({ recipientIds }),
+    }),
+  saveMaterialProgress: (materialId: string, page: number) =>
+    request<{ saved: boolean }>(`/api/materials/${materialId}/progress`, { method: 'PUT', body: JSON.stringify({ page }) }),
+  /** One watermarked page image (auth header required, so it is fetched as a blob). */
+  getMaterialPage: async (materialId: string, page: number, width: number, signal?: AbortSignal) => {
+    const res = await fetch(`${BASE}/api/materials/${materialId}/pages/${page}?w=${width}`, { headers: await authHeaders(), signal })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Could not load the page')
+    return res.blob()
+  },
+  /** The original PDF — only allowed for its uploader and admins. */
+  downloadMaterial: async (materialId: string, fileName: string) => {
+    const res = await fetch(`${BASE}/api/materials/${materialId}/file`, { headers: await authHeaders() })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Download failed')
+    const url = URL.createObjectURL(await res.blob())
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 10_000)
+  },
+
   // Visit-level time analytics (see lib/questionTimeTracker.ts)
   getAttemptEventState: (attemptId: string) =>
-    request<{ lastSeq: number; lastT: number; serverElapsedMs: number }>(`/api/attempts/${attemptId}/events`),
+    // The player sends no events until this answers, so don't wait long.
+    request<{ lastSeq: number; lastT: number; serverElapsedMs: number }>(`/api/attempts/${attemptId}/events`, undefined, 10_000),
   getTimeAnalytics: (attemptId: string) =>
-    cachedGet<TimeAnalyticsResponse>(`/api/attempts/${attemptId}/time-analytics`, LONG_TTL),
+    cachedGet<TimeAnalyticsResponse>(`/api/attempts/${attemptId}/time-analytics`, LONG_TTL, 60_000),
   logCheatingEvent: (
     attemptId: string,
     eventType: string,
@@ -705,6 +1186,16 @@ export const api = {
       `/api/class-progress?tutorId=${tutorId}&studentId=${studentId}`,
       SHORT_TTL,
     ),
+  /** Session logs for many pairs in one request: admins get all pairs (or narrow by tutorId/studentId), tutors/students their own. Keyed "tutorId:studentId". */
+  getClassProgressBatch: (params?: { tutorId?: string; studentId?: string }) => {
+    const qs = new URLSearchParams()
+    if (params?.tutorId) qs.set('tutorId', params.tutorId)
+    if (params?.studentId) qs.set('studentId', params.studentId)
+    return cachedGet<{ entries: Record<string, ClassProgressEntry[]> }>(
+      `/api/class-progress/batch${qs.toString() ? '?' + qs.toString() : ''}`,
+      SHORT_TTL,
+    )
+  },
   addClassProgress: (tutorId: string, studentId: string, body: ClassProgressInput) =>
     request<{ entry: ClassProgressEntry }>('/api/class-progress', {
       method: 'POST',
@@ -719,6 +1210,22 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ tutorId, studentId, entryId, ...body }),
     }),
+
+  // Live classes (100ms): one room per class; each caller gets their own join link.
+  getLiveClasses: () => request<{ configured: boolean; classes: LiveClass[] }>('/api/live-class'),
+  startLiveClass: (studentId: string, tutorId?: string) =>
+    request<{ class: LiveClass }>('/api/live-class', { method: 'POST', body: JSON.stringify({ studentId, tutorId }) }),
+  endLiveClass: (roomId: string) =>
+    request<{ success: boolean }>(`/api/live-class?roomId=${encodeURIComponent(roomId)}`, { method: 'DELETE' }),
+
+  // Upcoming official SAT test dates (read from College Board by the server).
+  getSatDates: () => cachedGet<{ dates: string[]; source: string }>('/api/sat-dates', LONG_TTL),
+
+  // PTM reports: admins write; tutors read their students'; students read their own.
+  getPtmReports: (studentId?: string) =>
+    request<{ students: PtmStudent[] }>(`/api/ptm-reports${studentId ? `?studentId=${encodeURIComponent(studentId)}` : ''}`),
+  addPtmReport: (body: { studentId: string; ptmDate: string; targetTestDate?: string; prepStatus: string; remarks?: string }) =>
+    request<{ report: PtmReport; reports: PtmReport[] }>('/api/ptm-reports', { method: 'POST', body: JSON.stringify(body) }),
 
   // Platform-wide settings (e.g. the "Next SAT Date" shown in admin/tutor sidebars,
   // and the full official test-date calendar shown in the super admin console)
@@ -742,6 +1249,42 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(body),
     }),
+
+  // ASG Library — admin uploads PDFs and assigns them; students/tutors read assigned ones.
+  getLibrary: () => request<{ documents: LibraryDocument[] }>('/api/library'),
+  uploadLibraryDocument: async (file: File, meta: { title: string; description?: string }) => {
+    const { path, token } = await request<{ path: string; token: string }>('/api/library/upload-url', {
+      method: 'POST',
+      body: JSON.stringify({ fileName: file.name, sizeBytes: file.size }),
+    })
+    // Straight to the private Storage bucket with the one-time signed URL (no 10MB server limit).
+    const { error } = await supabase.storage.from('library').uploadToSignedUrl(path, token, file, {
+      contentType: 'application/pdf',
+    })
+    if (error) throw new Error(error.message || 'Upload failed')
+    return request<{ document: LibraryDocument }>('/api/library', {
+      method: 'POST',
+      body: JSON.stringify({ title: meta.title, description: meta.description ?? null, path, fileName: file.name }),
+    })
+  },
+  updateLibraryDocument: (documentId: string, body: { title?: string; description?: string | null }) =>
+    request<{ document: LibraryDocument }>(`/api/library/${documentId}`, { method: 'PATCH', body: JSON.stringify(body) }),
+  deleteLibraryDocument: (documentId: string) =>
+    request<{ success: boolean }>(`/api/library/${documentId}`, { method: 'DELETE' }),
+  setLibraryAssignees: (documentId: string, userIds: string[]) =>
+    request<{ assignees: LibraryAssignee[] }>(`/api/library/${documentId}/assignments`, {
+      method: 'PUT',
+      body: JSON.stringify({ userIds }),
+    }),
+  /** The PDF bytes for the in-app viewer (access is checked on the server). */
+  getLibraryFile: async (documentId: string): Promise<ArrayBuffer> => {
+    const res = await fetch(`${BASE}/api/library/${documentId}/file`, { headers: { ...(await authHeaders()) } })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }))
+      throw new Error(err.error ?? 'Could not open the document')
+    }
+    return res.arrayBuffer()
+  },
 
   deleteImage: async (path: string) => {
     clearApiCache()

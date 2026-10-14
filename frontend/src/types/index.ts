@@ -8,9 +8,17 @@ export interface User {
   /** Free-demo-test signup from the website: may only take their single assigned demo test. */
   isDemo?: boolean;
   avatar?: string;
+  /** Tutor account flagged as a coordinator (sees Accounts, may add tutors and students). */
+  isCoordinator?: boolean;
+  /** Logged in with a temporary password: must set a new one first. */
+  mustChangePassword?: boolean;
   assignedTutorId?: string;
   assignedStudentIds?: string[];
   targetDate?: string | null;
+  /** Students: 'SAT' | 'ACT' | 'CUSTOM' (null = not set, treated as SAT/ACT) */
+  track?: string | null;
+  /** Students on a custom track: the exam's name, e.g. "IELTS" */
+  customExam?: string | null;
 }
 
 export type QuestionType = 'mcq_single' | 'mcq_multi' | 'numeric' | 'passage';

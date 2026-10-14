@@ -12,9 +12,14 @@ export function dbUserToAuthUser(u: DbUser): User {
     email: u.email,
     role: u.role as Role,
     isDemo: Boolean(u.isDemo),
+    avatar: u.avatar ?? undefined,
+    isCoordinator: u.coordinator === true,
+    mustChangePassword: u.mustChangePassword === true,
     assignedTutorId: u.tutorId ?? undefined,
     assignedStudentIds: u.studentIds ?? [],
     targetDate: u.targetDate ?? null,
+    track: u.track ?? null,
+    customExam: u.customExam ?? null,
   };
 }
 

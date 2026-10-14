@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getCurrentUser } from '@/lib/auth'
 import { isAnswerCorrect } from '@/lib/answerCheck'
+import { ensureAttemptEventsTable } from '@/lib/attemptEventsTable'
+import { withTimeout, TimeoutError } from '@/lib/withTimeout'
 import {
   buildVisits, summarise, insights, isEmptyChoice,
   type Grader, type Result, type TrackedEvent,
@@ -62,15 +64,21 @@ export async function GET(
 
     const attempt = await prisma.testAttempt.findUnique({
       where: { id: attemptId },
-      select: { id: true, studentId: true, status: true, testId: true },
+      select: {
+        id: true, studentId: true, status: true, testId: true,
+        sectionAttempts: { select: { sectionId: true, completedAt: true } },
+      },
     })
     if (!attempt) return NextResponse.json({ error: 'Test attempt not found' }, { status: 404 })
 
-    // Access: the student (after submitting), their assigned tutors, and admins.
+    // Access: the student (for modules they have finished), their assigned
+    // tutors, and admins. Results are never shown for a module still being
+    // taken, so the answer key can't leak mid-test.
+    let onlySections: Set<string> | null = null
     if (user.role === 'STUDENT') {
       if (attempt.studentId !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
       if (attempt.status === 'IN_PROGRESS') {
-        return NextResponse.json({ error: 'Available after the test is submitted' }, { status: 409 })
+        onlySections = new Set(attempt.sectionAttempts.filter((sa) => sa.completedAt).map((sa) => sa.sectionId))
       }
     } else if (user.role === 'TUTOR') {
       const assigned = await prisma.tutorAssignment.findUnique({
@@ -80,7 +88,19 @@ export async function GET(
       if (!assigned) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const [events, sections] = await Promise.all([
+    await ensureAttemptEventsTable()
+    // Attempts without visit data (all attempts before 8 Oct 2026) need none of
+    // the heavy question/answer-key query below, so answer them straight away.
+    const anyEvent = await withTimeout(
+      prisma.attemptEvent.findFirst({ where: { attemptId }, select: { id: true } }),
+      45_000,
+      'time-analytics event check',
+    )
+    if (!anyEvent) return NextResponse.json({ hasEvents: false, sections: [] })
+
+    // Bounded so a stuck query gives the page an error (it then shows the
+    // per-question chart with a Retry button) instead of an endless spinner.
+    const [events, allSections] = await withTimeout(Promise.all([
       prisma.attemptEvent.findMany({
         where: { attemptId },
         orderBy: { seq: 'asc' },
@@ -106,7 +126,9 @@ export async function GET(
           },
         },
       }),
-    ])
+    ]), 45_000, 'time-analytics queries')
+
+    const sections = onlySections ? allSections.filter((s) => onlySections.has(s.id)) : allSections
 
     if (events.length === 0) {
       return NextResponse.json({ hasEvents: false, sections: [] })
@@ -169,6 +191,9 @@ export async function GET(
     return NextResponse.json({ hasEvents: true, sections: result })
   } catch (err) {
     console.error('GET /api/attempts/[attemptId]/time-analytics:', err)
+    if (err instanceof TimeoutError) {
+      return NextResponse.json({ error: 'The server took too long to respond' }, { status: 503 })
+    }
     return NextResponse.json({ error: 'Failed to build time analytics' }, { status: 500 })
   }
 }

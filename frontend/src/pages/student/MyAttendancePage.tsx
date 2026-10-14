@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CalendarCheck, Loader2, Clock } from 'lucide-react';
-import { api } from '../../lib/api';
+import { api, type ClassProgressEntry } from '../../lib/api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Badge } from '../../components/common/Badge';
 
@@ -45,12 +45,9 @@ export function MyAttendancePage() {
     setLoading(true);
     api.getTutorAssignments({ studentId: dbId })
       .then(async ({ assignments }) => {
-        const lists = await Promise.all(
-          assignments.map(a =>
-            api.getClassProgress(a.tutorId, dbId)
-              .then(r => r.entries.map(e => ({ ...e, homework: e.homework ?? '', tutorName: a.tutor.name })))
-              .catch(() => [] as AttendanceEntry[])
-          )
+        const byPair = await api.getClassProgressBatch({ studentId: dbId }).then(r => r.entries).catch(() => ({} as Record<string, ClassProgressEntry[]>));
+        const lists = assignments.map(a =>
+          (byPair[`${a.tutorId}:${dbId}`] ?? []).map(e => ({ ...e, homework: e.homework ?? '', tutorName: a.tutor.name }))
         );
         if (cancelled) return;
         const merged = lists.flat().sort((a, b) =>
@@ -72,8 +69,8 @@ export function MyAttendancePage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-xl font-semibold text-slate-900">My Classes</h1>
-        <p className="text-slate-400 text-sm">{entries.length} session{entries.length !== 1 ? 's' : ''} across {daysTaught} day{daysTaught !== 1 ? 's' : ''}</p>
+        <h1 className="text-xl md:text-2xl font-bold text-slate-900">My Classes</h1>
+        <p className="text-sm text-slate-500">{entries.length} session{entries.length !== 1 ? 's' : ''} across {daysTaught} day{daysTaught !== 1 ? 's' : ''}</p>
       </div>
 
       {entries.length === 0 ? (

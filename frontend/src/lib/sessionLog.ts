@@ -3,7 +3,33 @@
 // out of sync on what a session's fields/status values actually mean.
 
 export const SUBJECTS = ['SAT Math', 'SAT Reading', 'SAT Writing', 'ACT Math', 'ACT English', 'ACT Reading', 'ACT Science', 'Other'];
-export const STATUSES = ['Completed', 'No Show - Tutor', 'No Show - Student', 'Cancelled'] as const;
+export const STATUSES = ['Completed', 'No Show - Tutor', 'No Show - Student', 'Cancelled', 'Rescheduled'] as const;
+// Statuses where no class happened: the form asks only for the tutor's remark.
+export const isNoClassStatus = (status: string) => status !== 'Completed';
+
+// "Subjects to be taught", chosen when a student is enrolled (stored in the
+// student's `specialization`). Each tutor teaches one subject, so a session's
+// subject is the student's subject that matches the tutor's.
+export const STUDENT_SUBJECTS = ['SAT Math', 'SAT Reading & Writing', 'ACT Math', 'ACT English', 'ACT Reading', 'ACT Science'];
+export const TUTOR_SUBJECTS = ['Math', 'English', 'Science'];
+// Log-a-Session subject choice for anything outside SAT/ACT (e.g. "College Chemistry").
+export const OTHER_SUBJECT = '__other__';
+
+function subjectKind(s: string): 'math' | 'english' | 'science' | null {
+  if (/math/i.test(s)) return 'math';
+  if (/science/i.test(s)) return 'science';
+  if (/english|reading|writing|verbal/i.test(s)) return 'english';
+  return null;
+}
+
+export function sessionSubject(tutorSubjects: string[], studentSubjects: string[]): string {
+  const kind = tutorSubjects.map(subjectKind).find(Boolean) ?? null;
+  const matches = kind ? studentSubjects.filter((s) => subjectKind(s) === kind) : [];
+  if (matches.length) return matches.join(' + ');
+  if (kind) return TUTOR_SUBJECTS[['math', 'english', 'science'].indexOf(kind)];
+  if (studentSubjects.length === 1) return studentSubjects[0];
+  return 'Other';
+}
 export const ENGAGEMENTS = ['High', 'Medium', 'Low'] as const;
 export const HW_SUBFILTERS = ['HW', 'English', 'Maths', 'All'] as const;
 
@@ -49,7 +75,7 @@ export function statusVariant(status?: string): 'success' | 'danger' | 'default'
   if (status === 'Completed') return 'success';
   // Covers both new ("No Show - Tutor"/"No Show - Student") and legacy ("No Show") values.
   if (status?.startsWith('No Show')) return 'danger';
-  if (status === 'Scheduled') return 'info';
+  if (status === 'Scheduled' || status === 'Rescheduled') return 'info';
   return 'default';
 }
 
@@ -79,6 +105,8 @@ export interface DbTest {
 
 export const emptySessionForm = {
   studentId: '', classDate: new Date().toISOString().split('T')[0], startTime: '', durationMinutes: '60', actualDurationMinutes: '',
-  subject: SUBJECTS[0], status: 'Completed' as string, sessionType: 'Core Prep' as string, topic: '', homeworkTestIds: [] as string[], customHomework: '', notes: '',
-  understanding: 0, attendance: 'Present', engagement: 'High' as string, nextSessionGoal: '', nextSessionAt: '',
+  status: 'Completed' as string, sessionType: 'Core Prep' as string, homeworkTestIds: [] as string[], notes: '',
+  understanding: 0,
+  // '' = the subject worked out from the tutor and student; OTHER_SUBJECT = typed in customSubject.
+  subjectChoice: '', customSubject: '', topics: '', homeworkText: '',
 };

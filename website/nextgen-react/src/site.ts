@@ -5,11 +5,11 @@
 export const SITE = {
   name: 'ACT SAT GO',
   /** Canonical origin used for canonical URLs, sitemap.xml and Open Graph tags. */
-  url: (import.meta.env.VITE_SITE_URL ?? 'https://actsatgo.com').replace(/\/$/, ''),
+  url: (import.meta.env.VITE_SITE_URL ?? 'https://www.actsatgo.com').replace(/\/$/, ''),
   email: 'info@actsatgo.com',
   /** US phone line — the display text and the tel: link must always match. */
-  phoneDisplay: '+1 (332) 231-4081',
-  phoneHref: 'tel:+13322314081',
+  phoneDisplay: '+1 (945) 391-6179',
+  phoneHref: 'tel:+19453916179',
   googleReviewUrl: 'https://g.page/r/CaMyM5bggIx1EBM/review',
   socials: {
     facebook: 'https://www.facebook.com/actsatgousa',
@@ -27,6 +27,20 @@ export const SITE = {
   ga4Id: import.meta.env.VITE_GA4_ID ?? '',
   /** Google Ads conversion target "AW-XXXXXXX/label". Leave empty to disable. */
   adsConversion: import.meta.env.VITE_GOOGLE_ADS_CONVERSION ?? '',
+};
+
+/**
+ * Headline numbers shown across the site. Every page reads from here so the
+ * homepage, program pages and K-12 page never disagree — parents notice when
+ * one page says 5,000 students and another says 10,000. Update them here only,
+ * and only with numbers you can back up.
+ */
+export const STATS = {
+  students: '5,000+',
+  tutors: '300+',
+  countries: '50+',
+  rating: '4.8/5',
+  satisfaction: '98%',
 };
 
 /** The one name for the primary call to action, used everywhere. */

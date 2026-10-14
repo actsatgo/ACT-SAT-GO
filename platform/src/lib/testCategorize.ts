@@ -12,7 +12,9 @@ export function isHomeworkTest(test: { title?: string | null; subCategory?: stri
 // "X correct / Y total" count, never a scaled score — mirrors resolveScoreMode() in
 // frontend/src/lib/testCategorize.ts. Any average of "score" across attempts must exclude
 // these, since a raw count and a 200-1600 scaled score are not the same unit.
+// Custom-exam tests (category "Custom", see lib/examTrack.ts) are raw-scored too.
 export function isRawScoredTest(test: { category?: string | null } | null | undefined): boolean {
   if (!test) return false
-  return (test.category ?? '').trim().toLowerCase() === 'practice sheet'
+  const cat = (test.category ?? '').trim().toLowerCase()
+  return cat === 'practice sheet' || cat === 'custom'
 }

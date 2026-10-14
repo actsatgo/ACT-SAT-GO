@@ -371,7 +371,7 @@ export function SuperAdminDashboard() {
             {tabs.map((t) => (
               <button key={t.key} onClick={() => setTab(t.key)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap flex-shrink-0 ${
-                  tab === t.key ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                  tab === t.key ? 'bg-white text-purple-600' : 'text-slate-500 hover:text-slate-700'
                 }`}>
                 {t.icon} {t.label}
               </button>
@@ -777,7 +777,7 @@ export function SuperAdminDashboard() {
       {/* Permissions */}
       {tab === 'permissions' && (
         <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-900 flex items-start gap-2 shadow-xs">
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-900 flex items-start gap-2">
             <Shield size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-bold text-xs uppercase tracking-wider text-blue-800">Dynamic Role-Based Access Control</p>
@@ -787,7 +787,7 @@ export function SuperAdminDashboard() {
             </div>
           </div>
           
-          <Card padding="none" className="border border-slate-100 shadow-sm overflow-hidden bg-white">
+          <Card padding="none" className="border border-slate-100 overflow-hidden bg-white">
             <div className="px-4 py-3.5 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-2.5 bg-slate-50/50">
               <div>
                 <h3 className="font-bold text-slate-850 text-sm">Dynamic Permission Matrix</h3>
@@ -798,7 +798,7 @@ export function SuperAdminDashboard() {
                 variant={permissionsSaved ? 'success' : 'primary'}
                 onClick={handleSavePermissions}
                 disabled={permissionsSaving}
-                className={`text-xs font-bold px-4 py-2 shadow-xs transition-all ${permissionsSaved ? 'bg-emerald-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+                className={`text-xs font-bold px-4 py-2 transition-all ${permissionsSaved ? 'bg-emerald-600 text-white' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
               >
                 {permissionsSaving ? 'Saving Matrix...' : permissionsSaved ? 'Matrix Persisted!' : 'Save Matrix Changes'}
               </Button>
@@ -844,7 +844,7 @@ export function SuperAdminDashboard() {
                             <button 
                               onClick={() => togglePermission(i, role)} 
                               disabled={role === 'super_admin'}
-                              className={`w-6 h-6 rounded-lg flex items-center justify-center mx-auto transition-all shadow-xs border ${
+                              className={`w-6 h-6 rounded-lg flex items-center justify-center mx-auto transition-all border ${
                                 p[role]
                                   ? role === 'super_admin' 
                                     ? 'bg-purple-500 border-purple-500 text-white cursor-default' 
@@ -869,7 +869,7 @@ export function SuperAdminDashboard() {
                 variant={permissionsSaved ? 'success' : 'primary'}
                 onClick={handleSavePermissions}
                 disabled={permissionsSaving}
-                className="text-xs font-bold shadow-xs py-2 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
+                className="text-xs font-bold py-2 px-5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl"
               >
                 {permissionsSaving ? 'Saving Permissions...' : permissionsSaved ? 'All Settings Saved!' : 'Save Permission Configurations'}
               </Button>

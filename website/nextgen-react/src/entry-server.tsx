@@ -13,6 +13,7 @@ export function headTags(meta: PageMeta): string {
   return baseHeadTags(meta, schemaFor(meta.path));
 }
 export { SITE } from './site';
+export { ARTICLES } from './data/articles';
 
 /** Renders one route to static HTML (used by scripts/prerender.mjs at build time). */
 export async function render(url: string): Promise<string> {

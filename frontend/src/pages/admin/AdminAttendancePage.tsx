@@ -6,7 +6,7 @@ import { Badge } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { LogSessionModal, type SavedSessionEntry } from '../../components/common/LogSessionModal';
-import { api } from '../../lib/api';
+import { api, type ClassProgressEntry } from '../../lib/api';
 import { SUBJECTS, SESSION_TYPES, STATUSES, statusVariant, toLines, sortSessionEntries, type DbTest } from '../../lib/sessionLog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatDate } from '../../lib/utils';
@@ -55,7 +55,7 @@ export function AdminAttendancePage() {
   const [tutorRates, setTutorRates] = useState<Map<string, number>>(new Map());
   const [tutorList, setTutorList] = useState<{ id: string; name: string }[]>([]);
   const [allTutors, setAllTutors] = useState<{ id: string; name: string }[]>([]);
-  const [tutorStudentsMap, setTutorStudentsMap] = useState<Map<string, { id: string; name: string }[]>>(new Map());
+  const [tutorStudentsMap, setTutorStudentsMap] = useState<Map<string, { id: string; name: string; customExam?: string | null }[]>>(new Map());
   const [publishedTests, setPublishedTests] = useState<DbTest[]>([]);
   const [logOpen, setLogOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -135,7 +135,7 @@ export function AdminAttendancePage() {
     setEditSaving(true);
     try {
       const { entry: updated } = await api.updateClassProgress(editEntry.tutorId, editEntry.studentId, editEntry.id, {
-        subject: editForm.subject || undefined,
+        subject: editForm.subject.trim() || undefined,
         sessionType: editForm.sessionType || undefined,
         topic: editForm.topic,
         homework: editForm.homework,
@@ -217,30 +217,28 @@ export function AdminAttendancePage() {
         if (cancelled) return;
         // Every tutor-student pair, independent of whether any session has been
         // logged for it yet — this is what lets an admin pick "who" to log for.
-        const studentsByTutor = new Map<string, { id: string; name: string }[]>();
+        const studentsByTutor = new Map<string, { id: string; name: string; customExam?: string | null }[]>();
         const tutorsById = new Map<string, string>();
         for (const a of assignments) {
           tutorsById.set(a.tutorId, a.tutor.name);
           const list = studentsByTutor.get(a.tutorId) ?? [];
-          list.push({ id: a.studentId, name: a.student.name });
+          list.push({ id: a.studentId, name: a.student.name, customExam: a.student.track === 'CUSTOM' ? a.student.customExam : null });
           studentsByTutor.set(a.tutorId, list);
         }
         setTutorStudentsMap(studentsByTutor);
         setTutorList(Array.from(tutorsById.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name)));
 
-        const lists = await Promise.all(
-          assignments.map(a =>
-            api.getClassProgress(a.tutorId, a.studentId)
-              .then(r => r.entries.map(e => ({
-                ...e,
-                homework: e.homework ?? '',
-                tutorId: a.tutorId,
-                tutorName: a.tutor.name,
-                studentId: a.studentId,
-                studentName: a.student.name,
-              })))
-              .catch(() => [] as AttendanceEntry[])
-          )
+        // One request for every pair's session log (was one request per pair).
+        const byPair = await api.getClassProgressBatch().then(r => r.entries).catch(() => ({} as Record<string, ClassProgressEntry[]>));
+        const lists = assignments.map(a =>
+          (byPair[`${a.tutorId}:${a.studentId}`] ?? []).map(e => ({
+            ...e,
+            homework: e.homework ?? '',
+            tutorId: a.tutorId,
+            tutorName: a.tutor.name,
+            studentId: a.studentId,
+            studentName: a.student.name,
+          }))
         );
         if (cancelled) return;
         setEntries(sortSessionEntries(lists.flat()));
@@ -373,8 +371,8 @@ export function AdminAttendancePage() {
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">Session Logs</h1>
-          <p className="text-slate-400 text-sm">Track how much every tutor is teaching and what's being covered.</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">Session Logs</h1>
+          <p className="text-sm text-slate-500">Track how much every tutor is teaching and what's being covered.</p>
         </div>
         <div className="flex items-center gap-2">
           {user?.role === 'super_admin' && (
@@ -627,11 +625,13 @@ export function AdminAttendancePage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Subject</label>
-                <select value={editForm.subject} onChange={(e) => setEditForm(f => ({ ...f, subject: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">—</option>
-                  {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+                {/* Free text with suggestions, so a custom subject (e.g. "College Chemistry") can be kept or typed. */}
+                <input type="text" list="session-subject-options" value={editForm.subject}
+                  onChange={(e) => setEditForm(f => ({ ...f, subject: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <datalist id="session-subject-options">
+                  {SUBJECTS.map(s => <option key={s} value={s} />)}
+                </datalist>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Session Type</label>

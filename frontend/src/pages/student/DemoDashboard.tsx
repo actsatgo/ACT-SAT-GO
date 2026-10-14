@@ -8,6 +8,8 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { useAssignedTests, getTotalDuration, getTotalQuestions, type AssignedTestData } from '../../hooks/useAssignedTests';
 import { loadStudentAnalytics, aggregate, computeSatScore, type LoadedAttempt, type QRecord } from '../../lib/analyticsData';
 import { formatDate } from '../../lib/utils';
+import { isTestBlockedDevice } from '../../lib/testDevice';
+import { TestDeviceDialog } from '../../components/common/TestDeviceNotice';
 
 // Where "Enroll" sends a demo student. Overridable per environment.
 const WHATSAPP_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER ?? '918085559439';
@@ -72,8 +74,10 @@ export function DemoDashboard() {
   const isScaled = attempt?.scoreMode !== 'raw';
   const displayScore = attempt?.totalScore ?? sat?.total ?? null;
 
+  const [deviceNotice, setDeviceNotice] = useState(false);
   const startOrResume = () => {
     if (!demoTest) return;
+    if (isTestBlockedDevice()) { setDeviceNotice(true); return; }
     if (demoTest.status === 'In Progress' && demoTest.inProgressAttemptId) {
       navigate(`/test/${demoTest.testId}?attemptId=${demoTest.inProgressAttemptId}`);
     } else {
@@ -92,7 +96,8 @@ export function DemoDashboard() {
   }
 
   return (
-    <div className="space-y-6 max-w-5xl mx-auto">
+    <div className="space-y-6">
+      <TestDeviceDialog open={deviceNotice} onClose={() => setDeviceNotice(false)} />
       {/* Hero */}
       <div className="rounded-2xl bg-gradient-to-br from-[#0B1E36] via-[#12305a] to-[#1b3d6e] text-white p-6 md:p-8 shadow-lg">
         <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider bg-amber-400/15 text-amber-300 px-2.5 py-1 rounded-full">

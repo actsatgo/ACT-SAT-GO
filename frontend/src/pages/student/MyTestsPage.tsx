@@ -1,11 +1,14 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Play, FileSearch, Clock, Target, Loader2, BookOpen, Search, X, CheckCircle, ListTodo } from 'lucide-react';
+import { Play, FileSearch, Clock, Target, Loader2, BookOpen, Search, X, CheckCircle, ListTodo, Laptop } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { loadStudentAnalytics, computeSatScore, type QRecord } from '../../lib/analyticsData';
 import { resolveScoreMode } from '../../lib/testCategorize';
 import { formatDate } from '../../lib/utils';
+import { useTestBlockedDevice } from '../../hooks/useTestBlockedDevice';
+import { isTestBlockedDevice, TEST_DEVICE_MESSAGE } from '../../lib/testDevice';
+import { TestDeviceDialog } from '../../components/common/TestDeviceNotice';
 
 interface ApiTest {
   assignmentId: string;
@@ -62,12 +65,14 @@ const isReadingSubject = (t: ApiTest): boolean => {
     || /\br-\d+/.test(title)
     || (t.sections ?? []).some(s => /read/i.test(s.name));
 };
+// Custom-exam tests (non-SAT/ACT, e.g. "IELTS Mock 1") get their own tab.
+const isCustom = (t: ApiTest): boolean => t.category?.toLowerCase() === 'custom';
 const isMock = (t: ApiTest): boolean =>
-  t.category?.toLowerCase() === 'mock' || t.category?.toLowerCase() === 'diagnostic' || /mock|diagnostic/i.test(t.title);
+  !isCustom(t) && (t.category?.toLowerCase() === 'mock' || t.category?.toLowerCase() === 'diagnostic' || /mock|diagnostic/i.test(t.title));
 const isSectional = (t: ApiTest): boolean =>
-  t.category?.toLowerCase() === 'sectional' || /sectional/i.test(t.title);
+  !isCustom(t) && (t.category?.toLowerCase() === 'sectional' || /sectional/i.test(t.title));
 const isPractice = (t: ApiTest): boolean =>
-  !isHW(t) && (t.category === 'Practice Sheet' || /practice/i.test(t.title));
+  !isCustom(t) && !isHW(t) && (t.category === 'Practice Sheet' || /practice/i.test(t.title));
 
 const TEST_FILTERS = [
   { key: 'Mock',             match: isMock },
@@ -78,6 +83,7 @@ const TEST_FILTERS = [
   { key: 'Math Practice',    match: (t: ApiTest) => isPractice(t) && isMathSubject(t) },
   { key: 'Reading Practice', match: (t: ApiTest) => isPractice(t) && isReadingSubject(t) },
   { key: 'Writing Practice', match: (t: ApiTest) => isPractice(t) && isWritingSubject(t) },
+  { key: 'Exam Tests',       match: isCustom },
 ] as const;
 type FilterKey = typeof TEST_FILTERS[number]['key'];
 
@@ -88,24 +94,26 @@ const CAT_COLORS: Record<string, string> = {
   'Practice Sheet': 'bg-purple-100 text-purple-700',
   ACT:              'bg-[#1b3d6e]/10 text-[#1b3d6e]',
   SAT:              'bg-rose-100 text-rose-700',
+  Custom:           'bg-rose-100 text-rose-700',
   Math:             'bg-blue-100 text-blue-700',
   Reading:          'bg-emerald-100 text-emerald-700',
   Writing:          'bg-indigo-100 text-indigo-700',
 };
 
 function TestCategoryBadges({ category, subCategory }: { category?: string; subCategory?: string }) {
-  const subject = subCategory?.split('-')[0];
+  // A custom test's subCategory is the exam name, kept whole.
+  const subject = category?.toLowerCase() === 'custom' ? subCategory : subCategory?.split('-')[0];
   return (
     <>
-      {subject && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${CAT_COLORS[subject] ?? 'bg-gray-100 text-gray-600'}`}>{subject}</span>}
-      {category && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${CAT_COLORS[category] ?? 'bg-gray-100 text-gray-600'}`}>{category}</span>}
+      {subject && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${CAT_COLORS[subject] ?? 'bg-slate-100 text-slate-600'}`}>{subject}</span>}
+      {category && <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${CAT_COLORS[category] ?? 'bg-slate-100 text-slate-600'}`}>{category}</span>}
     </>
   );
 }
 
 export function MyTestsPage() {
   const navigate = useNavigate();
-  const { dbId } = useAuthStore();
+  const { dbId, user } = useAuthStore();
   const [tests, setTests] = useState<ApiTest[]>([]);
   const [attempts, setAttempts] = useState<LoadedAttempt[]>([]);
   const [records, setRecords] = useState<Map<string, QRecord[]>>(new Map());
@@ -113,6 +121,9 @@ export function MyTestsPage() {
   const [tab, setTab] = useState<'todo' | 'completed'>('todo');
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterKey | null>(null);
+  // Tests can't be started/resumed on phones — tapping Start shows a notice instead.
+  const testBlocked = useTestBlockedDevice();
+  const [deviceNotice, setDeviceNotice] = useState(false);
 
   useEffect(() => {
     if (!dbId) { setLoading(false); return; }
@@ -168,23 +179,24 @@ export function MyTestsPage() {
   const expiredVisible = tab === 'todo' ? visiblePool.filter(t => t.status === 'Expired') : [];
 
   return (
-    <div className="max-w-5xl space-y-5">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+    <div className="space-y-5">
+      <TestDeviceDialog open={deviceNotice} onClose={() => setDeviceNotice(false)} />
+      <div className="flex items-center justify-between gap-4 flex-wrap max-md:gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">My Assignments</h1>
-          <p className="text-gray-500 text-sm mt-0.5">{tests.length} test{tests.length !== 1 ? 's' : ''} assigned</p>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">My Tests</h1>
+          <p className="text-slate-500 text-sm mt-0.5">{tests.length} test{tests.length !== 1 ? 's' : ''} assigned</p>
         </div>
         {tests.length > 0 && (
-          <div className="relative w-56">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <div className="relative w-56 max-sm:w-full">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search tests…"
-              className="w-full pl-9 pr-8 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1b3d6e]/30 bg-white"
+              className="w-full pl-9 pr-8 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1b3d6e]/30 bg-white"
             />
             {search && (
-              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+              <button onClick={() => setSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                 <X size={13} />
               </button>
             )}
@@ -192,27 +204,34 @@ export function MyTestsPage() {
         )}
       </div>
 
+      {testBlocked && pending.length > 0 && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-blue-100 bg-blue-50 px-3 py-2.5 text-sm text-[#1b3d6e]">
+          <Laptop size={18} className="flex-shrink-0 mt-0.5" />
+          <p><span className="font-semibold">{TEST_DEVICE_MESSAGE}.</span> You can still review your completed tests here.</p>
+        </div>
+      )}
+
       {tests.length > 0 && (
-        <div className="inline-flex items-center gap-1 bg-gray-100 rounded-xl p-1">
+        <div className="inline-flex items-center gap-1 bg-slate-100 rounded-xl p-1">
           <button
             onClick={() => switchTab('todo')}
             className={`flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-lg transition-all ${
-              tab === 'todo' ? 'bg-white text-[#1b3d6e] shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              tab === 'todo' ? 'bg-white text-[#1b3d6e] shadow-sm' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <ListTodo size={14} /> To Do
-            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${tab === 'todo' ? 'bg-[#1b3d6e]/10 text-[#1b3d6e]' : 'bg-gray-200 text-gray-500'}`}>
+            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${tab === 'todo' ? 'bg-[#1b3d6e]/10 text-[#1b3d6e]' : 'bg-slate-200 text-slate-500'}`}>
               {todoPool.length}
             </span>
           </button>
           <button
             onClick={() => switchTab('completed')}
             className={`flex items-center gap-1.5 text-sm font-semibold px-4 py-1.5 rounded-lg transition-all ${
-              tab === 'completed' ? 'bg-white text-[#1b3d6e] shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              tab === 'completed' ? 'bg-white text-[#1b3d6e] shadow-sm' : 'text-slate-500 hover:text-slate-700'
             }`}
           >
             <CheckCircle size={14} /> Completed
-            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${tab === 'completed' ? 'bg-[#1b3d6e]/10 text-[#1b3d6e]' : 'bg-gray-200 text-gray-500'}`}>
+            <span className={`text-xs font-bold px-1.5 py-0.5 rounded-full ${tab === 'completed' ? 'bg-[#1b3d6e]/10 text-[#1b3d6e]' : 'bg-slate-200 text-slate-500'}`}>
               {completedTests.length}
             </span>
           </button>
@@ -220,25 +239,26 @@ export function MyTestsPage() {
       )}
 
       {tests.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
-          {TEST_FILTERS.map(f => {
+        <div className="flex flex-wrap gap-1.5 max-md:flex-nowrap max-md:overflow-x-auto max-md:-mx-3 max-md:px-3 max-md:pb-1">
+          {/* Custom-exam students only see tabs that have tests (no empty SAT tabs). */}
+          {TEST_FILTERS.filter(f => user?.track !== 'CUSTOM' || pool.some(f.match)).map(f => {
             const count = pool.filter(f.match).length;
             return (
               <button
                 key={f.key}
                 onClick={() => count > 0 && setActiveFilter(activeFilter === f.key ? null : f.key)}
                 disabled={count === 0}
-                className={`text-xs font-medium px-3 py-1 rounded-full border transition-all flex items-center gap-1.5 ${
+                className={`text-xs font-medium px-3 py-1 rounded-full border transition-all flex items-center gap-1.5 max-md:flex-shrink-0 max-md:whitespace-nowrap ${
                   activeFilter === f.key
                     ? 'bg-[#1b3d6e] text-white border-[#1b3d6e]'
                     : count === 0
-                      ? 'bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-[#1b3d6e]/40 hover:text-[#1b3d6e]'
+                      ? 'bg-slate-50 text-slate-300 border-slate-100 cursor-not-allowed'
+                      : 'bg-white text-slate-600 border-slate-200 hover:border-[#1b3d6e]/40 hover:text-[#1b3d6e]'
                 }`}
               >
                 {f.key}
                 <span className={`text-[10px] font-bold px-1.5 rounded-full ${
-                  activeFilter === f.key ? 'bg-white/20' : count === 0 ? 'bg-gray-100' : 'bg-gray-100 text-gray-500'
+                  activeFilter === f.key ? 'bg-white/20' : count === 0 ? 'bg-slate-100' : 'bg-slate-100 text-slate-500'
                 }`}>
                   {count}
                 </span>
@@ -249,15 +269,15 @@ export function MyTestsPage() {
       )}
 
       {tests.length === 0 && (
-        <div className="bg-white border border-gray-100 rounded-xl py-16 text-center">
-          <BookOpen size={28} className="text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">No tests assigned yet</p>
+        <div className="bg-white border border-slate-100 rounded-xl py-16 text-center">
+          <BookOpen size={28} className="text-slate-300 mx-auto mb-3" />
+          <p className="text-slate-500 font-medium">No tests assigned yet</p>
         </div>
       )}
 
       {tests.length > 0 && visiblePool.length === 0 && (
-        <div className="bg-white border border-gray-100 rounded-xl py-10 text-center">
-          <p className="text-gray-400 text-sm">
+        <div className="bg-white border border-slate-100 rounded-xl py-10 text-center">
+          <p className="text-slate-400 text-sm">
             {tab === 'todo' ? 'No tests to complete match your filters' : 'No completed tests match your filters'}
           </p>
           <button onClick={() => { setSearch(''); setActiveFilter(null); }} className="text-xs text-[#1b3d6e] mt-1 hover:underline">Clear filters</button>
@@ -266,7 +286,7 @@ export function MyTestsPage() {
 
       {tab === 'todo' && pendingVisible.length > 0 && (
         <div>
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">To Complete</h2>
+          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">To Complete</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {pendingVisible.map((test) => {
               const totalQ = (test.sections ?? []).reduce((a, s) => a + (s._count?.questions ?? 0), 0);
@@ -274,9 +294,11 @@ export function MyTestsPage() {
               const isInProgress = test.status === 'In Progress';
               const usedAttempts = Math.max(test.maxAttempts - test.remainingAttempts, 0);
               const isRetake = !isInProgress && usedAttempts > 0;
-              const go = () => isInProgress && test.inProgressAttemptId
-                ? navigate(`/test/${test.testId}?attemptId=${test.inProgressAttemptId}`)
-                : navigate(`/test-instructions/${test.testId}`);
+              const go = () => {
+                if (isTestBlockedDevice()) { setDeviceNotice(true); return; }
+                if (isInProgress && test.inProgressAttemptId) navigate(`/test/${test.testId}?attemptId=${test.inProgressAttemptId}`);
+                else navigate(`/test-instructions/${test.testId}`);
+              };
               return (
                 <div key={test.assignmentId} onClick={go} className="bg-white border-2 border-[#1b3d6e]/20 rounded-xl p-3 cursor-pointer hover:border-[#1b3d6e]/40 transition-colors flex flex-col gap-1.5">
                   <div className="flex items-center gap-1 flex-wrap">
@@ -285,8 +307,8 @@ export function MyTestsPage() {
                     </span>
                     <TestCategoryBadges category={test.category} subCategory={test.subCategory} />
                   </div>
-                  <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 flex-1">{test.title}</h3>
-                  <p className="text-[11px] text-gray-500">
+                  <h3 className="font-semibold text-slate-900 text-sm line-clamp-2 flex-1">{test.title}</h3>
+                  <p className="text-[11px] text-slate-500">
                     {test.sections.length} section{test.sections.length !== 1 ? 's' : ''} · {totalQ}Q · {totalMin}min
                   </p>
                   {test.maxAttempts > 1 && (
@@ -309,7 +331,7 @@ export function MyTestsPage() {
                     onClick={(e) => { e.stopPropagation(); go(); }}
                     className="mt-auto w-full flex items-center justify-center gap-1.5 bg-[#1b3d6e] text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-[#15305a] transition-colors"
                   >
-                    <Play size={12} />
+                    {testBlocked ? <Laptop size={12} /> : <Play size={12} />}
                     {isInProgress ? 'Continue' : isRetake ? 'Retake' : 'Start Test'}
                   </button>
                 </div>
@@ -321,15 +343,15 @@ export function MyTestsPage() {
 
       {tab === 'todo' && expiredVisible.length > 0 && (
         <div>
-          <h2 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Expired</h2>
+          <h2 className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Expired</h2>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
             {expiredVisible.map((test) => (
-              <div key={test.assignmentId} className="bg-white border border-gray-100 rounded-xl p-3 opacity-60 flex flex-col gap-1.5">
+              <div key={test.assignmentId} className="bg-white border border-slate-100 rounded-xl p-3 opacity-60 flex flex-col gap-1.5">
                 <div className="flex items-center gap-1 flex-wrap">
-                  <Target size={12} className="text-gray-400 flex-shrink-0" />
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide bg-gray-100 text-gray-500">Expired</span>
+                  <Target size={12} className="text-slate-400 flex-shrink-0" />
+                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide bg-slate-100 text-slate-500">Expired</span>
                 </div>
-                <p className="text-sm font-medium text-gray-500 line-clamp-2">{test.title}</p>
+                <p className="text-sm font-medium text-slate-500 line-clamp-2">{test.title}</p>
                 <div className="flex gap-1 flex-wrap">
                   <TestCategoryBadges category={test.category} subCategory={test.subCategory} />
                 </div>

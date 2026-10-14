@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  ClipboardList, PlusCircle, X, RotateCcw, Clock, ChevronLeft, ChevronRight,
+  ClipboardList, PlusCircle, X, RotateCcw, Clock, ChevronLeft, ChevronRight, Loader2,
   Calendar, User as UserIcon, Users, CheckCircle2,
 } from 'lucide-react';
 import { Button } from '../../components/common/Button';
@@ -59,7 +59,7 @@ export function AttendancePage() {
   const { user, dbId } = useAuthStore();
   const navigate = useNavigate();
 
-  const [students, setStudents] = useState<{ id: string; name: string }[]>([]);
+  const [students, setStudents] = useState<{ id: string; name: string; customExam?: string | null }[]>([]);
   const [entries, setEntries] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [publishedTests, setPublishedTests] = useState<DbTest[]>([]);
@@ -127,14 +127,11 @@ export function AttendancePage() {
     setLoading(true);
     api.getTutorAssignments({ tutorId: dbId })
       .then(async ({ assignments }) => {
-        const studs = assignments.map(a => ({ id: a.student.id, name: a.student.name }));
+        const studs = assignments.map(a => ({ id: a.student.id, name: a.student.name, customExam: a.student.track === 'CUSTOM' ? a.student.customExam : null }));
         setStudents(studs);
-        const lists = await Promise.all(
-          studs.map(s =>
-            api.getClassProgress(dbId, s.id)
-              .then(r => r.entries.map(e => ({ ...e, homework: e.homework ?? '', studentId: s.id, studentName: s.name })))
-              .catch(() => [] as Session[])
-          )
+        const byPair = await api.getClassProgressBatch({ tutorId: dbId }).then(r => r.entries).catch(() => ({} as Record<string, ClassProgressEntry[]>));
+        const lists = studs.map(s =>
+          (byPair[`${dbId}:${s.id}`] ?? []).map(e => ({ ...e, homework: e.homework ?? '', studentId: s.id, studentName: s.name }))
         );
         setEntries(sortSessionEntries(lists.flat()));
       })
@@ -152,6 +149,12 @@ export function AttendancePage() {
   }, [selected, dbId]);
 
   useEffect(() => { setPage(1); }, [dateFrom, dateTo, studentFilter, subjectFilter, statusFilter]);
+
+  // The standard subjects plus any custom ones logged (e.g. "College Chemistry").
+  const subjectOptions = useMemo(
+    () => [...new Set([...SUBJECTS, ...entries.map(e => e.subject).filter((s): s is string => !!s)])],
+    [entries],
+  );
 
   const filtered = useMemo(() => {
     return entries.filter(e => {
@@ -203,18 +206,15 @@ export function AttendancePage() {
   const studentDaysTaught = selected ? new Set(entries.filter(e => e.studentId === selected.studentId).map(e => e.classDate)).size : 0;
 
   if (loading) {
-    return <div className="flex items-center justify-center h-64"><div className="animate-spin h-5 w-5 border-2 border-slate-300 border-t-blue-600 rounded-full" /></div>;
+    return <div className="flex items-center justify-center h-64"><Loader2 size={20} className="animate-spin text-slate-400" /></div>;
   }
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center flex-shrink-0"><ClipboardList size={18} /></div>
-          <div>
-            <h1 className="text-xl font-semibold text-slate-900">Session Logs</h1>
-            <p className="text-slate-400 text-sm">Track and manage all your tutoring sessions in one place.</p>
-          </div>
+        <div>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">Session Logs</h1>
+          <p className="text-sm text-slate-500">Track and manage all your tutoring sessions in one place.</p>
         </div>
         <Button size="sm" icon={<PlusCircle size={14} />} onClick={openLog} disabled={students.length === 0}>
           Log a Session
@@ -259,7 +259,7 @@ export function AttendancePage() {
         <select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}
           className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-100">
           <option value="all">All Subjects</option>
-          {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+          {subjectOptions.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
           className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-100">

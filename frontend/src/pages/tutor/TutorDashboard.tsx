@@ -377,11 +377,11 @@ export function TutorDashboard() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 max-md:flex max-md:flex-col">
       {/* Greetings & Action Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="max-md:-order-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-semibold text-slate-900">
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">
             {greetingForHour(today.getHours())}, {user?.name?.split(' ')[0]}!
           </h1>
           <p className="text-slate-400 text-sm mt-0.5">
@@ -391,7 +391,7 @@ export function TutorDashboard() {
       </div>
 
       {/* Info Strip */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="max-md:-order-2 grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center flex-shrink-0">
             <CalendarDays size={16} />
@@ -442,7 +442,7 @@ export function TutorDashboard() {
       </div>
 
       {/* Tabs Selector Navigation */}
-      <div className="flex border-b border-slate-200 gap-4 pb-px">
+      <div className="max-md:-order-2 flex border-b border-slate-200 gap-4 pb-px">
         <button 
           onClick={() => setActiveTab('overview')} 
           className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-all flex items-center gap-2 -mb-px ${
@@ -495,7 +495,7 @@ export function TutorDashboard() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            <div className="lg:col-span-2 bg-white rounded-xl border border-slate-100 p-5 shadow-sm">
+            <div className="lg:col-span-2 bg-white rounded-xl border border-slate-100 p-5">
               <p className="font-medium text-slate-900 text-sm mb-1">Student Performance Trend</p>
               <p className="text-xs text-slate-400 mb-4">{trendLabel} (last 30 days)</p>
               <ResponsiveContainer width="100%" height={200}>
@@ -510,7 +510,7 @@ export function TutorDashboard() {
             </div>
 
             {/* Upcoming target exams */}
-            <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-100">
               <div className="px-5 py-3.5 border-b border-slate-50">
                 <p className="font-medium text-slate-900 text-sm">Upcoming Target Exams</p>
                 <p className="text-xs text-slate-400">Nearest student target dates</p>
@@ -541,7 +541,7 @@ export function TutorDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
             {/* Score distribution */}
-            <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-100">
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50">
                 <div>
                   <p className="font-medium text-slate-900 text-sm">Score Distribution</p>
@@ -568,7 +568,7 @@ export function TutorDashboard() {
             </div>
 
             {/* Students requiring attention */}
-            <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-100">
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50">
                 <p className="font-medium text-slate-900 text-sm">Students Requiring Attention</p>
                 <Link to="/my-students" className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 font-semibold">
@@ -598,7 +598,7 @@ export function TutorDashboard() {
             </div>
 
             {/* Insights */}
-            <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-100">
               <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-50">
                 <Sparkles size={14} className="text-purple-500" />
                 <p className="font-medium text-slate-900 text-sm">Insights</p>
@@ -618,7 +618,7 @@ export function TutorDashboard() {
             </div>
 
             {/* Students in the selected range */}
-            <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-100">
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50">
                 <p className="font-medium text-slate-900 text-sm">
                   {selectedRange ? `Students: ${selectedRange}` : 'Students by Score Range'}
@@ -651,7 +651,7 @@ export function TutorDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Learning analytics this week */}
-            <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-100 p-5">
               <p className="font-medium text-slate-900 text-sm mb-1">Learning Analytics</p>
               <p className="text-xs text-slate-400 mb-4">This week</p>
               <div className="grid grid-cols-2 gap-3">
@@ -675,7 +675,7 @@ export function TutorDashboard() {
             </div>
 
             {/* Test Activity area chart */}
-            <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm lg:col-span-2">
+            <div className="bg-white rounded-xl border border-slate-100 p-5 lg:col-span-2">
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="font-medium text-slate-900 text-sm">Test Activity</p>
@@ -705,8 +705,9 @@ export function TutorDashboard() {
             </div>
           </div>
 
+          {/* On phones this card is pulled up right under the tabs (CSS order) so a tutor sees homework status first. */}
           {/* Assigned Homework & Tests Overview across enrolled students */}
-          <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
+          <div className="bg-white rounded-xl border border-slate-100 overflow-hidden max-md:-order-1">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-5 py-4 border-b border-slate-100 bg-gradient-to-r from-blue-50/40 via-white to-slate-50">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
@@ -734,7 +735,7 @@ export function TutorDashboard() {
                       key={tabKey}
                       onClick={() => setAssignmentFilter(tabKey)}
                       className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1.5 ${
-                        active ? 'bg-blue-600 text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        active ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                     >
                       {label}
@@ -801,8 +802,8 @@ export function TutorDashboard() {
                     }
 
                     return (
-                      <div key={a.assignmentId} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-blue-50/30 transition-colors">
-                        <Link to={`/student/${a.studentId}`} className="flex items-center gap-3 min-w-0 flex-1 group">
+                      <div key={a.assignmentId} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-blue-50/30 transition-colors max-md:flex-wrap max-md:gap-y-2 max-md:px-4">
+                        <Link to={`/student/${a.studentId}`} className="flex items-center gap-3 min-w-0 flex-1 group max-md:basis-full">
                           <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs flex-shrink-0">
                             {a.studentName.charAt(0).toUpperCase()}
                           </div>
@@ -826,8 +827,8 @@ export function TutorDashboard() {
                           </div>
                         </Link>
 
-                        <div className="flex items-center gap-3 flex-shrink-0">
-                          <span className={`hidden sm:inline-block px-2 py-0.5 rounded text-xs border ${dueColor}`}>
+                        <div className="flex items-center gap-3 flex-shrink-0 max-md:w-full max-md:pl-11 max-md:gap-2">
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs border whitespace-nowrap ${dueColor}`}>
                             {dueText}
                           </span>
 
@@ -846,7 +847,7 @@ export function TutorDashboard() {
 
                           <button
                             onClick={() => navigate(`/test-instructions/${a.testId}?preview=true`)}
-                            className="px-2 py-1 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1 shadow-sm"
+                            className="px-2 py-1 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1 max-md:ml-auto"
                             title="Open and preview test"
                           >
                             <Eye size={12} /> Open
@@ -870,7 +871,7 @@ export function TutorDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
             {/* Recent activity feed */}
-            <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-100">
               <div className="flex items-center gap-2 px-5 py-3.5 border-b border-slate-50">
                 <Activity size={14} className="text-blue-500 animate-pulse" />
                 <p className="font-medium text-slate-900 text-sm">Recent Activity</p>
@@ -890,7 +891,7 @@ export function TutorDashboard() {
             </div>
 
             {/* Recent tests list */}
-            <div className="bg-white rounded-xl border border-slate-100 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-100">
               <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50">
                 <p className="font-medium text-slate-900 text-sm">Recent Tests</p>
                 <Link to="/my-students" className="text-xs text-slate-400 hover:text-slate-650 flex items-center gap-1 font-semibold">
@@ -923,7 +924,7 @@ export function TutorDashboard() {
             </div>
 
             {/* Quick actions for tutors */}
-            <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm">
+            <div className="bg-white rounded-xl border border-slate-100 p-5">
               <p className="font-medium text-slate-900 text-sm mb-4">Quick Actions</p>
               <div className="grid grid-cols-3 gap-3">
                 <Link to="/my-students" className="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all">
@@ -942,7 +943,7 @@ export function TutorDashboard() {
                   <div className="w-9 h-9 rounded-lg bg-red-50 text-red-500 flex items-center justify-center"><AlertCircle size={16} /></div>
                   <span className="text-[10px] text-slate-600 text-center font-bold">Mistakes</span>
                 </Link>
-                <Link to="/session-log" className="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all">
+                <Link to="/attendance" className="flex flex-col items-center gap-2 p-3 rounded-lg border border-slate-100 hover:border-slate-200 hover:bg-slate-50 transition-all">
                   <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center"><ClipboardList size={16} /></div>
                   <span className="text-[10px] text-slate-600 text-center font-bold">Session Log</span>
                 </Link>
@@ -983,7 +984,7 @@ export function TutorDashboard() {
             <div className="space-y-6">
               {/* Telemetry Metric Badges */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3 shadow-xs">
+                <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">
                   <div className="p-2.5 rounded-lg bg-emerald-50 text-emerald-600 flex-shrink-0 animate-pulse">
                     <Activity size={20} />
                   </div>
@@ -993,7 +994,7 @@ export function TutorDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3 shadow-xs">
+                <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">
                   <div className="p-2.5 rounded-lg bg-amber-50 text-amber-600 flex-shrink-0">
                     <RefreshCw size={20} />
                   </div>
@@ -1003,7 +1004,7 @@ export function TutorDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3 shadow-xs">
+                <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">
                   <div className="p-2.5 rounded-lg bg-red-50 text-red-500 flex-shrink-0">
                     <AlertCircle size={20} />
                   </div>
@@ -1013,7 +1014,7 @@ export function TutorDashboard() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3 shadow-xs">
+                <div className="bg-white rounded-xl border border-slate-100 p-4 flex items-center gap-3">
                   <div className="p-2.5 rounded-lg bg-purple-50 text-purple-600 flex-shrink-0">
                     <Shield size={20} />
                   </div>
@@ -1025,7 +1026,7 @@ export function TutorDashboard() {
               </div>
 
               {relevantAttempts.length === 0 ? (
-                <div className="bg-white rounded-xl border border-slate-100 p-12 text-center shadow-xs">
+                <div className="bg-white rounded-xl border border-slate-100 p-12 text-center">
                   <Shield size={32} className="text-slate-350 mx-auto mb-3" />
                   <p className="text-slate-500 font-semibold text-sm">No testing activity found</p>
                   <p className="text-slate-400 text-xs mt-1">None of your assigned students have test attempts yet.</p>
@@ -1034,7 +1035,7 @@ export function TutorDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                   {/* Left Column: Assigned Student Attempts Monitoring */}
                   <div className="lg:col-span-2 space-y-4">
-                    <div className="bg-white rounded-xl border border-slate-100 p-4 md:p-5 shadow-sm">
+                    <div className="bg-white rounded-xl border border-slate-100 p-4 md:p-5">
                       <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-50">
                         <h4 className="font-bold text-slate-800 text-sm">Assigned Student Live-Sessions</h4>
                         <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Total: {relevantAttempts.length}</span>
@@ -1108,7 +1109,7 @@ export function TutorDashboard() {
 
                   {/* Right Column: Live Security Event Logs Feed */}
                   <div className="space-y-4">
-                    <div className="bg-white rounded-xl border border-slate-100 p-4 md:p-5 shadow-sm">
+                    <div className="bg-white rounded-xl border border-slate-100 p-4 md:p-5">
                       <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-50">
                         <h4 className="font-bold text-slate-800 text-sm flex items-center gap-1.5">
                           <Eye className="text-red-500" size={16} />

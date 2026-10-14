@@ -984,15 +984,22 @@ h1 span,
   font-size: 14px;
 }
 
+/* "Explore" sits on its own line above the chips on every card, so the
+   three cards line up even though School Academics has longer chips. */
 .hub-pills-row {
   position: relative;
   z-index: 1;
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  max-width: 90%;
+  flex-direction: column;
+  align-items: flex-start;
   margin-top: auto;
-  gap: 8px 8px;
+  gap: 10px;
+}
+
+.hub-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .hub-pill {
@@ -1032,6 +1039,22 @@ h1 span,
   }
   .hub-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Narrow three-column cards and small phones: slightly smaller chips so
+   the School Academics chips still fit on one line. */
+@media (min-width: 1041px) and (max-width: 1240px), (max-width: 420px) {
+  .hub-card {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+  .hub-pills {
+    gap: 6px;
+  }
+  .hub-pill {
+    padding: 6px 9px;
+    font-size: 11px;
   }
 }
 
@@ -1652,6 +1675,11 @@ h1 span,
 
   .hero-art {
     order: -1;
+  }
+
+  /* Homepage: keep the headline and buttons on the first screen. */
+  #home .hero-art {
+    order: 1;
   }
 
   .features,
@@ -2535,6 +2563,17 @@ h1 span,
 
 @media (max-width: 768px) {
   .sat-hero-img { height: 280px; }
+}
+
+/* Below tablet width the two-column SAT/ACT hero squeezed the text off the
+   right edge of the screen: stack it, with the headline first. */
+@media (max-width: 1040px) {
+  .prog-hero.sat-page .prog-hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .prog-hero.sat-page .hero-art {
+    order: 1;
+  }
 }
 
 /* ── Stats Band ─────────────────────────────────────────────────────── */
@@ -3503,8 +3542,9 @@ html, body {
 /* Concepts Made Simple Card */
 .card-concepts-new {
   position: absolute;
-  left: -104px;
-  top: 12%;
+  /* Stays inside the photo so it never covers the headline. */
+  left: 16px;
+  top: 8%;
   z-index: 3;
   display: flex;
   align-items: center;

@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma'
 import { requireRole, getCurrentUser } from '@/lib/auth'
 import { isHomeworkTest, isRawScoredTest } from '@/lib/testCategorize'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { parseTrack, targetScoreError } from '@/lib/examTrack'
+import { averagePercent, maxMarksByTest } from '@/lib/customScores'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,9 +42,13 @@ export async function GET(
     // Practice Sheet attempts are raw counts, not scaled scores — exclude them from the
     // average so a "17" HW score doesn't drag down a 1400 Mock average.
     const scaledAttempts = user.attempts.filter((at) => !isRawScoredTest(at.test))
-    const avgScore = scaledAttempts.length
-      ? scaledAttempts.reduce((a, at) => a + (at.totalScore ?? 0), 0) / scaledAttempts.length
-      : null
+    // Custom-exam students: average % of max marks on their custom tests (their target is a %).
+    const isCustom = perms.track === 'CUSTOM'
+    const avgScore = isCustom
+      ? averagePercent(user.attempts, await maxMarksByTest(user.attempts.map((a) => a.testId)))
+      : scaledAttempts.length
+        ? scaledAttempts.reduce((a, at) => a + (at.totalScore ?? 0), 0) / scaledAttempts.length
+        : null
 
     return NextResponse.json({
       user: {
@@ -51,6 +57,10 @@ export async function GET(
         email: user.email,
         role: user.role.toLowerCase(),
         isDemo: perms.accountType === 'DEMO',
+        canAddStudents: perms.canAddStudents === true,
+        coordinator: perms.coordinator === true,
+        avatar: (perms.avatar as string | undefined) ?? null,
+        mustChangePassword: perms.mustChangePassword === true,
         createdAt: user.createdAt,
         deletedAt: user.deletedAt,
         // Kept for back-compat with callers that only render one tutor.
@@ -68,6 +78,7 @@ export async function GET(
         grade: perms.grade ?? null,
         targetScore: perms.targetScore ?? null,
         targetDate: perms.targetDate ?? null,
+        specialization: perms.specialization ?? [],
         ...(canSeeHourlyRate ? {
           hourlyRate: perms.hourlyRate ?? null,
           salarySettlements: perms.salarySettlements ?? [],
@@ -81,6 +92,8 @@ export async function GET(
         timezone: perms.timezone ?? null,
         firstClassDate: perms.firstClassDate ?? null,
         programVariant: perms.programVariant ?? null,
+        track: perms.track ?? null,
+        customExam: perms.customExam ?? null,
         mockVariant: perms.mockVariant ?? null,
         accommodation: perms.accommodation ?? null,
         stage: perms.stage ?? null,
@@ -156,8 +169,8 @@ export async function PATCH(
       phone, parentPhone, dob, schoolName, diagnosticDecision,
       board, timezone, firstClassDate, programVariant, mockVariant,
       accommodation, stage, onboarded,
-      manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate,
-      salarySettlements, paidSessionIds,
+      manualDiagTotal, manualDiagRW, manualDiagMath, hourlyRate, canAddStudents, avatar,
+      salarySettlements, paidSessionIds, passwordChanged, track, customExam,
     } = body as {
       name?: string
       email?: string
@@ -186,8 +199,13 @@ export async function PATCH(
       manualDiagRW?: number | null
       manualDiagMath?: number | null
       hourlyRate?: number | null
+      canAddStudents?: boolean
+      avatar?: string | null
       salarySettlements?: any[]
       paidSessionIds?: string[]
+      track?: string | null
+      customExam?: string | null
+      passwordChanged?: boolean
     }
 
     const existing = await prisma.user.findUnique({ where: { id: userId } })
@@ -241,6 +259,23 @@ export async function PATCH(
 
     const existingPerms = (existing.permissions ?? {}) as Record<string, unknown>
     const permissions: Record<string, unknown> = { ...existingPerms }
+
+    // Exam track (students only): SAT / ACT / CUSTOM + the custom exam's name.
+    const parsedTrack = parseTrack(track, customExam)
+    if ('error' in parsedTrack) return NextResponse.json({ error: parsedTrack.error }, { status: 400 })
+    if (track !== undefined) {
+      if (!isAdmin) return NextResponse.json({ error: 'Only admins can change a student’s exam track' }, { status: 403 })
+      if (existing.role !== 'STUDENT') return NextResponse.json({ error: 'Only students have an exam track' }, { status: 400 })
+      if (parsedTrack.value.track) permissions.track = parsedTrack.value.track
+      else delete permissions.track
+      if (parsedTrack.value.customExam) permissions.customExam = parsedTrack.value.customExam
+      else delete permissions.customExam
+    }
+    // Students without a track keep the old (unvalidated) behaviour on edit.
+    if (targetScore !== undefined && targetScore !== null && permissions.track) {
+      const scoreError = targetScoreError(Number(targetScore), (permissions.track as string | undefined) ?? null)
+      if (scoreError) return NextResponse.json({ error: scoreError }, { status: 400 })
+    }
     if (name !== undefined) permissions.displayName = name
     if (grade !== undefined) permissions.grade = grade
     if (targetScore !== undefined) permissions.targetScore = targetScore
@@ -266,8 +301,18 @@ export async function PATCH(
     // Compensation data — only an admin/super-admin may set this, never the tutor
     // editing their own profile (the self-edit path above allows requester.id === userId).
     if (isAdmin && hourlyRate !== undefined) permissions.hourlyRate = hourlyRate
+    // Profile picture: a small image data URL made in the browser ('' or null removes it).
+    if (avatar !== undefined) {
+      if (!avatar) delete permissions.avatar
+      else if (typeof avatar !== 'string' || !/^data:image\/(jpeg|png|webp);base64,/.test(avatar) || avatar.length > 200_000) {
+        return NextResponse.json({ error: 'Profile picture must be a JPEG, PNG or WebP image under 150 KB' }, { status: 400 })
+      } else permissions.avatar = avatar
+    }
+    if (isAdmin && canAddStudents !== undefined) permissions.canAddStudents = canAddStudents === true
     if (isAdmin && salarySettlements !== undefined) permissions.salarySettlements = salarySettlements
     if (isAdmin && paidSessionIds !== undefined) permissions.paidSessionIds = paidSessionIds
+    // The user set their own password, so the temporary one no longer applies.
+    if (passwordChanged === true && requester.id === userId) delete permissions.mustChangePassword
 
     const updateData: any = { permissions: permissions as any }
     if (name !== undefined) updateData.name = name
@@ -319,6 +364,8 @@ export async function PATCH(
         name: (user as unknown as { name?: string | null }).name ?? permissions.displayName as string ?? user.email.split('@')[0],
         email: user.email,
         role: user.role.toLowerCase(),
+        canAddStudents: permissions.canAddStudents === true,
+        avatar: (permissions.avatar as string | undefined) ?? null,
         createdAt: user.createdAt,
         ...(tutors ? { tutors, tutorId: tutors[0]?.id ?? null, tutorName: tutors[0]?.name ?? null } : {}),
         grade: permissions.grade ?? null,
@@ -338,6 +385,8 @@ export async function PATCH(
         timezone: permissions.timezone ?? null,
         firstClassDate: permissions.firstClassDate ?? null,
         programVariant: permissions.programVariant ?? null,
+        track: permissions.track ?? null,
+        customExam: permissions.customExam ?? null,
         mockVariant: permissions.mockVariant ?? null,
         accommodation: permissions.accommodation ?? null,
         stage: permissions.stage ?? null,

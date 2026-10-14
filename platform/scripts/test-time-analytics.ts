@@ -116,6 +116,50 @@ const crash = buildVisits([
 ], grade)
 assert.equal(crash[0].end, 10_000)
 
+// Page refresh on a question (spec §12 step 7): pagehide logs HIDDEN, the
+// reloaded player continues the seq and ENTERs the same question again.
+// That is two visits, and the first ends when the page went away.
+const reload = buildVisits([
+  { seq: 1, t: 0, type: 'ENTER', questionId: 'q4' },
+  { seq: 2, t: 4_000, type: 'HIDDEN', questionId: 'q4' },
+  { seq: 3, t: 12_000, type: 'ENTER', questionId: 'q4' },
+  { seq: 4, t: 15_000, type: 'ANSWER', questionId: 'q4', choice: { key: 'A' } },
+  { seq: 5, t: 16_000, type: 'SUBMIT', questionId: null },
+], grade)
+assert.equal(reload.length, 2)
+assert.deepEqual([reload[0].start, reload[0].end, reload[0].activeMs, reload[0].pauses.length], [0, 4_000, 4_000, 0])
+assert.deepEqual([reload[1].visitNo, reload[1].start, reload[1].activeMs, reload[1].isFinal], [2, 12_000, 4_000, true])
+
+// Reload where the unload event never reached the server (seen in a real run):
+// the new player session logs START, which ends the open visit at the last
+// event of the old page (the heartbeat), even though the gap is < 15 s.
+const lostUnload = buildVisits([
+  { seq: 1, t: 56_800, type: 'ENTER', questionId: 'q4' },
+  { seq: 2, t: 61_435, type: 'HEARTBEAT', questionId: 'q4' },
+  { seq: 3, t: 69_000, type: 'START', questionId: null },
+  { seq: 4, t: 69_419, type: 'ENTER', questionId: 'q4' },
+  { seq: 5, t: 76_204, type: 'ANSWER', questionId: 'q4', choice: { key: 'A' } },
+  { seq: 6, t: 78_203, type: 'LEAVE', questionId: 'q4' },
+], grade)
+assert.deepEqual(lostUnload.map((v) => [v.visitNo, v.start, v.end]), [[1, 56_800, 61_435], [2, 69_419, 78_203]])
+
+// Crash with no pagehide: the last heartbeat ends the visit; re-ENTER is a new visit.
+const crash2 = buildVisits([
+  { seq: 1, t: 0, type: 'ENTER', questionId: 'q4' },
+  { seq: 2, t: 10_000, type: 'HEARTBEAT', questionId: 'q4' },
+  { seq: 3, t: 60_000, type: 'ENTER', questionId: 'q4' },
+  { seq: 4, t: 62_000, type: 'LEAVE', questionId: 'q4' },
+], grade)
+assert.deepEqual(crash2.map((v) => [v.visitNo, v.start, v.end]), [[1, 0, 10_000], [2, 60_000, 62_000]])
+
+// A duplicate ENTER for the open visit (no interruption) is still ignored.
+const dup = buildVisits([
+  { seq: 1, t: 0, type: 'ENTER', questionId: 'q4' },
+  { seq: 2, t: 2_000, type: 'ENTER', questionId: 'q4' },
+  { seq: 3, t: 5_000, type: 'LEAVE', questionId: 'q4' },
+], grade)
+assert.deepEqual(dup.map((v) => [v.start, v.end]), [[0, 5_000]])
+
 // Properties: visits never overlap, end ≥ start, active + paused = span
 const sorted = [...visits].sort((a, b) => a.start - b.start)
 for (let i = 0; i < sorted.length; i++) {

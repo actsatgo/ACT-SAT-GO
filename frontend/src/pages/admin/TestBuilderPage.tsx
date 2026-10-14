@@ -15,6 +15,23 @@ import { parseNumericAnswer, sanitizeNumericInput } from '../../lib/numericAnswe
 import { ALL_DOMAIN_NAMES } from '../../data/satDomains';
 import { useSubdomainSkills } from '../../hooks/useSubdomainSkills';
 import { useSubdomains } from '../../hooks/useSubdomains';
+import { useCustomExamNames } from '../../lib/examTrack';
+
+/** Exam-name field for "Custom" tests (stored as subCategory). */
+function CustomExamField({ value, onChange, names }: { value: string; onChange: (v: string) => void; names: string[] }) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-slate-700 mb-2">Exam name</label>
+      <input value={value} maxLength={60} list="custom-exam-names" onChange={(e) => onChange(e.target.value)}
+        placeholder="e.g. IELTS, Class 10 Maths, AP Biology"
+        className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-rose-400/40 focus:border-rose-400" />
+      <datalist id="custom-exam-names">{names.map((n) => <option key={n} value={n} />)}</datalist>
+      <p className="mt-1.5 text-xs text-slate-400">
+        Use the same name as on the student’s profile so the test shows up first when assigning. Scored on raw marks — no SAT/ACT scaling.
+      </p>
+    </div>
+  );
+}
 
 // Question tagging uses the official SAT blueprint (domain → subdomain) so the
 // tags here line up exactly with the Test Review performance breakdown.
@@ -86,6 +103,8 @@ function buildSectionsForType(category: string, subject?: string): Section[] {
         : [emptyModule('Reading Writing Module 1'), emptyModule('Reading Writing Module 2')];
     case 'Practice Sheet':
       return [emptyModule(`${subject ?? 'Practice'} Practice`)];
+    case 'Custom': // non-SAT/ACT exam — free-form sections, raw-scored
+      return [emptyModule(subject ? `${subject} — Section 1` : 'Section 1')];
     default: // Diagnostic / free-form
       return [newSection()];
   }
@@ -1931,6 +1950,8 @@ export function TestBuilderPage() {
     assignmentType: '', // for Practice Sheet: Homework | Classwork | General
   });
 
+  const customExamNames = useCustomExamNames();
+
   // For new tests, the admin must pick a test type first; this gates the builder.
   const [typeSelected, setTypeSelected] = useState(false);
 
@@ -2150,6 +2171,8 @@ export function TestBuilderPage() {
         return !!testSettings.subCategory;
       case 'Practice Sheet':
         return !!testSettings.subCategory && !!testSettings.assignmentType;
+      case 'Custom':
+        return !!testSettings.subCategory.trim();
       default:
         return false;
     }
@@ -2210,7 +2233,7 @@ export function TestBuilderPage() {
       category: testSettings.category || undefined,
       subCategory: testSettings.category === 'Practice Sheet' && testSettings.subCategory
         ? (testSettings.assignmentType ? `${testSettings.subCategory}-${testSettings.assignmentType}` : testSettings.subCategory)
-        : testSettings.subCategory || undefined,
+        : testSettings.subCategory.trim() || undefined,
     };
   };
 
@@ -2316,6 +2339,7 @@ export function TestBuilderPage() {
       { key: 'Sectional',      label: 'Sectional',      desc: 'One subject, delivered as 2 modules.',                       color: 'border-emerald-400 bg-emerald-50 text-emerald-800' },
       { key: 'Practice Sheet', label: 'Practice Sheet', desc: 'Single drill for one subject — Homework / Classwork / General.', color: 'border-purple-400 bg-purple-50 text-purple-800' },
       { key: 'Diagnostic',     label: 'Diagnostic',     desc: 'Free-form structure — build sections yourself.',             color: 'border-amber-400 bg-amber-50 text-amber-800' },
+      { key: 'Custom',         label: 'Custom Exam',    desc: 'For non-SAT/ACT students (IELTS, school exams…). Raw marks.', color: 'border-rose-400 bg-rose-50 text-rose-800' },
     ];
     const pickCategory = (key: string) =>
       setTestSettings((prev) => ({ ...prev, category: key, subCategory: '', assignmentType: '' }));
@@ -2337,6 +2361,11 @@ export function TestBuilderPage() {
             </button>
           ))}
         </div>
+
+        {testSettings.category === 'Custom' && (
+          <CustomExamField names={customExamNames} value={testSettings.subCategory}
+            onChange={(v) => setTestSettings((prev) => ({ ...prev, subCategory: v }))} />
+        )}
 
         {/* Sectional → subject */}
         {testSettings.category === 'Sectional' && (
@@ -2465,7 +2494,7 @@ export function TestBuilderPage() {
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Test Title *</label>
                     <input type="text" value={testTitle} onChange={(e) => { setTestTitle(e.target.value); if (e.target.value.trim()) setTitleError(false); }}
-                      placeholder="e.g. ACT Full Practice Test #3"
+                      placeholder="e.g. SAT Full Length Mock 3"
                       className={`w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${titleError ? 'border-red-400 bg-red-50' : 'border-slate-200'}`} />
                     {titleError && (
                       <p className="flex items-center gap-1 text-xs text-red-600 mt-1"><AlertCircle size={11} /> Title is required before saving</p>
@@ -2657,7 +2686,7 @@ export function TestBuilderPage() {
 
         {/* Real-time Mock Exam Preview Panel */}
         {previewMode === 'full' && (
-          <div className="space-y-4 w-full max-w-5xl mx-auto animate-fade-in">
+          <div className="space-y-4 w-full animate-fade-in">
             <div className="flex items-center justify-between bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Viewport:</span>
@@ -2833,6 +2862,7 @@ export function TestBuilderPage() {
                 { key: 'Sectional',      label: 'Sectional',       desc: 'Subject-wise section test',                color: 'border-emerald-400 bg-emerald-50 text-emerald-800' },
                 { key: 'Practice Sheet', label: 'Practice Sheet',  desc: 'No sections — topic drills & homework',    color: 'border-purple-400 bg-purple-50 text-purple-800' },
                 { key: 'Diagnostic',     label: 'Diagnostic',      desc: 'Admission diagnostic test',                color: 'border-amber-400 bg-amber-50 text-amber-800' },
+                { key: 'Custom',         label: 'Custom Exam',     desc: 'Non-SAT/ACT exam — raw marks',             color: 'border-rose-400 bg-rose-50 text-rose-800' },
               ] as const).map((t) => (
                 <button key={t.key} type="button"
                   onClick={() => setTestSettings((prev) => ({ ...prev, category: t.key, subCategory: '', assignmentType: '' }))}
@@ -2844,6 +2874,11 @@ export function TestBuilderPage() {
               ))}
             </div>
           </div>
+
+          {testSettings.category === 'Custom' && (
+            <CustomExamField names={customExamNames} value={testSettings.subCategory}
+              onChange={(v) => setTestSettings((prev) => ({ ...prev, subCategory: v }))} />
+          )}
 
           {/* ── Subject (Sectional) ── */}
           {testSettings.category === 'Sectional' && (

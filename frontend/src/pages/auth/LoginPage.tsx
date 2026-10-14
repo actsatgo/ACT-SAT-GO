@@ -49,8 +49,14 @@ export function LoginPage() {
   const [remember, setRemember] = useState(() => Boolean(localStorage.getItem(REMEMBER_KEY)));
   const [loading, setLoading] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<'google' | 'apple' | null>(null);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(() => {
+    const e = searchParams.get('error');
+    if (e === 'no-account') return 'No portal account uses that email. Ask your administrator to create one, then try again.';
+    if (e === 'oauth') return 'Sign-in did not finish. Please try again or use your email and password.';
+    return '';
+  });
   const [notice, setNotice] = useState(() =>
+    searchParams.get('reset') === '1' ? 'Your password has been changed. Log in with your new password.' :
     fromDemoSignup ? 'Your free demo account is ready. Log in with the email and password you just created to start your demo test.' : ''
   );
 
@@ -101,7 +107,7 @@ export function LoginPage() {
     try {
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider,
-        options: { redirectTo: `${window.location.origin}/dashboard` },
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
       if (oauthError) {
         setError(`${provider === 'google' ? 'Google' : 'Apple'} sign-in isn't available yet. Please use your email and password.`);
@@ -123,7 +129,7 @@ export function LoginPage() {
       return;
     }
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/login`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     if (resetError) setError('Could not send a reset link. Please contact your administrator.');
     else setNotice('If an account exists for that email, a password reset link is on its way.');
@@ -296,16 +302,6 @@ export function LoginPage() {
             </button>
           </div>
 
-          <p className="text-sm text-slate-500 text-center mt-4">
-            New to ScoreπGo?{' '}
-            <button
-              type="button"
-              onClick={() => setNotice('Accounts are created by your administrator. Please contact them to get access.')}
-              className="font-semibold text-[#2f6dff] hover:underline"
-            >
-              Create an account
-            </button>
-          </p>
         </div>
       </div>
 

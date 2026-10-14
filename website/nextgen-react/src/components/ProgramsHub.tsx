@@ -96,9 +96,11 @@ export function ProgramsHub() {
               {c.pills ? (
                 <div className="hub-pills-row">
                   <span className="hub-explore-label">Explore <span aria-hidden="true">-</span></span>
-                  {c.pills.map((p) => (
-                    <Link key={p.label} to={p.to} className="hub-pill">{p.label}</Link>
-                  ))}
+                  <div className="hub-pills">
+                    {c.pills.map((p) => (
+                      <Link key={p.label} to={p.to} className="hub-pill">{p.label}</Link>
+                    ))}
+                  </div>
                 </div>
               ) : (
                 <Link to={c.to} className="hub-explore-label">Explore <span aria-hidden="true">-</span></Link>

@@ -1,15 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { requireStudentAccess } from '@/lib/auth'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ studentId: string }> }
 ) {
   const { studentId } = await params
+  const access = await requireStudentAccess(request, studentId)
+  if (access !== true) return access
 
   try {
+    // ?summary=1 — just each attempt's test, score and dates (no questions or
+    // answers). List/summary screens (e.g. the admin Students analysis table,
+    // which loads this for every student) only need these fields.
+    if (request.nextUrl.searchParams.get('summary') === '1') {
+      const attempts = await prisma.testAttempt.findMany({
+        where: { studentId },
+        orderBy: { startedAt: 'desc' },
+        select: {
+          id: true, testId: true, studentId: true, status: true, totalScore: true, startedAt: true, completedAt: true,
+          test: {
+            select: {
+              id: true, title: true, category: true, subCategory: true,
+              sections: { orderBy: { orderIndex: 'asc' }, select: { id: true, name: true, orderIndex: true } },
+            },
+          },
+        },
+      })
+      return NextResponse.json({ attempts })
+    }
+
     const attempts = await prisma.testAttempt.findMany({
       where: { studentId },
       orderBy: { startedAt: 'desc' },
@@ -32,7 +56,15 @@ export async function GET(
               include: {
                 questions: {
                   orderBy: { orderIndex: 'asc' },
-                  include: { question: true },
+                  // Only what the list's scoring (frontend lib/analyticsData.ts
+                  // recordsFromAttempt) reads. The full question text and
+                  // options made this response ~300 KB per attempt; screens
+                  // that show questions load them via GET /api/attempts/:id.
+                  include: {
+                    question: {
+                      select: { id: true, type: true, correctAnswer: true, subject: true, content: true },
+                    },
+                  },
                 },
               },
             },
@@ -41,6 +73,18 @@ export async function GET(
         answers: true,
       },
     })
+    // Keep only content.meta (isPassage / domain / subTopic); the rest of
+    // `content` is the question body, which nothing reading this list uses.
+    for (const attempt of attempts) {
+      for (const sa of attempt.sectionAttempts) {
+        for (const tq of sa.section.questions) {
+          const content = tq.question.content as { meta?: unknown } | null
+          tq.question.content = (content && typeof content === 'object' && 'meta' in content
+            ? { meta: content.meta }
+            : {}) as Prisma.JsonObject
+        }
+      }
+    }
     return NextResponse.json({ attempts })
   } catch (error) {
     console.error('GET /api/students/[studentId]/attempts:', error)
