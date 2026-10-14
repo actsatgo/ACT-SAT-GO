@@ -9,6 +9,8 @@ interface Notification {
   body: string
   read: boolean
   createdAt: string
+  /** In-app path to open when the notification is clicked (e.g. /flashcards/:id). */
+  link?: string
 }
 
 interface NotificationState {

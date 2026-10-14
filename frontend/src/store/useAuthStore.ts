@@ -18,6 +18,8 @@ export function dbUserToAuthUser(u: DbUser): User {
     assignedTutorId: u.tutorId ?? undefined,
     assignedStudentIds: u.studentIds ?? [],
     targetDate: u.targetDate ?? null,
+    track: u.track ?? null,
+    customExam: u.customExam ?? null,
   };
 }
 

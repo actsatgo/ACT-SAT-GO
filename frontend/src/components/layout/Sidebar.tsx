@@ -7,6 +7,7 @@ import {
   Activity, UserCheck, Database, LifeBuoy, ChevronDown,
   AlertCircle, HelpCircle, PieChart, BookMarked, CalendarCheck, TrendingUp,
   /* FileCheck2, */ Sparkles, UsersRound, Library, FileBarChart2, /* Video, */ ClipboardCheck,
+  Layers, FileText, FileLock2,
 } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useAuthStore } from '../../store/useAuthStore';
@@ -52,6 +53,9 @@ const studentNavItems: NavItem[] = [
   // { label: 'Live Class', path: '/live-class', icon: <Video size={18} />, roles: ['student'] },
   { label: 'Analytics', path: '/analytics', icon: <PieChart size={18} />, roles: ['student'] },
   { label: 'Review Mistakes', path: '/mistakes', icon: <AlertCircle size={18} />, roles: ['student'] },
+  { label: 'Flashcards', path: '/flashcards', icon: <Layers size={18} />, roles: ['student'] },
+  { label: 'Articles', path: '/articles', icon: <FileText size={18} />, roles: ['student'] },
+  { label: 'Study Materials', path: '/materials', icon: <FileLock2 size={18} />, roles: ['student'] },
   { label: 'My Doubts', path: '/doubts', icon: <HelpCircle size={18} />, roles: ['student'] },
   { label: 'ASG Library', path: '/library', icon: <Library size={18} />, roles: ['student'] },
 ];
@@ -80,6 +84,9 @@ const adminNavItems: NavItem[] = [
   { label: 'Live Monitoring', path: '/monitoring', icon: <Activity size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'Student Doubts', path: '/student-doubts', icon: <HelpCircle size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Student Mistakes', path: '/student-mistakes', icon: <AlertCircle size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
+  { label: 'Flashcards', path: '/flashcards', icon: <Layers size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
+  { label: 'Articles', path: '/articles', icon: <FileText size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
+  { label: 'Study Materials', path: '/materials', icon: <FileLock2 size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Skills', path: '/skills', icon: <BookMarked size={18} />, roles: ['super_admin', 'admin'] },
   { label: 'ASG Library', path: '/library', icon: <Library size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
   { label: 'Support', path: '/support', icon: <LifeBuoy size={18} />, roles: ['super_admin', 'admin', 'tutor'] },
@@ -278,7 +285,7 @@ export function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen }: 
 
         {user?.role === 'student' && !user.isDemo && !collapsed && (
           <div className="mb-2 rounded-xl bg-white/5 border border-white/10 px-3 py-2.5">
-            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Exam Date</p>
+            <p className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">{user.track === 'CUSTOM' && user.customExam ? `${user.customExam} Date` : 'Exam Date'}</p>
             {user.targetDate ? (() => {
               const days = daysUntil(user.targetDate as string);
               return (

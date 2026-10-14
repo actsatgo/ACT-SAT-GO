@@ -68,6 +68,19 @@ export const practiceSubjectOf = (test: { subCategory?: string; title?: string; 
   return 'other';
 };
 
+/** Tests built for a custom (non-SAT/ACT) exam: category "Custom", exam name in subCategory. */
+export const CUSTOM_CATEGORY = 'Custom';
+export const isCustomTest = (test: { category?: string | null }): boolean =>
+  (test.category ?? '').trim().toLowerCase() === 'custom';
+
+/**
+ * Scored as a raw "X correct / Y total" count, never an SAT/ACT scaled score:
+ * Practice Sheets (incl. homework) and custom-exam tests.
+ */
+export const isRawScoredTest = (test: { category?: string | null; title?: string | null }): boolean =>
+  (test.category ?? '').trim().toLowerCase() === 'practice sheet' || isCustomTest(test) ||
+  /practice\s*sheet/i.test(test.title ?? '');
+
 export type ScoreMode = 'mock' | 'sectional-math' | 'sectional-rw' | 'raw';
 
 /**
@@ -75,12 +88,13 @@ export type ScoreMode = 'mock' | 'sectional-math' | 'sectional-rw' | 'raw';
  * - Mock (and Diagnostic, which is full-length like a Mock) -> scaled score for BOTH Math and R&W.
  * - Sectional -> scaled score for whichever ONE subject the section covers.
  * - Practice Sheet (includes Homework, a Practice Sheet subCategory) -> raw "X correct / Y total" only, no scaled score.
+ * - Custom (non-SAT/ACT exams) -> raw as well.
  * Falls back to 'mock' (both subjects) for anything ambiguous, since that's the safer default
  * over silently hiding a legitimate score.
  */
 export function resolveScoreMode(test: { category?: string; subCategory?: string; title?: string }): ScoreMode {
   const cat = (test.category ?? '').toLowerCase();
-  if (cat === 'practice sheet') return 'raw';
+  if (cat === 'practice sheet' || cat === 'custom') return 'raw';
   if (cat === 'sectional') {
     const math = isMath(test);
     const english = isEnglish(test);

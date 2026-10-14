@@ -4,6 +4,7 @@ import { Loader2, Target, Search, X } from 'lucide-react';
 import { api } from '../../lib/api';
 import { useAuthStore } from '../../store/useAuthStore';
 import { computeTestAnalysis, type TaAttempt } from '../../components/admin/QuestionWiseReport';
+import { isRawScoredTest } from '../../lib/testCategorize';
 
 interface ReportRow {
   id: string; title: string; startedAt: string; completedAt: string | null;
@@ -88,7 +89,7 @@ export function MyProgressPage() {
               totalRaw: an.totalCorrect, totalRawT: an.totalQuestions, rwSS: an.rwScaled, mathSS: an.mathScaled, totalSS: an.finalScaledScore,
               isSAT: an.isSAT,
               // Scaled score applies to Diagnostic/Mock/Sectional — only Practice Sheet shows a raw count.
-              isMockTest: !(['Practice Sheet'].includes(att.test.category ?? '') || /practice\s*sheet/i.test(att.test.title ?? '')),
+              isMockTest: !(isRawScoredTest(att.test)),
               category: att.test.category ?? undefined,
               subCategory: att.test.subCategory ?? undefined,
             };

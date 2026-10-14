@@ -213,9 +213,12 @@ export async function POST(
         const categoryUpper = attempt.test.category?.toUpperCase() || ''
         const titleUpper = attempt.test.title?.toUpperCase() || ''
         
-        const isSAT = categoryUpper === 'SAT' || titleUpper.includes('SAT') || 
-                      (categoryUpper === 'MOCK' && !titleUpper.includes('ACT'));
-        const isACT = categoryUpper === 'ACT' || titleUpper.includes('ACT');
+        // Custom-exam tests (IELTS, school exams…) are never put on an SAT/ACT
+        // scale — they fall through to raw marks below.
+        const isCustom = categoryUpper === 'CUSTOM'
+        const isSAT = !isCustom && (categoryUpper === 'SAT' || titleUpper.includes('SAT') ||
+                      (categoryUpper === 'MOCK' && !titleUpper.includes('ACT')));
+        const isACT = !isCustom && (categoryUpper === 'ACT' || titleUpper.includes('ACT'));
 
         let finalScaledScore = 0
 

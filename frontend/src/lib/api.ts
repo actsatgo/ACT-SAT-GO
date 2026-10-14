@@ -237,6 +237,10 @@ export interface DbUser {
   timezone?: string | null
   firstClassDate?: string | null
   programVariant?: string | null
+  /** Exam track: 'SAT' | 'ACT' | 'CUSTOM' (null = not set, treated as SAT) */
+  track?: string | null
+  /** Name of the custom exam when track is CUSTOM, e.g. "IELTS" */
+  customExam?: string | null
   mockVariant?: string | null
   accommodation?: boolean | null
   stage?: number | null
@@ -333,6 +337,228 @@ export interface DbTestPackage {
   items: DbTestPackageItem[]
 }
 
+
+// ── Flashcards ───────────────────────────────────────────────────────────────
+export interface FlashcardCard { id: string; front: string; back: string }
+export interface FlashcardShareInfo {
+  studentId: string
+  studentName: string
+  sharedAt: string
+  viewedAt: string | null
+  lastStudiedAt: string | null
+  knownCount: number
+}
+/** A deck as listed for a tutor/admin (with sharing + progress). */
+export interface FlashcardDeckSummary {
+  id: string
+  title: string
+  topic: string
+  description: string | null
+  subject: string | null
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  cardCount: number
+  shares: FlashcardShareInfo[]
+}
+/** A deck as listed for a student (with their own progress). */
+export interface StudentFlashcardDeck {
+  id: string
+  title: string
+  topic: string
+  description: string | null
+  subject: string | null
+  updatedAt: string
+  createdByName: string
+  cardCount: number
+  sharedAt: string
+  viewedAt: string | null
+  lastStudiedAt: string | null
+  knownCount: number
+}
+export interface FlashcardDeckDetail {
+  id: string
+  title: string
+  topic: string
+  description: string | null
+  subject: string | null
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  cards: FlashcardCard[]
+  canEdit: boolean
+  /** Manager view only */
+  shares?: FlashcardShareInfo[]
+  /** Student view only */
+  knownCardIds?: string[]
+}
+export interface FlashcardDeckInput {
+  title: string
+  topic: string
+  description?: string
+  subject?: string
+  cards: Array<{ id?: string; front: string; back: string }>
+  studentIds?: string[]
+}
+
+// ── Articles ─────────────────────────────────────────────────────────────────
+export type ArticleStatus = 'ASSIGNED' | 'SUBMITTED' | 'NEEDS_REVISION' | 'APPROVED'
+/** One student's assignment as a tutor/admin sees it. */
+export interface ArticleAssignmentInfo {
+  studentId: string
+  studentName: string
+  status: ArticleStatus
+  assignedAt: string
+  dueAt: string | null
+  openedAt: string | null
+  submittedAt: string | null
+  reviewedAt: string | null
+  summaryWordCount: number
+  copiedRatio: number | null
+  /** Detail view only — null until the student submits. */
+  summary?: string | null
+  submissionCount?: number
+  feedback?: string | null
+  reviewedByName?: string | null
+}
+export interface ArticleSummary {
+  id: string
+  title: string
+  topic: string | null
+  subject: string | null
+  sourceUrl: string | null
+  minSummaryWords: number
+  readMinutes: number
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  assignments: ArticleAssignmentInfo[]
+}
+export interface StudentArticle {
+  id: string
+  title: string
+  topic: string | null
+  subject: string | null
+  readMinutes: number
+  minSummaryWords: number
+  createdByName: string
+  status: ArticleStatus
+  assignedAt: string
+  dueAt: string | null
+  openedAt: string | null
+  submittedAt: string | null
+  reviewedAt: string | null
+  summaryWordCount: number
+  hasFeedback: boolean
+}
+export interface MyArticleAssignment {
+  status: ArticleStatus
+  assignedAt: string
+  dueAt: string | null
+  openedAt: string
+  summary: string | null
+  summaryWordCount: number
+  submittedAt: string | null
+  submissionCount: number
+  feedback: string | null
+  reviewedAt: string | null
+  reviewedByName: string | null
+}
+export interface ArticleDetail {
+  id: string
+  title: string
+  topic: string | null
+  subject: string | null
+  body: string
+  sourceUrl: string | null
+  minSummaryWords: number
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  readMinutes: number
+  maxCopiedRatio: number
+  canEdit: boolean
+  /** Manager view only */
+  assignments?: ArticleAssignmentInfo[]
+  /** Student view only */
+  assignment?: MyArticleAssignment
+}
+export interface ArticleInput {
+  title: string
+  topic?: string
+  subject?: string
+  body: string
+  sourceUrl?: string
+  minSummaryWords?: number
+  dueAt?: string | null
+  studentIds?: string[]
+}
+
+// ── Protected study materials (view-only PDFs) ───────────────────────────────
+export interface MaterialShareInfo {
+  userId: string
+  name: string
+  role: 'STUDENT' | 'TUTOR' | string
+  sharedAt: string
+  viewedAt: string | null
+  lastPage: number | null
+}
+/** A material the user uploaded (or, for admins, any material). */
+export interface ManagedMaterial {
+  id: string
+  title: string
+  description: string | null
+  subject: string | null
+  fileName: string
+  fileSize: number
+  pageCount: number
+  createdAt: string
+  updatedAt: string
+  createdById: string
+  createdByName: string
+  createdByAdmin: boolean
+  shares: MaterialShareInfo[]
+}
+/** A material someone shared with the user. */
+export interface SharedMaterial {
+  id: string
+  title: string
+  description: string | null
+  subject: string | null
+  pageCount: number
+  updatedAt: string
+  createdByName: string
+  sharedAt: string
+  viewedAt: string | null
+  lastPage: number | null
+  canDownload: boolean
+}
+export interface MaterialDetail {
+  id: string
+  title: string
+  description: string | null
+  subject: string | null
+  /** Only for users who may download it */
+  fileName?: string
+  fileSize: number
+  pageCount: number
+  pageSizes: Array<[number, number]>
+  createdById: string
+  createdByName: string
+  createdAt: string
+  updatedAt: string
+  canManage: boolean
+  canDownload: boolean
+  lastPage: number | null
+  watermark: string
+  /** Manager view only */
+  sharedWith?: string[]
+}
+
 // ── ASG Library ──────────────────────────────────────────────────────────────
 export interface LibraryAssignee {
   id: string
@@ -406,6 +632,8 @@ export const api = {
     timezone?: string
     firstClassDate?: string
     programVariant?: string
+    track?: string | null
+    customExam?: string | null
     mockVariant?: string
     accommodation?: boolean
     stage?: number
@@ -439,6 +667,8 @@ export const api = {
     timezone?: string
     firstClassDate?: string
     programVariant?: string
+    track?: string | null
+    customExam?: string | null
     mockVariant?: string
     accommodation?: boolean
     stage?: number
@@ -598,6 +828,111 @@ export const api = {
       `/api/attempts/${attemptId}/sections/${sectionId}/submit`,
       { method: 'POST' }
     ),
+  // Flashcards
+  getFlashcardDecks: () =>
+    request<{ decks: FlashcardDeckSummary[] | StudentFlashcardDeck[] }>('/api/flashcards'),
+  getFlashcardDeck: (deckId: string) =>
+    request<{ deck: FlashcardDeckDetail }>(`/api/flashcards/${deckId}`),
+  createFlashcardDeck: (body: FlashcardDeckInput) =>
+    request<{ id: string; sharedWith: number }>('/api/flashcards', { method: 'POST', body: JSON.stringify(body) }),
+  updateFlashcardDeck: (deckId: string, body: FlashcardDeckInput) =>
+    request<{ id: string }>(`/api/flashcards/${deckId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteFlashcardDeck: (deckId: string) =>
+    request<{ success: boolean }>(`/api/flashcards/${deckId}`, { method: 'DELETE' }),
+  setFlashcardShares: (deckId: string, studentIds: string[]) =>
+    request<{ added: number; removed: number; total: number }>(`/api/flashcards/${deckId}/shares`, {
+      method: 'PUT', body: JSON.stringify({ studentIds }),
+    }),
+  saveFlashcardProgress: (deckId: string, knownCardIds: string[]) =>
+    request<{ knownCount: number; cardCount: number }>(`/api/flashcards/${deckId}/progress`, {
+      method: 'PUT', body: JSON.stringify({ knownCardIds }),
+    }),
+
+  // Articles
+  getArticles: () =>
+    request<{ articles: ArticleSummary[] | StudentArticle[] }>('/api/articles'),
+  getArticle: (articleId: string) =>
+    request<{ article: ArticleDetail }>(`/api/articles/${articleId}`),
+  createArticle: (body: ArticleInput) =>
+    request<{ id: string; assignedTo: number }>('/api/articles', { method: 'POST', body: JSON.stringify(body) }),
+  updateArticle: (articleId: string, body: ArticleInput) =>
+    request<{ id: string }>(`/api/articles/${articleId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteArticle: (articleId: string) =>
+    request<{ success: boolean }>(`/api/articles/${articleId}`, { method: 'DELETE' }),
+  setArticleAssignments: (articleId: string, studentIds: string[], dueAt?: string | null) =>
+    request<{ added: number; removed: number; total: number }>(`/api/articles/${articleId}/assignments`, {
+      method: 'PUT', body: JSON.stringify({ studentIds, dueAt }),
+    }),
+  saveArticleSummary: (articleId: string, summary: string, submit: boolean) =>
+    request<{ status: ArticleStatus; summaryWordCount: number; copiedRatio?: number }>(`/api/articles/${articleId}/summary`, {
+      method: 'PUT', body: JSON.stringify({ summary, submit }),
+    }),
+  reviewArticleSummary: (articleId: string, studentId: string, decision: 'approve' | 'revise', feedback?: string) =>
+    request<{ status: ArticleStatus }>(`/api/articles/${articleId}/review`, {
+      method: 'PUT', body: JSON.stringify({ studentId, decision, feedback }),
+    }),
+
+  // Protected study materials
+  getMaterials: () =>
+    request<{ shared: SharedMaterial[]; mine: ManagedMaterial[] }>('/api/materials'),
+  getMaterial: (materialId: string) =>
+    request<{ material: MaterialDetail }>(`/api/materials/${materialId}`),
+  /** Multipart upload with progress (0–1). */
+  uploadMaterial: async (
+    input: { file: File; title: string; description?: string; subject?: string; recipientIds: string[] },
+    onProgress?: (fraction: number) => void,
+  ) => {
+    clearApiCache()
+    const form = new FormData()
+    form.append('file', input.file)
+    form.append('title', input.title)
+    if (input.description) form.append('description', input.description)
+    if (input.subject) form.append('subject', input.subject)
+    form.append('recipientIds', JSON.stringify(input.recipientIds))
+    const headers = await authHeaders()
+    return new Promise<{ id: string; pageCount: number; sharedWith: number }>((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', `${BASE}/api/materials`)
+      for (const [k, v] of Object.entries(headers)) xhr.setRequestHeader(k, v)
+      xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(e.loaded / e.total) }
+      xhr.onload = () => {
+        let body: { error?: string } & Record<string, unknown> = {}
+        try { body = JSON.parse(xhr.responseText) } catch { /* non-JSON error page */ }
+        if (xhr.status >= 200 && xhr.status < 300) resolve(body as unknown as { id: string; pageCount: number; sharedWith: number })
+        else reject(new Error(body.error || (xhr.status === 413 ? 'The PDF is too large' : 'Upload failed')))
+      }
+      xhr.onerror = () => reject(new Error('Upload failed — check your connection'))
+      xhr.send(form)
+    })
+  },
+  updateMaterial: (materialId: string, body: { title: string; description?: string; subject?: string }) =>
+    request<{ id: string }>(`/api/materials/${materialId}`, { method: 'PUT', body: JSON.stringify(body) }),
+  deleteMaterial: (materialId: string) =>
+    request<{ success: boolean }>(`/api/materials/${materialId}`, { method: 'DELETE' }),
+  setMaterialShares: (materialId: string, recipientIds: string[]) =>
+    request<{ added: number; removed: number; total: number }>(`/api/materials/${materialId}/shares`, {
+      method: 'PUT', body: JSON.stringify({ recipientIds }),
+    }),
+  saveMaterialProgress: (materialId: string, page: number) =>
+    request<{ saved: boolean }>(`/api/materials/${materialId}/progress`, { method: 'PUT', body: JSON.stringify({ page }) }),
+  /** One watermarked page image (auth header required, so it is fetched as a blob). */
+  getMaterialPage: async (materialId: string, page: number, width: number, signal?: AbortSignal) => {
+    const res = await fetch(`${BASE}/api/materials/${materialId}/pages/${page}?w=${width}`, { headers: await authHeaders(), signal })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Could not load the page')
+    return res.blob()
+  },
+  /** The original PDF — only allowed for its uploader and admins. */
+  downloadMaterial: async (materialId: string, fileName: string) => {
+    const res = await fetch(`${BASE}/api/materials/${materialId}/file`, { headers: await authHeaders() })
+    if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || 'Download failed')
+    const url = URL.createObjectURL(await res.blob())
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    a.click()
+    setTimeout(() => URL.revokeObjectURL(url), 10_000)
+  },
+
   // Visit-level time analytics (see lib/questionTimeTracker.ts)
   getAttemptEventState: (attemptId: string) =>
     // The player sends no events until this answers, so don't wait long.

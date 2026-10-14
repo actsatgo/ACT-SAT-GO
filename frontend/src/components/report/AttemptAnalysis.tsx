@@ -16,6 +16,7 @@ import { api } from '../../lib/api';
 import { satSectionScore } from '../../lib/analyticsData';
 import { SAT_CONTENT, ALL_DOMAIN_NAMES } from '../../data/satDomains';
 import { formatNumericDisplay, numericEqual } from '../../lib/numericAnswer';
+import { isCustomTest, isRawScoredTest } from '../../lib/testCategorize';
 
 // ── Test Analysis types ──────────────────────────────────────────────────────
 
@@ -421,6 +422,21 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
     return () => { cancelled = true; };
   }, [attemptId]);
 
+  // Custom-exam tests (IELTS, school exams…): plain section names, and the score
+  // is shown as a % of max marks instead of an SAT/ACT scale.
+  const customReport = !!testAnalysisAttempt && isCustomTest(testAnalysisAttempt.test);
+  const moduleLabel = (name: string) => (customReport ? name : getSectionModuleLabel(name));
+  const tabLabel = (name: string) => (customReport ? name : getSectionTabLabel(name));
+  const customMaxMarks = customReport && testAnalysisAttempt
+    ? testAnalysisAttempt.sectionAttempts.reduce((sum, sa) => sum + sa.section.questions.reduce((m: number, tq: any) => {
+        const marks = tq.marksPositive ?? 1;
+        const children = tq.question?.childQuestions?.length ?? 0;
+        return m + (children > 0 ? children * marks : marks);
+      }, 0), 0)
+    : 0;
+  const customRaw = testAnalysisAttempt?.totalScore ?? 0;
+  const customPct = customMaxMarks > 0 ? Math.round((customRaw / customMaxMarks) * 1000) / 10 : null;
+
   return (
     <>
       <div className="space-y-5">
@@ -435,13 +451,15 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
           ) : testAnalysisAttempt ? (() => {
             const analysis = computeTestAnalysis(testAnalysisAttempt);
             // Scaled score applies to Diagnostic/Mock/Sectional — only Practice Sheet shows a raw count.
-            const isPracticeSheet = ['Practice Sheet'].includes(testAnalysisAttempt.test.category ?? '') || /practice\s*sheet/i.test(testAnalysisAttempt.test.title ?? '');
+            // Practice Sheets and custom-exam tests show raw marks, never a scaled score.
+            const isPracticeSheet = isRawScoredTest(testAnalysisAttempt.test);
             const showScaled = analysis.isSAT && !isPracticeSheet;
 
             // Sectional tests only have sections for one subject — rwTotal/mathTotal is 0
             // for the one they don't cover, so hide that box instead of showing a fake 0.
-            const showRW = analysis.rwTotal > 0;
-            const showMath = analysis.mathTotal > 0;
+            // Custom-exam tests have no SAT subject split at all.
+            const showRW = analysis.rwTotal > 0 && !customReport;
+            const showMath = analysis.mathTotal > 0 && !customReport;
             return (
               <div className="space-y-4">
                 {/* ── Score Card ── */}
@@ -449,11 +467,15 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                   <div className="flex items-stretch divide-x divide-slate-200">
                     {/* Total Score — slightly larger */}
                     <div className="px-8 py-6 shrink-0 text-center bg-gradient-to-br from-[#1b3d6e] to-[#2563eb] rounded-tl-xl rounded-bl-xl flex flex-col justify-center">
-                      <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">Total Score</p>
+                      <p className="text-[10px] font-black text-blue-200 uppercase tracking-widest">{customReport ? 'Score' : 'Total Score'}</p>
                       <p className="text-6xl font-black text-white leading-none tabular-nums mt-1.5">
-                        {showScaled ? (showRW && showMath ? analysis.finalScaledScore : (showRW ? analysis.rwScaled : analysis.mathScaled)) : analysis.totalCorrect}
+                        {customReport
+                          ? (customPct != null ? `${customPct}%` : customRaw)
+                          : showScaled ? (showRW && showMath ? analysis.finalScaledScore : (showRW ? analysis.rwScaled : analysis.mathScaled)) : analysis.totalCorrect}
                       </p>
-                      {showScaled ? (
+                      {customReport ? (
+                        <p className="text-xs text-blue-300 mt-2">{customRaw} of {customMaxMarks || '—'} marks · {analysis.totalCorrect}/{analysis.totalQuestions} correct</p>
+                      ) : showScaled ? (
                         <p className="text-xs text-blue-300 mt-2.5 border-b border-blue-400/40 pb-0.5 w-fit mx-auto">
                           {showRW && showMath ? '400 – 1600' : '200 – 800'}
                         </p>
@@ -724,7 +746,7 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                               : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                           }`}
                         >
-                          {getSectionTabLabel(sa.name)}
+                          {tabLabel(sa.name)}
                         </button>
                       ))}
                       <button
@@ -810,7 +832,7 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                     return (
                       <AttemptTimeAnalyticsGrid
                         attemptId={testAnalysisAttempt.id}
-                        modules={sectionStats.map((sec: any) => ({ sectionId: sec.sectionId, title: getSectionModuleLabel(sec.name), stats: sec.stats }))}
+                        modules={sectionStats.map((sec: any) => ({ sectionId: sec.sectionId, title: moduleLabel(sec.name), stats: sec.stats }))}
                         onQuestionClick={(sectionId, qi) => {
                           const name = sectionStats.find((sec: any) => sec.sectionId === sectionId)?.name;
                           const idx = analysis.sections.findIndex((sa) => sa.name === name);
@@ -1187,7 +1209,7 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
             <div className="space-y-5 p-1">
               {/* Title */}
               <div className="text-center pb-3 border-b border-slate-100 relative">
-                <h3 className="text-base font-bold text-slate-800 tracking-tight pr-6 pl-6">{getSectionModuleLabel(analysis.sections[activeQuestionSectionIdx]?.name ?? '')}</h3>
+                <h3 className="text-base font-bold text-slate-800 tracking-tight pr-6 pl-6">{moduleLabel(analysis.sections[activeQuestionSectionIdx]?.name ?? '')}</h3>
                 <p className="text-[11px] font-medium text-slate-400 mt-0.5 tracking-wide">Questions</p>
                 <button
                   onClick={() => setShowQuestionNavigator(false)}
@@ -1343,7 +1365,7 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                           : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                       }`}
                     >
-                      {getSectionTabLabel(sa.name)}
+                      {tabLabel(sa.name)}
                     </button>
                   ))}
                 </div>
@@ -1649,7 +1671,7 @@ export function AttemptAnalysis({ attemptId, header, footer }: {
                   >
                     {/* Title */}
                     <div className="text-center pb-3 border-b border-slate-100 relative">
-                      <h3 className="text-base font-bold text-slate-800 tracking-tight pr-6 pl-6">{getSectionModuleLabel(analysis.sections[activeQuestionSectionIdx]?.name ?? '')}</h3>
+                      <h3 className="text-base font-bold text-slate-800 tracking-tight pr-6 pl-6">{moduleLabel(analysis.sections[activeQuestionSectionIdx]?.name ?? '')}</h3>
                       <p className="text-[11px] font-medium text-slate-400 mt-0.5 tracking-wide">Questions</p>
                       <button
                         onClick={() => setShowQuestionNavigator(false)}

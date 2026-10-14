@@ -21,6 +21,7 @@ import { api, type DbUser } from '../../lib/api';
 import { toLines } from '../../lib/sessionLog';
 import { SubjectPicker } from '../../components/admin/SubjectPicker';
 import { useAuthStore } from '../../store/useAuthStore';
+import { defaultAssignFilter, examLabel, examTestsFirst, isCustomStudent, targetScoreHint } from '../../lib/examTrack';
 import toast from 'react-hot-toast';
 import { Toaster } from 'react-hot-toast';
 import {
@@ -483,7 +484,10 @@ export function AdminStudentProfilePage() {
 
   // ACT only when every recorded score fits the 1-36 scale; new students default to SAT.
   const isSATStudent = !(analytics && analytics.trend.length > 0 && analytics.trend.every(d => d.score <= 36));
-  const scaleMax = isSATStudent ? 1600 : 36;
+  // Custom-exam students: avgScore and target are percentages (see lib/examTrack).
+  const customStudent = isCustomStudent(student);
+  const unit = customStudent ? '%' : '';
+  const scaleMax = customStudent ? 100 : isSATStudent ? 1600 : 36;
   const targetScore = (student.targetScore as number | null) ?? null;
   // Progress is measured against the target when one is set, else against the scale max.
   const target = targetScore ?? scaleMax;
@@ -510,7 +514,9 @@ export function AdminStudentProfilePage() {
           <ArrowLeft size={18} />
         </button>
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl md:text-2xl font-bold text-slate-900 truncate">{student.name}</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900 truncate">{student.name}
+            {customStudent && <span className="ml-2 align-middle rounded-full bg-rose-50 px-2 py-0.5 text-xs font-bold text-rose-700">{examLabel(student)}</span>}
+          </h1>
           <p className="text-sm text-slate-500">{student.email}</p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -527,7 +533,7 @@ export function AdminStudentProfilePage() {
               {!isTutor && (
                 <Button variant="secondary" size="sm" icon={<Pencil size={13} />} onClick={() => setEditing(true)}>Edit</Button>
               )}
-              <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignOpen(true); setAssignFilter('All'); setAssignSearch(''); setSelectedTestIds([]); }}>Assign Test</Button>
+              <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignOpen(true); setAssignFilter(defaultAssignFilter(student, publishedTests)); setAssignSearch(''); setSelectedTestIds([]); }}>Assign Test</Button>
               {!isTutor && (
                 <>
                   <button onClick={() => setResetPasswordOpen(true)}
@@ -583,6 +589,7 @@ export function AdminStudentProfilePage() {
                   value={student.targetDate ? formatDate(student.targetDate) : null} />
                 <InfoRow icon={<Calendar size={13} />} label="First Class Started On"
                   value={student.firstClassDate ? formatDate(student.firstClassDate) : null} />
+                <InfoRow icon={<BookOpen size={13} />} label="Preparing For" value={student.track ? examLabel(student) : null} />
                 <InfoRow icon={<BookOpen size={13} />} label="Program Variant" value={student.programVariant} />
                 <InfoRow icon={<BookOpen size={13} />} label="Mock Variant" value={student.mockVariant} />
                 <InfoRow icon={<CheckCircle size={13} />} label="Accommodation"
@@ -639,8 +646,8 @@ export function AdminStudentProfilePage() {
                     />
                   </div>
                   <div>
-                    <label className={labelCls}>Target Score</label>
-                    <input type="number" min={1} max={1600} className={inputCls} value={editForm.targetScore} onChange={(e) => setEditForm(f => ({ ...f, targetScore: e.target.value }))} placeholder="e.g. 1400" />
+                    <label className={labelCls}>{targetScoreHint(student.track).label}</label>
+                    <input type="number" min={targetScoreHint(student.track).min} max={targetScoreHint(student.track).max} className={inputCls} value={editForm.targetScore} onChange={(e) => setEditForm(f => ({ ...f, targetScore: e.target.value }))} placeholder={targetScoreHint(student.track).placeholder} />
                   </div>
                 </div>
                 <div>
@@ -668,8 +675,8 @@ export function AdminStudentProfilePage() {
               </Badge>
             </div>
             <div className="flex items-end justify-between text-sm font-bold mb-2">
-              <span className="text-slate-900">{avg || '—'} <span className="text-xs text-slate-400 font-normal">current</span></span>
-              <span className="text-blue-600">{target} <span className="text-xs text-slate-400 font-normal">{targetScore != null ? 'target' : `no target set (${isSATStudent ? 'SAT' : 'ACT'} max)`}</span></span>
+              <span className="text-slate-900">{avg ? `${Math.round(avg * 10) / 10}${unit}` : '—'} <span className="text-xs text-slate-400 font-normal">current</span></span>
+              <span className="text-blue-600">{target}{unit} <span className="text-xs text-slate-400 font-normal">{targetScore != null ? 'target' : customStudent ? 'no target set' : `no target set (${isSATStudent ? 'SAT' : 'ACT'} max)`}</span></span>
             </div>
             <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
               <div className={`h-full rounded-full transition-all ${pct >= 85 ? 'bg-emerald-500' : pct >= 70 ? 'bg-amber-400' : 'bg-red-400'}`}
@@ -677,7 +684,7 @@ export function AdminStudentProfilePage() {
             </div>
             {avg > 0 && (
               <p className="text-xs text-slate-400 mt-2">
-                {gap > 0 ? `${gap} points to go` : 'Target reached!'}
+                {gap > 0 ? (customStudent ? `${Math.round(gap * 10) / 10}% to go` : `${gap} points to go`) : 'Target reached!'}
               </p>
             )}
           </div>
@@ -780,7 +787,7 @@ export function AdminStudentProfilePage() {
                 <Button variant="secondary" size="sm" icon={<GraduationCap size={13} />} onClick={openAssignHomework}>
                   Assign HW
                 </Button>
-                <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignOpen(true); setAssignFilter('All'); setAssignSearch(''); setSelectedTestIds([]); }}>
+                <Button size="sm" icon={<BookOpen size={13} />} onClick={() => { setAssignOpen(true); setAssignFilter(defaultAssignFilter(student, publishedTests)); setAssignSearch(''); setSelectedTestIds([]); }}>
                   Assign Test
                 </Button>
               </div>
@@ -952,7 +959,7 @@ export function AdminStudentProfilePage() {
           <div className="bg-white rounded-xl border border-slate-100">
             <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-50">
               <p className="font-medium text-slate-900 text-sm">Test History</p>
-              <Button size="sm" variant="secondary" icon={<BookOpen size={12} />} onClick={() => { setAssignOpen(true); setAssignFilter('All'); setAssignSearch(''); setSelectedTestIds([]); }}>
+              <Button size="sm" variant="secondary" icon={<BookOpen size={12} />} onClick={() => { setAssignOpen(true); setAssignFilter(defaultAssignFilter(student, publishedTests)); setAssignSearch(''); setSelectedTestIds([]); }}>
                 Assign Test
               </Button>
             </div>
@@ -1158,7 +1165,7 @@ export function AdminStudentProfilePage() {
             <p className="text-sm text-slate-400 py-2">No published tests available.</p>
           ) : (() => {
             const categories = ['All', ...Array.from(new Set(publishedTests.map(t => t.category ?? 'Other')))];
-            const filtered = publishedTests
+            const filtered = examTestsFirst(publishedTests, student)
               .filter(t => assignFilter === 'All' || (t.category ?? 'Other') === assignFilter)
               .filter((t) => {
                 if (assignFilter !== 'Practice Sheet' || assignSubFilter === 'All') return true;

@@ -29,7 +29,7 @@ interface LogSessionModalProps {
   /** Only needed when fixedTutorId isn't set, so admin/super-admin can pick who they're logging for. */
   tutors?: { id: string; name: string }[];
   /** tutorId -> that tutor's students. For fixedTutorId mode this only needs one entry. */
-  studentsByTutor: Map<string, { id: string; name: string }[]>;
+  studentsByTutor: Map<string, { id: string; name: string; customExam?: string | null }[]>;
 }
 
 // Shared "Log a Session" form — used both by a tutor logging their own session and by
@@ -53,6 +53,8 @@ export function LogSessionModal({
 
   const tutorId = fixedTutorId ?? selectedTutorId;
   const students = studentsByTutor.get(tutorId) ?? [];
+  // Custom-exam students (IELTS, school exams…): their exam is the session's subject.
+  const studentExam = students.find((s) => s.id === form.studentId)?.customExam ?? null;
 
   // No class happened (no-show, cancelled, rescheduled): only the remark is asked for.
   const isNoShow = isNoClassStatus(form.status);
@@ -127,7 +129,7 @@ export function LogSessionModal({
         startTime: form.startTime || undefined,
         durationMinutes: form.durationMinutes ? Number(form.durationMinutes) : undefined,
         actualDurationMinutes: form.actualDurationMinutes ? Number(form.actualDurationMinutes) : undefined,
-        subject: sessionSubject(tutorSubjects, studentSubjects),
+        subject: studentExam || sessionSubject(tutorSubjects, studentSubjects),
         status: form.status,
         sessionType: form.sessionType,
         understanding: isNoShow ? undefined : form.understanding || undefined,

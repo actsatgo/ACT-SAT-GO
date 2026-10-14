@@ -50,6 +50,12 @@ const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage')
 const ReviewAttemptsPage = lazy(() => import('./pages/student/ReviewAttemptsPage').then((m) => ({ default: m.ReviewAttemptsPage })));
 const MistakesPage = lazy(() => import('./pages/student/MistakesPage').then((m) => ({ default: m.MistakesPage })));
 const DoubtsPage = lazy(() => import('./pages/student/DoubtsPage').then((m) => ({ default: m.DoubtsPage })));
+const FlashcardsPage = lazy(() => import('./pages/flashcards/FlashcardsPage').then((m) => ({ default: m.FlashcardsPage })));
+const FlashcardStudyPage = lazy(() => import('./pages/flashcards/FlashcardStudyPage').then((m) => ({ default: m.FlashcardStudyPage })));
+const ArticlesPage = lazy(() => import('./pages/articles/ArticlesPage').then((m) => ({ default: m.ArticlesPage })));
+const MaterialsPage = lazy(() => import('./pages/materials/MaterialsPage').then((m) => ({ default: m.MaterialsPage })));
+const MaterialViewerPage = lazy(() => import('./pages/materials/MaterialViewerPage').then((m) => ({ default: m.MaterialViewerPage })));
+const ArticleReadPage = lazy(() => import('./pages/articles/ArticleReadPage').then((m) => ({ default: m.ArticleReadPage })));
 const LiveClassPage = lazy(() => import('./pages/LiveClassPage').then((m) => ({ default: m.LiveClassPage })));
 const PTMReportsPage = lazy(() => import('./pages/PTMReportsPage').then((m) => ({ default: m.PTMReportsPage })));
 const LibraryPage = lazy(() => import('./pages/LibraryPage').then((m) => ({ default: m.LibraryPage })));
@@ -186,6 +192,12 @@ const router = createBrowserRouter(
         <Route path="doubts" element={<DoubtsPage />} />
 
         {/* Shared */}
+        <Route path="flashcards" element={<FlashcardsPage />} />
+        <Route path="flashcards/:deckId" element={<FlashcardStudyPage />} />
+        <Route path="articles" element={<ArticlesPage />} />
+        <Route path="articles/:articleId" element={<ArticleReadPage />} />
+        <Route path="materials" element={<MaterialsPage />} />
+        <Route path="materials/:materialId" element={<MaterialViewerPage />} />
         {/* ASG Library — every role; the page shows admins everything, others only what is assigned */}
         <Route path="library" element={<LibraryPage />} />
         <Route path="ptm-reports" element={<PTMReportsPage />} />

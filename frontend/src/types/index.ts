@@ -15,6 +15,10 @@ export interface User {
   assignedTutorId?: string;
   assignedStudentIds?: string[];
   targetDate?: string | null;
+  /** Students: 'SAT' | 'ACT' | 'CUSTOM' (null = not set, treated as SAT/ACT) */
+  track?: string | null;
+  /** Students on a custom track: the exam's name, e.g. "IELTS" */
+  customExam?: string | null;
 }
 
 export type QuestionType = 'mcq_single' | 'mcq_multi' | 'numeric' | 'passage';
