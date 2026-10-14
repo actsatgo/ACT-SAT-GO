@@ -129,12 +129,9 @@ export function AttendancePage() {
       .then(async ({ assignments }) => {
         const studs = assignments.map(a => ({ id: a.student.id, name: a.student.name }));
         setStudents(studs);
-        const lists = await Promise.all(
-          studs.map(s =>
-            api.getClassProgress(dbId, s.id)
-              .then(r => r.entries.map(e => ({ ...e, homework: e.homework ?? '', studentId: s.id, studentName: s.name })))
-              .catch(() => [] as Session[])
-          )
+        const byPair = await api.getClassProgressBatch({ tutorId: dbId }).then(r => r.entries).catch(() => ({} as Record<string, ClassProgressEntry[]>));
+        const lists = studs.map(s =>
+          (byPair[`${dbId}:${s.id}`] ?? []).map(e => ({ ...e, homework: e.homework ?? '', studentId: s.id, studentName: s.name }))
         );
         setEntries(sortSessionEntries(lists.flat()));
       })

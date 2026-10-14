@@ -6,7 +6,7 @@ import { Badge } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
 import { Button } from '../../components/common/Button';
 import { LogSessionModal, type SavedSessionEntry } from '../../components/common/LogSessionModal';
-import { api } from '../../lib/api';
+import { api, type ClassProgressEntry } from '../../lib/api';
 import { SUBJECTS, SESSION_TYPES, STATUSES, statusVariant, toLines, sortSessionEntries, type DbTest } from '../../lib/sessionLog';
 import { useAuthStore } from '../../store/useAuthStore';
 import { formatDate } from '../../lib/utils';
@@ -228,19 +228,17 @@ export function AdminAttendancePage() {
         setTutorStudentsMap(studentsByTutor);
         setTutorList(Array.from(tutorsById.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name)));
 
-        const lists = await Promise.all(
-          assignments.map(a =>
-            api.getClassProgress(a.tutorId, a.studentId)
-              .then(r => r.entries.map(e => ({
-                ...e,
-                homework: e.homework ?? '',
-                tutorId: a.tutorId,
-                tutorName: a.tutor.name,
-                studentId: a.studentId,
-                studentName: a.student.name,
-              })))
-              .catch(() => [] as AttendanceEntry[])
-          )
+        // One request for every pair's session log (was one request per pair).
+        const byPair = await api.getClassProgressBatch().then(r => r.entries).catch(() => ({} as Record<string, ClassProgressEntry[]>));
+        const lists = assignments.map(a =>
+          (byPair[`${a.tutorId}:${a.studentId}`] ?? []).map(e => ({
+            ...e,
+            homework: e.homework ?? '',
+            tutorId: a.tutorId,
+            tutorName: a.tutor.name,
+            studentId: a.studentId,
+            studentName: a.student.name,
+          }))
         );
         if (cancelled) return;
         setEntries(sortSessionEntries(lists.flat()));

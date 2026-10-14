@@ -227,6 +227,8 @@ model TestAttempt {
   @@index([studentId, startedAt])
   @@index([testId])
   @@index([status, completedAt])
+  @@index([studentId, status, completedAt])
+  @@index([startedAt])
 }
 
 model TestAssignment {
@@ -278,6 +280,8 @@ model AttemptAnswer {
   @@unique([attemptId, questionId])
 
   @@index([questionId])
+  @@index([updatedAt])
+  @@index([doubtStatus])
 }
 
 model CheatingLog {

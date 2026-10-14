@@ -30,10 +30,29 @@ function isAnswerCorrect(given: unknown, correct: unknown): boolean {
   return false
 }
 
+// Platform-wide numbers are identical for every admin and change slowly, so
+// one computation is shared for a minute (per server process).
+const CACHE_MS = 60_000
+let cached: { at: number; body: unknown } | null = null
+let inflight: Promise<unknown> | null = null
+
 export async function GET(request: NextRequest) {
   const auth = await requireRole(request, ['ADMIN', 'SUPER_ADMIN'])
   if (auth instanceof NextResponse) return auth
+  if (cached && Date.now() - cached.at < CACHE_MS) return NextResponse.json(cached.body)
   try {
+    inflight ??= computePlatformAnalytics().finally(() => { inflight = null })
+    const body = await inflight
+    cached = { at: Date.now(), body }
+    return NextResponse.json(body)
+  } catch (error) {
+    console.error('GET /api/analytics/platform:', error)
+    return NextResponse.json({ error: 'Failed to fetch platform analytics' }, { status: 500 })
+  }
+}
+
+async function computePlatformAnalytics() {
+  {
     // Last 7 days daily activity — all 14 counts (and the submitted-attempts
     // scan below) are independent, so run them concurrently instead of seven
     // sequential round trips.
@@ -55,7 +74,7 @@ export async function GET(request: NextRequest) {
       // Score distribution across all SUBMITTED attempts
       prisma.testAttempt.findMany({
         where: { status: 'SUBMITTED', totalScore: { not: null } },
-        include: { test: { select: { category: true, title: true } } },
+        select: { totalScore: true, completedAt: true, test: { select: { category: true, title: true } } },
       }),
     ])
 
@@ -135,21 +154,18 @@ export async function GET(request: NextRequest) {
     const day60Ago = new Date(now); day60Ago.setDate(day60Ago.getDate() - 60)
 
     const [recentWindow, priorWindow] = await Promise.all([
-      prisma.testAttempt.findMany({
+      prisma.testAttempt.aggregate({
         where: { status: 'SUBMITTED', totalScore: { not: null }, completedAt: { gte: day30Ago } },
-        select: { totalScore: true },
+        _avg: { totalScore: true },
       }),
-      prisma.testAttempt.findMany({
+      prisma.testAttempt.aggregate({
         where: { status: 'SUBMITTED', totalScore: { not: null }, completedAt: { gte: day60Ago, lt: day30Ago } },
-        select: { totalScore: true },
+        _avg: { totalScore: true },
       }),
     ])
 
-    const avg = (rows: { totalScore: number | null }[]) =>
-      rows.length ? rows.reduce((a, r) => a + (r.totalScore ?? 0), 0) / rows.length : null
-
-    const recentAvg = avg(recentWindow)
-    const priorAvg = avg(priorWindow)
+    const recentAvg = recentWindow._avg.totalScore
+    const priorAvg = priorWindow._avg.totalScore
     const avgScoreImprovement = recentAvg !== null && priorAvg !== null
       ? Math.round((recentAvg - priorAvg) * 10) / 10
       : null
@@ -157,25 +173,32 @@ export async function GET(request: NextRequest) {
     // Subject strength: platform-wide accuracy split by section (Reading & Writing vs Math),
     // computed the same way per-student accuracy is computed in /api/analytics/student.
     // Bounded to the most recent 300 submitted attempts to keep this cheap.
+    // The answer key of each distinct test is loaded once (it used to be loaded
+    // again for every one of the 300 attempts).
     const recentAttempts = await prisma.testAttempt.findMany({
       where: { status: 'SUBMITTED' },
       orderBy: { completedAt: 'desc' },
       take: 300,
-      include: {
+      select: {
+        id: true, testId: true, startedAt: true, completedAt: true,
         student: { select: { id: true, email: true, permissions: true } },
         answers: { select: { questionId: true, answerGiven: true } },
-        test: {
-          include: {
-            sections: {
-              include: {
-                questions: {
-                  include: {
-                    question: {
-                      select: {
-                        id: true, type: true, correctAnswer: true, parentQuestionId: true,
-                        childQuestions: { select: { id: true, correctAnswer: true } },
-                      },
-                    },
+        test: { select: { title: true } },
+      },
+    })
+    const testKeys = await prisma.test.findMany({
+      where: { id: { in: [...new Set(recentAttempts.map((a) => a.testId))] } },
+      select: {
+        id: true,
+        sections: {
+          select: {
+            name: true,
+            questions: {
+              select: {
+                question: {
+                  select: {
+                    id: true, type: true, correctAnswer: true, parentQuestionId: true,
+                    childQuestions: { select: { id: true, correctAnswer: true } },
                   },
                 },
               },
@@ -184,11 +207,12 @@ export async function GET(request: NextRequest) {
         },
       },
     })
+    const sectionsByTest = new Map(testKeys.map((t) => [t.id, t.sections]))
 
     const subjectTally = { rw: { correct: 0, total: 0 }, math: { correct: 0, total: 0 } }
     for (const attempt of recentAttempts) {
       const answerMap = new Map(attempt.answers.map((a) => [a.questionId, a.answerGiven]))
-      for (const section of attempt.test.sections) {
+      for (const section of sectionsByTest.get(attempt.testId) ?? []) {
         const isMath = /math/i.test(section.name)
         const bucket = isMath ? subjectTally.math : subjectTally.rw
         for (const tq of section.questions) {
@@ -231,22 +255,28 @@ export async function GET(request: NextRequest) {
 
     // This week's engagement: questions worked on + avg study time per active student.
     const day7 = new Date(); day7.setDate(day7.getDate() - 7)
-    const [weekAnswers, openDoubtsCount] = await Promise.all([
-      prisma.attemptAnswer.findMany({
+    const [weekAgg, weekStudents, openDoubtsCount] = await Promise.all([
+      prisma.attemptAnswer.aggregate({
         where: { updatedAt: { gte: day7 } },
-        select: { timeSpentSeconds: true, attempt: { select: { studentId: true } } },
+        _count: { _all: true },
+        _sum: { timeSpentSeconds: true },
+      }),
+      prisma.testAttempt.findMany({
+        where: { answers: { some: { updatedAt: { gte: day7 } } } },
+        distinct: ['studentId'],
+        select: { studentId: true },
       }),
       prisma.attemptAnswer.count({ where: { doubtStatus: 'doubt' } }),
     ])
-    const questionsAttemptedThisWeek = weekAnswers.length
-    const activeStudentsThisWeek = new Set(weekAnswers.map((r) => r.attempt.studentId)).size
-    const totalSecondsThisWeek = weekAnswers.reduce((a, r) => a + r.timeSpentSeconds, 0)
+    const questionsAttemptedThisWeek = weekAgg._count._all
+    const activeStudentsThisWeek = weekStudents.length
+    const totalSecondsThisWeek = weekAgg._sum.timeSpentSeconds ?? 0
     const avgStudyHoursThisWeek = activeStudentsThisWeek > 0
       ? Math.round((totalSecondsThisWeek / activeStudentsThisWeek / 3600) * 10) / 10
       : null
 
 
-    return NextResponse.json({
+    return {
       activityData: days,
       scoreDistribution,
       scoreDistributionACT,
@@ -261,9 +291,6 @@ export async function GET(request: NextRequest) {
       recentActivity,
       questionsAttemptedThisWeek,
       avgStudyHoursThisWeek,
-    })
-  } catch (error) {
-    console.error('GET /api/analytics/platform:', error)
-    return NextResponse.json({ error: 'Failed to fetch platform analytics' }, { status: 500 })
+    }
   }
 }
