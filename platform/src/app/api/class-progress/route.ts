@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
       ...(startTime ? { startTime: String(startTime) } : {}),
       ...(durationMinutes ? { durationMinutes: Number(durationMinutes) } : {}),
       ...(actualDurationMinutes ? { actualDurationMinutes: Number(actualDurationMinutes) } : {}),
-      ...(subject ? { subject: String(subject) } : {}),
+      ...(subject ? { subject: String(subject).trim() } : {}),
       ...(status ? { status: String(status) } : {}),
       ...(sessionType ? { sessionType: String(sessionType) } : {}),
       ...(understanding ? { understanding: Number(understanding) } : {}),
@@ -153,7 +153,7 @@ export async function PATCH(request: NextRequest) {
       ...(classDate !== undefined ? { classDate: String(classDate) } : {}),
       ...(durationMinutes !== undefined ? { durationMinutes: Number(durationMinutes) } : {}),
       ...(actualDurationMinutes !== undefined ? { actualDurationMinutes: Number(actualDurationMinutes) } : {}),
-      ...(subject !== undefined ? { subject: String(subject) } : {}),
+      ...(subject !== undefined ? { subject: String(subject).trim() } : {}),
       ...(status !== undefined ? { status: String(status) } : {}),
       ...(sessionType !== undefined ? { sessionType: String(sessionType) } : {}),
     }

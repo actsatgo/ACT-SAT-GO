@@ -135,7 +135,7 @@ export function AdminAttendancePage() {
     setEditSaving(true);
     try {
       const { entry: updated } = await api.updateClassProgress(editEntry.tutorId, editEntry.studentId, editEntry.id, {
-        subject: editForm.subject || undefined,
+        subject: editForm.subject.trim() || undefined,
         sessionType: editForm.sessionType || undefined,
         topic: editForm.topic,
         homework: editForm.homework,
@@ -625,11 +625,13 @@ export function AdminAttendancePage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Subject</label>
-                <select value={editForm.subject} onChange={(e) => setEditForm(f => ({ ...f, subject: e.target.value }))}
-                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                  <option value="">—</option>
-                  {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+                {/* Free text with suggestions, so a custom subject (e.g. "College Chemistry") can be kept or typed. */}
+                <input type="text" list="session-subject-options" value={editForm.subject}
+                  onChange={(e) => setEditForm(f => ({ ...f, subject: e.target.value }))}
+                  className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                <datalist id="session-subject-options">
+                  {SUBJECTS.map(s => <option key={s} value={s} />)}
+                </datalist>
               </div>
               <div>
                 <label className="block text-xs font-medium text-slate-600 mb-1">Session Type</label>

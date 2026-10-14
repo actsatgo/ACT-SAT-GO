@@ -12,6 +12,8 @@ export const isNoClassStatus = (status: string) => status !== 'Completed';
 // subject is the student's subject that matches the tutor's.
 export const STUDENT_SUBJECTS = ['SAT Math', 'SAT Reading & Writing', 'ACT Math', 'ACT English', 'ACT Reading', 'ACT Science'];
 export const TUTOR_SUBJECTS = ['Math', 'English', 'Science'];
+// Log-a-Session subject choice for anything outside SAT/ACT (e.g. "College Chemistry").
+export const OTHER_SUBJECT = '__other__';
 
 function subjectKind(s: string): 'math' | 'english' | 'science' | null {
   if (/math/i.test(s)) return 'math';
@@ -105,4 +107,6 @@ export const emptySessionForm = {
   studentId: '', classDate: new Date().toISOString().split('T')[0], startTime: '', durationMinutes: '60', actualDurationMinutes: '',
   status: 'Completed' as string, sessionType: 'Core Prep' as string, homeworkTestIds: [] as string[], notes: '',
   understanding: 0,
+  // '' = the subject worked out from the tutor and student; OTHER_SUBJECT = typed in customSubject.
+  subjectChoice: '', customSubject: '', topics: '', homeworkText: '',
 };

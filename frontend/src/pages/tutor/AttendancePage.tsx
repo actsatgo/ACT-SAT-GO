@@ -150,6 +150,12 @@ export function AttendancePage() {
 
   useEffect(() => { setPage(1); }, [dateFrom, dateTo, studentFilter, subjectFilter, statusFilter]);
 
+  // The standard subjects plus any custom ones logged (e.g. "College Chemistry").
+  const subjectOptions = useMemo(
+    () => [...new Set([...SUBJECTS, ...entries.map(e => e.subject).filter((s): s is string => !!s)])],
+    [entries],
+  );
+
   const filtered = useMemo(() => {
     return entries.filter(e => {
       if (dateFrom && e.classDate < dateFrom) return false;
@@ -253,7 +259,7 @@ export function AttendancePage() {
         <select value={subjectFilter} onChange={(e) => setSubjectFilter(e.target.value)}
           className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-100">
           <option value="all">All Subjects</option>
-          {SUBJECTS.map(s => <option key={s} value={s}>{s}</option>)}
+          {subjectOptions.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
           className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-100">
