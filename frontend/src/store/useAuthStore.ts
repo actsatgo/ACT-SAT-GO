@@ -12,6 +12,7 @@ export function dbUserToAuthUser(u: DbUser): User {
     email: u.email,
     role: u.role as Role,
     isDemo: Boolean(u.isDemo),
+    avatar: u.avatar ?? undefined,
     assignedTutorId: u.tutorId ?? undefined,
     assignedStudentIds: u.studentIds ?? [],
     targetDate: u.targetDate ?? null,
