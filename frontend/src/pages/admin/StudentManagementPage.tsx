@@ -21,6 +21,7 @@ import { parseCSV, exportToCsv } from '../../utils/exportCsv';
 import { toLines } from '../../lib/sessionLog';
 import { SatDateSelect } from '../../components/ptm/PtmReports';
 import { PhoneInput } from '../../components/common/PhoneInput';
+import { UserAvatar } from '../../components/common/UserAvatar';
 
 type MainViewTab = 'analysis' | 'test_analysis';
 
@@ -907,9 +908,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                     )
                     .map((student) => (
                       <div key={student.id} className="group flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                          {student.name.charAt(0).toUpperCase()}
-                        </div>
+                        <UserAvatar name={student.name} src={student.avatar} className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 text-white text-xs" />
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-slate-900 text-[21px] leading-tight truncate">{student.name}</p>
                         </div>
@@ -972,9 +971,7 @@ export function StudentManagementPage({ accountsPage = false }: { accountsPage?:
                   <p className="px-3 py-6 text-center text-sm text-slate-400">No tutors found</p>
                 ) : filteredTutors.map((tutor) => (
                   <div key={tutor.id} className="group flex items-center gap-2 px-3 py-2.5 hover:bg-slate-50">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {tutor.name.charAt(0).toUpperCase()}
-                    </div>
+                    <UserAvatar name={tutor.name} src={tutor.avatar} className="w-8 h-8 bg-gradient-to-br from-violet-400 to-violet-600 text-white text-xs" />
                     <div className="min-w-0 flex-1">
                       <p className="font-semibold text-slate-900 text-[21px] leading-tight truncate">{tutor.name}</p>
                       <p className="text-xs text-slate-500 truncate">{tutor.email}</p>

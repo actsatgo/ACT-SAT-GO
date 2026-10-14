@@ -78,6 +78,7 @@ export async function GET(request: NextRequest) {
           role: u.role.toLowerCase(),
           isDemo: perms.accountType === 'DEMO',
           canAddStudents: perms.canAddStudents === true,
+          avatar: (perms.avatar as string | undefined) ?? null,
           createdAt: u.createdAt,
           deletedAt: u.deletedAt,
           // Kept for back-compat with callers that only render one tutor.

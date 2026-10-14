@@ -204,6 +204,8 @@ export interface DbUser {
   role: string
   /** True for free-demo-test accounts created from the website (permissions.accountType = 'DEMO'). */
   isDemo?: boolean
+  /** Profile picture as a small image data URL, or null. */
+  avatar?: string | null
   createdAt: string
   /** Set when an admin has soft-deleted this user; null/undefined means active. */
   deletedAt?: string | null
@@ -418,6 +420,7 @@ export const api = {
     tutorId?: string | null
     tutorIds?: string[]
     /** Tutor compensation rate — silently ignored server-side unless the caller is an admin. */
+    avatar?: string | null
     hourlyRate?: number | null
     canAddStudents?: boolean
     notifications?: Record<string, boolean>
