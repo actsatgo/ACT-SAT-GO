@@ -60,7 +60,7 @@ export function FreeTestPage() {
     targetScore: '',
   });
   const [showPassword, setShowPassword] = useState(false);
-  // Phone OTP: the code is texted to the number and checked on register.
+  // Phone OTP: the code is sent to the number on WhatsApp and checked on register.
   const [otpCode, setOtpCode] = useState('');
   const [otpSentTo, setOtpSentTo] = useState<string | null>(null);
   const [otpSending, setOtpSending] = useState(false);
@@ -114,7 +114,7 @@ export function FreeTestPage() {
         return;
       }
       setOtpSentTo(currentPhone);
-      setOtpMessage(`We sent a code to ${currentPhone}.`);
+      setOtpMessage(`We sent a code to ${currentPhone} on WhatsApp.`);
     } catch {
       setError('Could not send the code. Please check your connection and try again.');
     } finally {
@@ -132,7 +132,7 @@ export function FreeTestPage() {
       return;
     }
     if (otpSentTo !== currentPhone || !otpCode.trim()) {
-      setError('Please verify your phone number: tap "Send code" and enter the code we text you.');
+      setError('Please verify your phone number: tap "Send code" and enter the code we send you on WhatsApp.');
       return;
     }
     if (form.password.length < MIN_PASSWORD) {
@@ -486,7 +486,7 @@ export function FreeTestPage() {
                           autoComplete="one-time-code"
                           maxLength={10}
                           className="ft-input ft-otp-input"
-                          placeholder="Enter the code we texted you"
+                          placeholder="Enter the code sent on WhatsApp"
                           value={otpCode}
                           onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
                         />
