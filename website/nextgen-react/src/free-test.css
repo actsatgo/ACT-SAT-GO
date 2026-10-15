@@ -269,20 +269,24 @@
 
 .ft-phone-wrap {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .ft-phone-wrap select {
-  width: 115px;
+  width: 105px;
   flex-shrink: 0;
 }
 
 .ft-phone-wrap input {
   flex: 1;
+  min-width: 0;
 }
 
+/* "Send code" sits on its own line under the number so the number box stays wide. */
 .ft-otp-btn {
-  flex-shrink: 0;
+  flex: 1 0 100%;
+  min-height: 44px;
   padding: 0 14px;
   border-radius: 10px;
   border: 1px solid rgba(250, 204, 21, 0.6);
