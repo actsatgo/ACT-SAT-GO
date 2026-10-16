@@ -146,13 +146,10 @@ export function ResourcesPage() {
       try {
         const data = await fetchBlogs();
         if (!cancelled) {
-          setBlogs(data.length > 0 ? data : (DEFAULT_BLOGS as unknown as BlogPost[]));
+          setBlogs(data);
         }
       } catch (err) {
-        console.error('Failed to load blogs, using defaults:', err);
-        if (!cancelled) {
-          setBlogs(DEFAULT_BLOGS as unknown as BlogPost[]);
-        }
+        console.error('Failed to load blogs:', err);
       }
     })();
     return () => {
@@ -278,48 +275,6 @@ export function ResourcesPage() {
     }
   ];
 
-  const DEFAULT_BLOGS = [
-    {
-      id: 'blog_1',
-      tag: 'STUDY TIPS',
-      title: '10 Proven Study Habits That Actually Work',
-      text: 'Simple habits that can transform the way you study and help you retain more information for tests.',
-      image: '',
-      date: 'June 5, 2025',
-      read: '5 min read',
-      tags: ['study tips', 'study strategies']
-    },
-    {
-      id: 'blog_2',
-      tag: 'SAT',
-      title: 'Digital SAT vs Paper SAT: Key Differences',
-      text: 'Understand the major changes, formatting differences, and how to prepare smartly for the Digital SAT.',
-      image: '',
-      date: 'June 3, 2025',
-      read: '6 min read',
-      tags: ['sat', 'sat prep']
-    },
-    {
-      id: 'blog_3',
-      tag: 'COLLEGE ADMISSIONS',
-      title: 'How to Write a Standout College Essay',
-      text: 'Tips and storytelling techniques to help your unique personality and experiences shine through your admissions essay.',
-      image: '',
-      date: 'May 30, 2025',
-      read: '7 min read',
-      tags: ['college admissions', 'college essay']
-    },
-    {
-      id: 'blog_4',
-      tag: 'AP',
-      title: 'Is AP Worth It? Benefits Explained',
-      text: 'Everything you need to know about Advanced Placement courses, college credits, and their long-term benefits.',
-      image: '',
-      date: 'May 27, 2025',
-      read: '4 min read',
-      tags: ['ap', 'ap guides']
-    }
-  ];
 
   // Filtering Logic
   const filteredResources = FEATURED_RESOURCES.filter(res => {

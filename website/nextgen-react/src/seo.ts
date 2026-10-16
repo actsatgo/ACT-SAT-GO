@@ -18,25 +18,25 @@ export interface PageMeta {
 export const PAGES: PageMeta[] = [
   {
     path: '/',
-    title: 'Online SAT & ACT Tutoring for US Students | 1-on-1 | ACT SAT GO',
+    title: 'Online SAT & ACT Tutoring for US Students | ACT SAT GO',
     description:
       '1-on-1 online tutoring for the Digital SAT, ACT and AP exams: a diagnostic first, homework after every session and weekly reports for parents.',
   },
   {
     path: '/sat',
-    title: 'Digital SAT Tutoring Online — 1-on-1 Expert Tutors | ACT SAT GO',
+    title: 'Digital SAT Tutoring Online, 1-on-1 Tutors | ACT SAT GO',
     description:
       'Live 1-on-1 Digital SAT tutoring with a personal plan, full-length adaptive practice tests and a score report after each. See programs and fees.',
   },
   {
     path: '/act',
-    title: 'ACT Tutoring Online for the Enhanced ACT — 1-on-1 | ACT SAT GO',
+    title: 'Enhanced ACT Tutoring Online, 1-on-1 | ACT SAT GO',
     description:
       'Online 1-on-1 tutoring built for the enhanced ACT: 131 core questions, about 2 hours, Science optional. Programs, fees and a free diagnostic lesson.',
   },
   {
     path: '/ap',
-    title: 'AP Tutoring Online — Calculus, Physics & More | ACT SAT GO',
+    title: 'AP Tutoring Online: Calculus, Physics & More | ACT SAT GO',
     description:
       '1-on-1 online AP tutoring for Calculus AB/BC, Physics, Chemistry, Biology, Statistics, Economics and more, aiming for 4s and 5s.',
   },
@@ -60,7 +60,7 @@ export const PAGES: PageMeta[] = [
   },
   {
     path: '/resources',
-    title: 'Free AP Exam Guides (PDF) & SAT, ACT Resources | ACT SAT GO',
+    title: 'Free AP, SAT & ACT Guides (PDF) | ACT SAT GO',
     description:
       'Download 42 free AP exam guides as PDFs, one for every AP subject, plus free guides and articles on the Digital SAT, the enhanced ACT and college applications.',
   },
@@ -72,7 +72,7 @@ export const PAGES: PageMeta[] = [
   },
   {
     path: '/free-test',
-    title: 'Free Digital SAT & ACT Practice Test with Score Report | ACT SAT GO',
+    title: 'Free SAT & ACT Practice Test + Score Report | ACT SAT GO',
     description:
       'Take a free, timed SAT or ACT practice test in our real exam interface and get your scaled score with section, topic and question-level analytics.',
   },
