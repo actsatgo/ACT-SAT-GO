@@ -277,13 +277,7 @@ export function LogSessionModal({
                 className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 resize-none" />
             </div>
 
-            <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1">Homework (optional)</label>
-              <textarea value={form.homeworkText} onChange={(e) => setForm((f) => ({ ...f, homeworkText: e.target.value }))}
-                placeholder="One per line, e.g. Textbook ch. 4, problems 1-20" rows={2}
-                className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 resize-none" />
-            </div>
-
+            {/* The free-text Homework box was removed (user asked 16 Oct); homework comes from Test Builder below. */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <label className="block text-xs font-medium text-slate-600">Homework Assigned (from Test Builder, optional)</label>
