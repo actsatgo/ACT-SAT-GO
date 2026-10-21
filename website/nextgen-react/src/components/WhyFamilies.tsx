@@ -29,7 +29,17 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
         <p>1-on-1 SAT tutoring with a personal plan, a mentor and weekly parent reports.</p>
       </div>
 
-      <div className="why-slider" style={{ '--pos': `${100 - reveal}%` } as CSSProperties}>
+      <div
+        className="why-slider"
+        style={{ '--pos': `${100 - reveal}%` } as CSSProperties}
+        onPointerMove={(e) => {
+          // With a mouse the split follows the pointer, no click needed. Touch still drags the range input.
+          if (e.pointerType !== 'mouse') return;
+          const box = e.currentTarget.getBoundingClientRect();
+          const x = Math.min(1, Math.max(0, (e.clientX - box.left) / box.width));
+          setReveal(Math.round(100 - x * 100));
+        }}
+      >
         <span className="why-tag why-tag-them" aria-hidden="true">Typical tutoring</span>
         <span className="why-tag why-tag-us" aria-hidden="true">ACT SAT GO</span>
         <div className="why-layer why-them">
@@ -60,7 +70,7 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
           aria-label="Drag to compare typical tutoring with ACT SAT GO"
         />
       </div>
-      <p className="why-hint">Drag the gold handle to compare.</p>
+      <p className="why-hint">Move across the cards to compare.</p>
 
       <div className="why-cta">
         <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); onBook(); }}>
