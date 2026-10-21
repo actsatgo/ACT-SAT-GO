@@ -4174,10 +4174,15 @@ html, body {
 /* Image logo in the header and footer */
 .brand-logo-img {
   display: block;
-  height: 54px;
+  height: 52px;
   width: auto;
+  padding: 7px 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+  box-sizing: content-box;
 }
-.footer .brand-logo-img { height: 60px; }
+.footer .brand-logo-img { height: 56px; }
 @media (max-width: 680px) {
-  .brand-logo-img { height: 44px; }
+  .brand-logo-img { height: 38px; padding: 5px 10px; }
 }
