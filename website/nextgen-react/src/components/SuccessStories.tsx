@@ -77,7 +77,7 @@ export function SuccessStories({ onBook }: { onBook: () => void }) {
               <div className="ss-col ss-after">
                 <small>{s.before !== undefined ? 'After' : 'Score'}</small>
                 <b>
-                  <CountUp from={s.before ?? 1} to={s.score} />
+                  <CountUp from={s.before ?? s.score} to={s.score} />
                   <span className="ss-max">/{s.max}</span>
                 </b>
               </div>
