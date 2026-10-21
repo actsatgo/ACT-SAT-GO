@@ -687,12 +687,13 @@ h1 span,
   position: relative;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  gap: 48px;
   align-items: center;
   margin-top: 34px;
-  padding: 40px 44px;
+  padding: 52px 56px;
   border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: white;
   background: linear-gradient(135deg, var(--navy), var(--navy-2));
   box-shadow: 0 24px 48px rgba(6, 26, 47, 0.22);
@@ -753,28 +754,121 @@ h1 span,
   padding: 0 0 64px;
 }
 
-.process-cta > div:first-child {
+.process-cta .cta-copy {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 18px;
+  gap: 22px;
 }
 
-.cta-graphic {
+.cta-eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.process-cta .cta-copy h3 {
+  margin: 0;
+}
+
+.cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+}
+
+.cta-link {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  padding-bottom: 2px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.cta-link:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.cta-steps {
   position: relative;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 10px 26px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.55);
 }
 
-.cta-graphic svg {
-  width: 100%;
-  max-width: 320px;
-  height: auto;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+.cta-steps li {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  padding: 18px 0;
+}
+
+.cta-steps li + li {
+  border-top: 1px solid var(--line);
+}
+
+/* gold rail joining the step numbers */
+.cta-steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 56px;
+  bottom: -18px;
+  width: 2px;
+  background: linear-gradient(var(--gold), rgba(255, 180, 0, 0.25));
+}
+
+.cta-step-num {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 900;
+  font-size: 15px;
+  box-shadow: 0 0 0 5px rgba(255, 180, 0, 0.18);
+}
+
+.cta-steps strong {
+  display: block;
+  font-size: 17px;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+
+.cta-steps li span:not(.cta-step-num) {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+@media (max-width: 680px) {
+  .process-cta {
+    padding: 36px 22px;
+    gap: 32px;
+  }
+  .process-cta h3 {
+    font-size: 25px;
+  }
+  .cta-steps {
+    padding: 4px 18px;
+  }
 }
 
 /* ── Programs hub (3 category cards) ─────────────────────────────── */
@@ -2080,7 +2174,7 @@ h1 span,
   align-items: center;
   gap: 18px;
   width: max-content;
-  animation: uni-scroll 28s linear infinite;
+  animation: uni-scroll 45s linear infinite;
 }
 
 .university-marquee:hover .university-track {
@@ -2967,86 +3061,156 @@ h1 span,
 
 
 /* ── Process Steps ──────────────────────────────────────────────────── */
-.process { padding: 60px 0; }
-.process .section-heading { margin-bottom: 40px; }
+/* Progress cards: the gold bar on each card fills a little more per step
+   (--p, set inline). Cards rise in one after another (--i) when scrolled
+   into view; hover lifts the card and fills its bar. */
+.process {
+  padding: 72px 0;
+  background: var(--soft);
+}
+.process .section-heading { margin-bottom: 44px; }
 .process-flow {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 16px;
   position: relative;
 }
 .process-step {
   position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 8px;
-  padding: 0 6px;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 28px 20px 24px;
+  border-radius: 20px;
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: 0 14px 30px -20px rgba(6, 26, 47, 0.25);
+  overflow: hidden;
+  transition: transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.35s ease, border-color 0.35s ease;
 }
-.process-step:not(:last-child)::after {
+.process-step.in-view {
+  animation: processStepIn 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation-delay: calc(var(--i, 0) * 110ms);
+}
+@keyframes processStepIn {
+  from { opacity: 0; transform: translateY(28px) scale(0.97); }
+}
+/* progress bar */
+.process-step::before {
   content: '';
   position: absolute;
-  top: 34px;
-  left: calc(50% + 40px);
-  width: calc(100% - 80px);
-  height: 2px;
-  background-image: linear-gradient(90deg, var(--gold-2) 0 6px, transparent 6px 12px);
-  background-size: 12px 2px;
-  background-repeat: repeat-x;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--gold-2), var(--gold));
+  transform-origin: left;
+  transform: scaleX(var(--p, 1));
+  transition: transform 0.45s ease;
 }
-.process-step:not(:last-child)::before {
-  content: '▸';
-  position: absolute;
-  top: 34px;
-  left: 100%;
-  transform: translate(-50%, -50%);
-  z-index: 2;
-  color: var(--navy);
-  font-size: 28px;
-  font-weight: 900;
+.process-step.in-view::before {
+  animation: processBarIn 0.9s ease-out backwards;
+  animation-delay: calc(var(--i, 0) * 110ms + 350ms);
 }
+@keyframes processBarIn {
+  from { transform: scaleX(0); }
+}
+.process-step:hover {
+  transform: translateY(-8px);
+  border-color: rgba(255, 180, 0, 0.55);
+  box-shadow: 0 26px 44px -20px rgba(6, 26, 47, 0.35);
+}
+.process-step:hover::before { transform: scaleX(1); }
 .process-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 68px;
-  height: 68px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--navy), var(--navy-2));
-  color: white;
-  box-shadow: 0 8px 20px rgba(6, 26, 47, 0.28);
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  background: rgba(255, 180, 0, 0.14);
+  color: var(--gold-2);
   flex-shrink: 0;
+  transition: background 0.35s ease, color 0.35s ease, transform 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .process-icon svg {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
+}
+.process-step:hover .process-icon {
+  background: var(--navy);
+  color: #fff;
+  transform: rotate(-8deg) scale(1.08);
 }
 .process-num {
-  font-size: 15px;
+  position: absolute;
+  top: 16px;
+  right: 18px;
+  font-size: 38px;
   font-weight: 900;
-  color: var(--navy);
+  line-height: 1;
+  color: rgba(6, 26, 47, 0.07);
+  transition: color 0.35s ease, transform 0.35s ease;
+}
+.process-step:hover .process-num {
+  color: rgba(255, 180, 0, 0.4);
+  transform: translateY(-2px);
 }
 .process-step h3 {
-  font-size: 15px;
+  margin: 4px 0 0;
+  font-size: 17px;
   font-weight: 800;
   color: var(--navy);
-  margin: 0;
 }
 .process-step p {
-  font-size: 12.5px;
-  color: var(--muted);
   margin: 0;
-  line-height: 1.45;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
 }
-@media (max-width: 1040px) {
-  .process-flow { grid-template-columns: repeat(4, 1fr); gap: 24px; }
-  .process-step:not(:last-child)::after,
-  .process-step:not(:last-child)::before { display: none; }
+/* final step: the goal */
+.process-step:last-child {
+  background: linear-gradient(160deg, var(--navy-2), var(--navy));
+  border-color: var(--navy);
+}
+.process-step:last-child h3 { color: var(--gold); }
+.process-step:last-child p { color: rgba(255, 255, 255, 0.75); }
+.process-step:last-child .process-num { color: rgba(255, 255, 255, 0.1); }
+.process-step:last-child .process-icon {
+  background: rgba(255, 180, 0, 0.16);
+  color: #fff;
+  animation: processGoalPulse 2.4s ease-in-out infinite;
+}
+.process-step:last-child:hover .process-icon {
+  background: rgba(255, 180, 0, 0.28);
+}
+.process-step:last-child:hover {
+  box-shadow: 0 26px 50px -18px rgba(255, 180, 0, 0.45);
+}
+@keyframes processGoalPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 180, 0, 0.45); }
+  50% { box-shadow: 0 0 0 10px rgba(255, 180, 0, 0); }
+}
+@media (max-width: 1180px) {
+  .process-flow { grid-template-columns: repeat(4, 1fr); }
+  .process-step:last-child { grid-column: span 2; }
 }
 @media (max-width: 680px) {
-  .process-flow { grid-template-columns: repeat(2, 1fr); }
+  .process-flow { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+}
+@media (max-width: 480px) {
+  .process-step:last-child { grid-column: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .process-step,
+  .process-step::before,
+  .process-icon,
+  .process-step.in-view,
+  .process-step.in-view::before,
+  .process-step:last-child .process-icon {
+    animation: none;
+    transition: none;
+  }
 }
 
 /* ── Success Stories ────────────────────────────────────────────────── */
@@ -3589,8 +3753,8 @@ html, body {
 /* Score Improvement Card */
 .card-score-new {
   position: absolute;
-  left: -116px;
-  top: 58%;
+  left: -94px;
+  top: calc(58% + 38px);
   z-index: 3;
   width: 198px;
   padding: 16px;
@@ -3624,7 +3788,7 @@ html, body {
 /* Exam Tags stack */
 .card-exams-new {
   position: absolute;
-  right: -36px;
+  right: 9px;
   top: 14%;
   z-index: 3;
   display: flex;
