@@ -100,7 +100,7 @@ export function SuccessStories({ onBook }: { onBook: () => void }) {
         ))}
       </div>
       <div className="ss-cta">
-        <p>Your student could be the next story here.</p>
+        <p>Your teen could be the next story here.</p>
         <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); onBook(); }}>
           {PRIMARY_CTA} <span aria-hidden="true">→</span>
         </a>

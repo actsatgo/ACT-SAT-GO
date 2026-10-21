@@ -2222,7 +2222,7 @@ h1 span,
   align-items: center;
   gap: 18px;
   width: max-content;
-  animation: uni-scroll 45s linear infinite;
+  animation: uni-scroll 90s linear infinite;
 }
 
 .university-marquee:hover .university-track {
@@ -3322,11 +3322,15 @@ h1 span,
 .story-grid p { font-size: 12px; color: #16a34a; font-weight: 700; margin: 0; }
 .story-grid span:last-child { font-size: 12px; color: var(--muted); margin-top: 4px; }
 .uni-strip-label {
+  margin: 56px auto 0;
+  max-width: none;
+  color: var(--navy);
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 900;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   text-align: center;
-  margin: 36px 0 16px;
-  font-size: 13px;
-  color: var(--muted);
-  font-weight: 600;
+  text-wrap: wrap;
 }
 @media (max-width: 900px) {
   .story-grid { grid-template-columns: repeat(2, 1fr); }
