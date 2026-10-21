@@ -1,0 +1,205 @@
+/* ── Site-wide CTA buttons: "answer bubble" pill ─────────────────────────
+   Primary: gold pill with an SAT answer bubble. On hover navy floods out
+   from the bubble and the "A" turns into a check.
+   Secondary: plain text with a gold underline that draws in on hover.
+   Loaded last and scoped with :root so it wins over per-page button rules. */
+
+:root :is(
+  .btn-primary:not(.contact-dropdown > .btn-primary),
+  .c-submit-btn,
+  .ft-submit-btn,
+  .form-submit-btn,
+  .careers-cta-btn,
+  .careers-job-apply-btn,
+  .ap-guides-cta-btn,
+  .newsletter-btn
+) {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75em;
+  min-height: 52px;
+  padding: 6px 1.6em 6px 8px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 0 0 4px rgba(255, 180, 0, 0.2);
+  filter: none;
+  transform: none;
+  cursor: pointer;
+  transition: color 0.35s ease, box-shadow 0.3s ease;
+}
+
+/* The answer bubble */
+:root :is(
+  .btn-primary:not(.contact-dropdown > .btn-primary),
+  .c-submit-btn,
+  .ft-submit-btn,
+  .form-submit-btn,
+  .careers-cta-btn,
+  .careers-job-apply-btn,
+  .ap-guides-cta-btn,
+  .newsletter-btn
+)::before {
+  content: "A";
+  flex: none;
+  width: 2.25em;
+  height: 2.25em;
+  display: grid;
+  place-items: center;
+  border: 2.5px solid var(--navy);
+  border-radius: 50%;
+  color: var(--navy);
+  font-size: 0.9em;
+  font-weight: 900;
+  line-height: 1;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+/* The navy flood, drawn behind the label */
+:root :is(
+  .btn-primary:not(.contact-dropdown > .btn-primary),
+  .c-submit-btn,
+  .ft-submit-btn,
+  .form-submit-btn,
+  .careers-cta-btn,
+  .careers-job-apply-btn,
+  .ap-guides-cta-btn,
+  .newsletter-btn
+)::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--navy);
+  clip-path: circle(0% at 28px 50%);
+  transition: clip-path 0.5s cubic-bezier(0.6, 0.05, 0.3, 1);
+}
+
+:root :is(
+  .btn-primary:not(.contact-dropdown > .btn-primary),
+  .c-submit-btn,
+  .ft-submit-btn,
+  .form-submit-btn,
+  .careers-cta-btn,
+  .careers-job-apply-btn,
+  .ap-guides-cta-btn,
+  .newsletter-btn
+):is(:hover, :focus-visible):not(:disabled) {
+  background: var(--gold);
+  color: #ffffff;
+  transform: none;
+  box-shadow: 0 0 0 2px var(--gold), 0 0 0 7px rgba(255, 180, 0, 0.25);
+}
+
+:root :is(
+  .btn-primary:not(.contact-dropdown > .btn-primary),
+  .c-submit-btn,
+  .ft-submit-btn,
+  .form-submit-btn,
+  .careers-cta-btn,
+  .careers-job-apply-btn,
+  .ap-guides-cta-btn,
+  .newsletter-btn
+):is(:hover, :focus-visible):not(:disabled)::before {
+  content: "✓";
+  border-color: var(--gold);
+  background: var(--gold);
+}
+
+:root :is(
+  .btn-primary:not(.contact-dropdown > .btn-primary),
+  .c-submit-btn,
+  .ft-submit-btn,
+  .form-submit-btn,
+  .careers-cta-btn,
+  .careers-job-apply-btn,
+  .ap-guides-cta-btn,
+  .newsletter-btn
+):is(:hover, :focus-visible):not(:disabled)::after {
+  clip-path: circle(150% at 28px 50%);
+}
+
+:root :is(
+  .btn-primary,
+  .c-submit-btn,
+  .ft-submit-btn,
+  .form-submit-btn,
+  .careers-cta-btn,
+  .careers-job-apply-btn,
+  .ap-guides-cta-btn,
+  .newsletter-btn
+):disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* The bubble replaces the trailing arrow or icon */
+:root :is(
+  .btn-primary:not(.contact-dropdown > .btn-primary),
+  .ft-submit-btn,
+  .ap-guides-cta-btn
+) > :is(span[aria-hidden="true"], svg):last-child {
+  display: none;
+}
+
+/* Compact size in the header */
+:root .nav-btn-book {
+  min-height: 42px;
+  padding: 4px 1.1em 4px 5px;
+  font-size: 14px;
+  gap: 0.6em;
+}
+
+/* Contact Us menu toggle in the header: same pill, no bubble */
+:root .contact-dropdown > .btn-primary {
+  border: 0;
+  border-radius: 999px;
+  background: var(--gold);
+  color: var(--navy);
+  box-shadow: 0 0 0 4px rgba(255, 180, 0, 0.2);
+}
+
+/* ── Secondary: text with a gold underline ──────────────────────────── */
+:root :is(.btn-secondary, .btn-outline, .why-btn-outline, .btn:not([class*="btn-"])) {
+  min-height: 52px;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 7px;
+  transform: none;
+  transition: text-underline-offset 0.25s ease, color 0.2s ease;
+}
+
+:root :is(.btn-secondary, .btn-outline, .why-btn-outline, .btn:not([class*="btn-"])):is(:hover, :focus-visible) {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  transform: none;
+  text-underline-offset: 11px;
+}
+
+:root .nav-btn-free-test {
+  min-height: 42px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root :is(.btn-primary, .c-submit-btn, .ft-submit-btn, .form-submit-btn, .careers-cta-btn, .careers-job-apply-btn, .ap-guides-cta-btn, .newsletter-btn, .btn-secondary, .btn-outline, .why-btn-outline, .btn),
+  :root :is(.btn-primary, .c-submit-btn, .ft-submit-btn, .form-submit-btn, .careers-cta-btn, .careers-job-apply-btn, .ap-guides-cta-btn, .newsletter-btn, .btn-secondary, .btn-outline, .why-btn-outline, .btn)::before,
+  :root :is(.btn-primary, .c-submit-btn, .ft-submit-btn, .form-submit-btn, .careers-cta-btn, .careers-job-apply-btn, .ap-guides-cta-btn, .newsletter-btn, .btn-secondary, .btn-outline, .why-btn-outline, .btn)::after {
+    transition: none;
+  }
+}

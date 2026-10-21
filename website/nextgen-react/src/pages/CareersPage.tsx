@@ -506,7 +506,7 @@ export function CareersPage() {
                         onClick={() => handleApplyClick(job.title)}
                         className="careers-job-apply-btn"
                       >
-                        Apply Now →
+                        Apply Now
                       </button>
                     </div>
                   </article>
@@ -878,7 +878,7 @@ export function CareersPage() {
                 }}
                 className="careers-cta-btn"
               >
-                Apply Now →
+                Apply Now
               </button>
             </div>
             {/* decorative illustration */}
