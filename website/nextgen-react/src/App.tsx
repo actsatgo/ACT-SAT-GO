@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -325,7 +325,7 @@ export default function App() {
                 { n: '06', title: 'Improve', text: 'Continuous feedback & data insights for continuous improvement.', icon: <IconNetwork /> },
                 { n: '07', title: 'Achieve', text: 'Reach your target score & unlock your future.', icon: <IconTrophy /> },
               ].map((s, i) => (
-                <article key={s.n} className="process-step reveal" style={{ transitionDelay: `${i * 60}ms` }}>
+                <article key={s.n} className="process-step reveal" style={{ '--i': i, '--p': (i + 1) / 7 } as CSSProperties}>
                   <span className="process-icon" aria-hidden="true">{s.icon}</span>
                   <span className="process-num">{s.n}</span>
                   <h3>{s.title}</h3>
