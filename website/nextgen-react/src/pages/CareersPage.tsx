@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Header } from '../components/Header';
-import img4 from '../assets/img/4.webp';
+import careersTeamImg from '../assets/img/careers-team.jpg';
 import careerPartnerImg from '../assets/img/career-partner.webp';
 import { QUERY_API_BASE } from '../config';
 import { fetchJobs, type Job } from '../admin/api';
@@ -465,7 +465,7 @@ export function CareersPage() {
             <div className="careers-hero-art">
               <div className="careers-hero-art-wrapper">
                 <img
-                  src={img4}
+                  src={careersTeamImg}
                   alt="Build the Future of Student Success — Careers at ACT SAT GO"
                 />
               </div>
