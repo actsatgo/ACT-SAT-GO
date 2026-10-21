@@ -20,12 +20,15 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
   const current = useRef(REST);
   const target = useRef(REST);
   const frame = useRef(0);
+  // How much of the remaining gap to close each frame: quick while following the mouse, gentle when returning.
+  const speed = useRef(0.12);
 
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
   // Glide the split towards `to` instead of jumping there.
-  const glideTo = (to: number) => {
+  const glideTo = (to: number, ease: number) => {
     target.current = to;
+    speed.current = ease;
     if (frame.current) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       current.current = to;
@@ -40,7 +43,7 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
         frame.current = 0;
         return;
       }
-      current.current += diff * 0.12;
+      current.current += diff * speed.current;
       setReveal(current.current);
       frame.current = requestAnimationFrame(step);
     };
@@ -58,7 +61,6 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
     <section className="why shell" id="why-us">
       <div className="why-head">
         <h2>Why families choose <em>ACT SAT GO</em></h2>
-        <p>See the difference a real 1-on-1 plan makes.</p>
       </div>
 
       <div
@@ -69,10 +71,10 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
           if (e.pointerType !== 'mouse') return;
           const box = e.currentTarget.getBoundingClientRect();
           const x = Math.min(1, Math.max(0, (e.clientX - box.left) / box.width));
-          glideTo(100 - x * 100);
+          glideTo(100 - x * 100, 0.45);
         }}
         onPointerLeave={(e) => {
-          if (e.pointerType === 'mouse') glideTo(REST);
+          if (e.pointerType === 'mouse') glideTo(REST, 0.12);
         }}
       >
         <span className="why-tag why-tag-them" aria-hidden="true">Typical tutoring</span>
@@ -105,7 +107,6 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
           aria-label="Drag to compare typical tutoring with ACT SAT GO"
         />
       </div>
-      <p className="why-hint">Move across the cards to compare.</p>
 
       <div className="why-cta">
         <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); onBook(); }}>
