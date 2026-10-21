@@ -751,7 +751,7 @@ h1 span,
 }
 
 .cta-section {
-  padding: 0 0 64px;
+  padding: 0 0 40px;
 }
 
 .process-cta .cta-copy {
@@ -769,6 +769,27 @@ h1 span,
   letter-spacing: 1.4px;
   text-transform: uppercase;
   color: var(--gold);
+}
+
+/* In the process banner the label is the section heading, in white with a gold bar */
+.process-cta .cta-eyebrow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-transform: none;
+  color: #ffffff;
+}
+
+.process-cta .cta-eyebrow::after {
+  content: "";
+  width: 56px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--gold);
 }
 
 .process-cta .cta-copy h3 {
@@ -801,7 +822,7 @@ h1 span,
   z-index: 1;
   list-style: none;
   margin: 0;
-  padding: 10px 26px;
+  padding: 12px 14px;
   border-radius: 20px;
   background: #fff;
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -811,26 +832,49 @@ h1 span,
 .cta-steps li {
   position: relative;
   display: flex;
-  gap: 16px;
-  padding: 18px 0;
+  align-items: center;
+  gap: 18px;
+  min-height: 104px;
+  padding: 16px 14px;
+  border-radius: 14px;
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.cta-steps li + li {
-  border-top: 1px solid var(--line);
-}
-
-/* gold rail joining the step numbers */
-.cta-steps li:not(:last-child)::after {
+/* gold rail joining the step numbers: each step draws the half above and below its number */
+.cta-steps li::before,
+.cta-steps li::after {
   content: "";
   position: absolute;
-  left: 17px;
-  top: 56px;
-  bottom: -18px;
+  left: 31px;
   width: 2px;
-  background: linear-gradient(var(--gold), rgba(255, 180, 0, 0.25));
+  background: rgba(255, 180, 0, 0.45);
+}
+.cta-steps li::before { top: 0; height: 50%; }
+.cta-steps li::after { top: 50%; bottom: 0; }
+.cta-steps li:first-child::before,
+.cta-steps li:last-child::after { display: none; }
+
+.cta-steps li:is(:hover, :focus-within) {
+  background: #fff7e0;
+  transform: translateX(6px);
+  box-shadow: inset 4px 0 0 var(--gold);
+}
+
+.cta-steps li:is(:hover, :focus-within) .cta-step-num {
+  background: var(--navy);
+  color: var(--gold);
+  transform: scale(1.12);
+  box-shadow: 0 0 0 6px rgba(255, 180, 0, 0.35);
+}
+
+.cta-steps li:is(:hover, :focus-within) strong {
+  color: #b86f00;
 }
 
 .cta-step-num {
+  position: relative;
+  z-index: 1;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   flex: none;
   width: 36px;
   height: 36px;
@@ -849,6 +893,7 @@ h1 span,
   font-size: 17px;
   color: var(--navy);
   margin-bottom: 4px;
+  transition: color 0.25s ease;
 }
 
 .cta-steps li span:not(.cta-step-num) {
@@ -867,7 +912,10 @@ h1 span,
     font-size: 25px;
   }
   .cta-steps {
-    padding: 4px 18px;
+    padding: 8px;
+  }
+  .process-cta .cta-eyebrow {
+    font-size: 22px;
   }
 }
 
@@ -2916,7 +2964,7 @@ h1 span,
   right: -16px;
   bottom: -16px;
   width: 46px;
-  height: 46px;
+  height: 54px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ffb92e, #f59b00);
   color: white;
@@ -3065,10 +3113,10 @@ h1 span,
    (--p, set inline). Cards rise in one after another (--i) when scrolled
    into view; hover lifts the card and fills its bar. */
 .process {
-  padding: 72px 0;
+  padding: 36px 0 24px;
   background: var(--soft);
 }
-.process .section-heading { margin-bottom: 44px; }
+.process .section-heading { margin-bottom: 32px; }
 .process-flow {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -3182,7 +3230,8 @@ h1 span,
   animation: processGoalPulse 2.4s ease-in-out infinite;
 }
 .process-step:last-child:hover .process-icon {
-  background: rgba(255, 180, 0, 0.28);
+  background: #ffffff;
+  color: var(--gold-2);
 }
 .process-step:last-child:hover {
   box-shadow: 0 26px 50px -18px rgba(255, 180, 0, 0.45);
@@ -3923,6 +3972,7 @@ html, body {
   font-weight: 900;
 }
 .ss-scores {
+  overflow: hidden;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -3940,13 +3990,16 @@ html, body {
   transition: color 0.3s ease, transform 0.3s ease;
 }
 .ss-after b {
+  justify-self: start;
+  white-space: nowrap;
   color: var(--navy);
-  font-size: 34px;
+  font-size: 32px;
   transform-origin: left bottom;
   background: linear-gradient(var(--gold), var(--gold)) left bottom / 0% 4px no-repeat;
   transition: transform 0.3s ease, background-size 0.4s ease;
 }
-.ss-max { margin-left: 2px; color: var(--muted); font-size: 13px; font-weight: 800; }
+/* "/1600" sits on its own line so the big score always fits inside the card */
+.ss-max { display: block; margin-top: 2px; color: var(--muted); font-size: 12px; font-weight: 800; }
 .ss-arrow {
   width: 32px;
   height: 32px;
@@ -3959,8 +4012,8 @@ html, body {
   transition: transform 0.3s ease;
 }
 .ss-ticket:hover .ss-before { color: #c4cdd8; text-decoration: line-through; text-decoration-thickness: 2px; }
-.ss-ticket:hover .ss-arrow { transform: translateX(4px) rotate(-20deg); }
-.ss-ticket:hover .ss-after b { transform: scale(1.08); background-size: 100% 4px; }
+.ss-ticket:hover .ss-arrow { transform: translateX(4px); }
+.ss-ticket:hover .ss-after b { transform: scale(1.06); background-size: 100% 4px; }
 .ss-perf { position: relative; margin: 0 14px; border-top: 2px dashed var(--line); }
 .ss-perf::before,
 .ss-perf::after {
@@ -4007,8 +4060,8 @@ html, body {
 }
 
 /* ── Why Families Choose: drag-to-compare slider ────────────────────── */
-.why { padding: 64px 0; }
-.why-head { display: grid; justify-items: center; gap: 8px; margin-bottom: 32px; text-align: center; }
+.why { padding: 40px 0 48px; }
+.why-head { display: grid; justify-items: center; gap: 6px; margin-bottom: 24px; text-align: center; }
 .why-eyebrow {
   color: #b77900;
   font-size: 12px;
@@ -4017,16 +4070,16 @@ html, body {
   text-transform: uppercase;
 }
 .why-head h2 {
-  max-width: 22ch;
   margin: 0;
   color: var(--navy);
-  font-size: clamp(26px, 3.6vw, 40px);
+  font-size: clamp(26px, 3.2vw, 36px);
   font-weight: 900;
   line-height: 1.15;
   letter-spacing: -0.02em;
   text-wrap: balance;
 }
-.why-head p { max-width: 56ch; margin: 0; color: var(--muted); font-size: 17px; }
+.why-head h2 em { color: var(--gold-2); font-style: normal; }
+.why-head p { margin: 0; color: var(--muted); font-size: 17px; }
 .why-slider {
   --pos: 34%;
   position: relative;
@@ -4084,7 +4137,7 @@ html, body {
   top: 50%;
   left: 50%;
   width: 46px;
-  height: 46px;
+  height: 54px;
   margin: -23px 0 0 -23px;
   display: grid;
   place-items: center;
@@ -4117,3 +4170,19 @@ html, body {
   .why-tile { min-height: 0; padding: 14px; }
 }
 
+
+/* Image logo in the header and footer */
+.brand-logo-img {
+  display: block;
+  height: 52px;
+  width: auto;
+  padding: 7px 14px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+  box-sizing: content-box;
+}
+.footer .brand-logo-img { height: 56px; }
+@media (max-width: 680px) {
+  .brand-logo-img { height: 38px; padding: 5px 10px; }
+}
