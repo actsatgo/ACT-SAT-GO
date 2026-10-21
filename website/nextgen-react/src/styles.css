@@ -820,6 +820,7 @@ h1 span,
 .cta-steps {
   position: relative;
   z-index: 1;
+  align-self: center;
   list-style: none;
   margin: 0;
   padding: 12px 14px;
@@ -834,8 +835,7 @@ h1 span,
   display: flex;
   align-items: center;
   gap: 18px;
-  min-height: 104px;
-  padding: 16px 14px;
+  padding: 10px 14px;
   border-radius: 14px;
   transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
