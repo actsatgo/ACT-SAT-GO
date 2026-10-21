@@ -2,12 +2,17 @@
    The top bar is white so the full-colour logo sits on it directly.
    Loaded last so it overrides the navy header rules in styles.css and program.css. */
 .site-header {
-  background: rgba(255, 255, 255, 0.97);
+  background: #ffffff;
   border-bottom: 1px solid var(--line);
   box-shadow: 0 6px 22px rgba(6, 26, 47, 0.06);
 }
 
+.site-header .nav {
+  transition: min-height 0.25s ease;
+}
+
 .site-header .brand-logo-img {
+  transition: height 0.25s ease;
   height: 52px;
   padding: 0;
   background: none;
@@ -96,5 +101,32 @@
 
   .site-header .brand-logo-img {
     height: 42px;
+  }
+}
+
+/* Compact header once the page is scrolled */
+.site-header.is-compact {
+  box-shadow: 0 8px 24px rgba(6, 26, 47, 0.12);
+}
+
+.site-header.is-compact .nav {
+  min-height: 58px;
+}
+
+.site-header.is-compact .brand-logo-img {
+  height: 38px;
+}
+
+:root .site-header.is-compact .nav-btn-book {
+  min-height: 36px;
+}
+
+@media (max-width: 1040px) {
+  .site-header.is-compact .brand-logo-img {
+    height: 34px;
+  }
+
+  .site-header.is-compact .nav.is-open .nav-links {
+    top: 58px;
   }
 }

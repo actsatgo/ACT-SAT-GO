@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Brand } from './Brand';
 import { APP_LOGIN_URL } from '../config';
@@ -63,13 +63,23 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const [programsOpen, setProgramsOpen] = useState(false);
 
+  const [compact, setCompact] = useState(false);
+
+  // Slim the pinned header once the page has scrolled past the top.
+  useEffect(() => {
+    const onScroll = () => setCompact(window.scrollY > 40);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const close = () => {
     setOpen(false);
     setProgramsOpen(false);
   };
 
   return (
-    <header className="site-header">
+    <header className={`site-header${compact ? ' is-compact' : ''}`}>
       <nav className={`nav shell${open ? ' is-open' : ''}`} aria-label="Primary navigation">
         <Brand onNavigate={close} />
         <button
