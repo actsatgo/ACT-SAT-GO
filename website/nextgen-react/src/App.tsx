@@ -1,4 +1,4 @@
-import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -20,56 +20,15 @@ import { PainPoints } from './components/PainPoints';
 import { HowItWorks } from './components/HowItWorks';
 import { FaqSection } from './components/FaqSection';
 import { TutorCards } from './components/TutorCards';
+import { SuccessStories } from './components/SuccessStories';
+import { WhyFamilies } from './components/WhyFamilies';
 import { HOME_FAQ } from './data/faq';
 
-// useLayoutEffect warns during prerendering; fall back to useEffect on the server.
-const useIsoLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 import { IconGlobe, IconUser, IconUsers, IconHeartCheck, IconGraduationCap, IconChart, IconDocument, IconClipboardCheck, IconLink, IconRoute, IconMonitor, IconFlag, IconNetwork, IconTrophy } from './components/Icons';
 
 
 export default function App() {
   useScrollReveal();
-
-  const tableRef = useRef<HTMLDivElement>(null);
-
-  useIsoLayoutEffect(() => {
-    function adjustHeights() {
-      if (!tableRef.current) return;
-      const othersCol = tableRef.current.querySelector('.compare-col-others');
-      const asgCol = tableRef.current.querySelector('.compare-col-asg');
-      if (!othersCol || !asgCol) return;
-
-      const othersCells = othersCol.querySelectorAll('.compare-cell') as NodeListOf<HTMLElement>;
-      const asgCells = asgCol.querySelectorAll('.compare-cell') as NodeListOf<HTMLElement>;
-
-      // Reset heights first
-      othersCells.forEach(cell => cell.style.height = 'auto');
-      asgCells.forEach(cell => cell.style.height = 'auto');
-
-      // Only adjust heights if screen is desktop/tablet (not stacked vertically on mobile)
-      if (window.innerWidth > 640) {
-        const count = Math.min(othersCells.length, asgCells.length);
-        for (let i = 0; i < count; i++) {
-          const othersHeight = othersCells[i].getBoundingClientRect().height;
-          const asgHeight = asgCells[i].getBoundingClientRect().height;
-          const maxHeight = Math.max(othersHeight, asgHeight);
-          othersCells[i].style.height = `${maxHeight}px`;
-          asgCells[i].style.height = `${maxHeight}px`;
-        }
-      }
-    }
-
-    adjustHeights();
-
-    // Re-run after images/layouts settle
-    const timer = setTimeout(adjustHeights, 200);
-
-    window.addEventListener('resize', adjustHeights);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('resize', adjustHeights);
-    };
-  }, []);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({ name: '', email: '', phone: '', exam: 'General', message: '' });
@@ -435,72 +394,20 @@ export default function App() {
         <section className="success shell" id="results">
           <div className="success-heading-row">
             <div className="section-heading">
-              <h2>Success Stories</h2>
-              <p>Real students. Real results.</p>
+              <span className="ss-eyebrow">Success stories</span>
+              <h2>Real students. Real results.</h2>
+              <p>Personal 1-on-1 plans, built around each student's goal school.</p>
             </div>
             <a className="view-all-link" href="#testimonials">Read parent &amp; student reviews <span aria-hidden="true">→</span></a>
           </div>
-          <div className="story-grid">
-            <article><div className="portrait">A</div><h3>Ananya K.</h3><span className="exam-type">SAT Score</span><strong>1540 / 1600</strong><p>+230 points improvement</p><span>University of Michigan</span></article>
-            <article><div className="portrait">R</div><h3>Rohan S.</h3><span className="exam-type">ACT Score</span><strong>33 / 36</strong><p>+6 points improvement</p><span>Georgia Tech</span></article>
-            <article><div className="portrait">M</div><h3>Meera P.</h3><span className="exam-type">AP Score</span><strong>5 / 5</strong><p>AP Calculus BC</p><span>Stanford University</span></article>
-            <article><div className="portrait">A</div><h3>Arjun D.</h3><span className="exam-type">SAT Score</span><strong>1510 / 1600</strong><p>+210 points improvement</p><span>UC Berkeley</span></article>
-          </div>
+          <SuccessStories onBook={() => openConsultationModal('General')} />
           <p className="uni-strip-label">Our students have been accepted to top universities worldwide.</p>
           <Universities />
         </section>
 
         <TutorCards />
 
-        {/* Why Families Choose ASG — Comparison Table */}
-        <section className="comparison shell" id="why-us">
-          <div className="section-heading center" style={{ gridColumn: '1 / -1', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '32px', color: '#000000', fontWeight: 800, textAlign: 'center' }}>Why Families Choose ACT SAT GO</h2>
-          </div>
-          <aside className="note-card-new">
-            <p className="note-card-text">
-              We don't just<br />
-              <strong>teach.</strong>
-            </p>
-            <p className="note-card-text">
-              We transform<br />
-              <strong>potential into</strong><br />
-              <strong>performance.</strong>
-            </p>
-            <div className="note-card-check-orange">✓</div>
-          </aside>
-          {(() => {
-            const COMPARE_ROWS = [
-              { others: 'One-size-fits-all approach', asg: 'Personalized learning for every student' },
-              { others: 'Focus only on tutoring', asg: 'End-to-end academic success partner' },
-              { others: 'Limited performance insights', asg: 'Weekly parent reports with section-level analytics' },
-              { others: 'Doubt support with limits', asg: 'Unlimited doubt solving & mentor support' },
-              { others: 'Minimal parent communication', asg: 'Weekly reports & regular PTMs' },
-              { others: 'Disconnected tools & platforms', asg: 'All-in-one learning ecosystem' },
-            ];
-            return (
-              <div ref={tableRef} className="compare-table-new" role="table" aria-label="ACT SAT GO comparison">
-                <div className="compare-col compare-col-others" role="rowgroup">
-                  <div className="compare-cell compare-head col-others" role="columnheader">OTHERS</div>
-                  {COMPARE_ROWS.map((r) => (
-                    <div key={r.others} className="compare-cell col-others-val" role="cell">{r.others}</div>
-                  ))}
-                </div>
-                <div className="compare-col compare-col-asg" role="rowgroup">
-                  <div className="compare-cell compare-head col-asg" role="columnheader">
-                    <svg className="asg-triangle-logo" viewBox="0 0 24 24" fill="currentColor">
-                      <polygon points="12 3 21 20 3 20" />
-                    </svg>
-                    ACT SAT GO
-                  </div>
-                  {COMPARE_ROWS.map((r) => (
-                    <div key={r.asg} className="compare-cell col-asg-val" role="cell">{r.asg}</div>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-        </section>
+        <WhyFamilies onBook={() => openConsultationModal('General')} />
 
 
         {/* What Our Students & Parents Say — Testimonials */}
