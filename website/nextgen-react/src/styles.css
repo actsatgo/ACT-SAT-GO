@@ -803,10 +803,9 @@ h1 span,
   margin: 0;
   padding: 10px 26px;
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.55);
 }
 
 .cta-steps li {
@@ -817,7 +816,7 @@ h1 span,
 }
 
 .cta-steps li + li {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid var(--line);
 }
 
 /* gold rail joining the step numbers */
@@ -828,7 +827,7 @@ h1 span,
   top: 56px;
   bottom: -18px;
   width: 2px;
-  background: linear-gradient(var(--gold), rgba(255, 180, 0, 0.15));
+  background: linear-gradient(var(--gold), rgba(255, 180, 0, 0.25));
 }
 
 .cta-step-num {
@@ -842,13 +841,13 @@ h1 span,
   color: var(--navy);
   font-weight: 900;
   font-size: 15px;
-  box-shadow: 0 0 0 5px rgba(255, 180, 0, 0.15);
+  box-shadow: 0 0 0 5px rgba(255, 180, 0, 0.18);
 }
 
 .cta-steps strong {
   display: block;
   font-size: 17px;
-  color: #fff;
+  color: var(--navy);
   margin-bottom: 4px;
 }
 
@@ -856,7 +855,7 @@ h1 span,
   display: block;
   font-size: 14px;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--muted);
 }
 
 @media (max-width: 680px) {
