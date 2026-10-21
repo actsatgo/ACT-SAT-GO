@@ -687,12 +687,13 @@ h1 span,
   position: relative;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 1fr 320px;
-  gap: 28px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  gap: 48px;
   align-items: center;
   margin-top: 34px;
-  padding: 40px 44px;
+  padding: 52px 56px;
   border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: white;
   background: linear-gradient(135deg, var(--navy), var(--navy-2));
   box-shadow: 0 24px 48px rgba(6, 26, 47, 0.22);
@@ -753,28 +754,122 @@ h1 span,
   padding: 0 0 64px;
 }
 
-.process-cta > div:first-child {
+.process-cta .cta-copy {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 18px;
+  gap: 22px;
 }
 
-.cta-graphic {
+.cta-eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.process-cta .cta-copy h3 {
+  margin: 0;
+}
+
+.cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 24px;
+}
+
+.cta-link {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 700;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  padding-bottom: 2px;
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.cta-link:hover {
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.cta-steps {
   position: relative;
   z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  list-style: none;
+  margin: 0;
+  padding: 10px 26px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
-.cta-graphic svg {
-  width: 100%;
-  max-width: 320px;
-  height: auto;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+.cta-steps li {
+  position: relative;
+  display: flex;
+  gap: 16px;
+  padding: 18px 0;
+}
+
+.cta-steps li + li {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* gold rail joining the step numbers */
+.cta-steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 17px;
+  top: 56px;
+  bottom: -18px;
+  width: 2px;
+  background: linear-gradient(var(--gold), rgba(255, 180, 0, 0.15));
+}
+
+.cta-step-num {
+  flex: none;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 900;
+  font-size: 15px;
+  box-shadow: 0 0 0 5px rgba(255, 180, 0, 0.15);
+}
+
+.cta-steps strong {
+  display: block;
+  font-size: 17px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.cta-steps li span:not(.cta-step-num) {
+  display: block;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+@media (max-width: 680px) {
+  .process-cta {
+    padding: 36px 22px;
+    gap: 32px;
+  }
+  .process-cta h3 {
+    font-size: 25px;
+  }
+  .cta-steps {
+    padding: 4px 18px;
+  }
 }
 
 /* ── Programs hub (3 category cards) ─────────────────────────────── */
@@ -3589,8 +3684,8 @@ html, body {
 /* Score Improvement Card */
 .card-score-new {
   position: absolute;
-  left: -116px;
-  top: 58%;
+  left: -94px;
+  top: calc(58% + 38px);
   z-index: 3;
   width: 198px;
   padding: 16px;
@@ -3624,7 +3719,7 @@ html, body {
 /* Exam Tags stack */
 .card-exams-new {
   position: absolute;
-  right: -36px;
+  right: 9px;
   top: 14%;
   z-index: 3;
   display: flex;

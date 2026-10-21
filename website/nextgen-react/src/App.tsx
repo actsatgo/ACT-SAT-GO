@@ -9,10 +9,6 @@ import { CountUp } from './components/CountUp';
 import { useScrollReveal } from './hooks/useScrollReveal';
 import { ACT_PAGE } from './data/programs';
 import heroImg from './assets/img/hero-y1.webp';
-import avatar1 from './assets/img/avatar1.webp';
-import avatar2 from './assets/img/avatar2.webp';
-import avatar3 from './assets/img/avatar3.webp';
-import avatar4 from './assets/img/avatar4.webp';
 import { QUERY_API_BASE } from './config';
 import { trackLead, leadSource, trackContactClick } from './lib/analytics';
 import { SITE, STATS, PRIMARY_CTA, SECONDARY_CTA } from './site';
@@ -141,19 +137,6 @@ export default function App() {
                   {SECONDARY_CTA}
                 </Link>
               </div>
-
-              <div className="hero-trust">
-                <div className="hero-avatars">
-                  <img src={avatar1} alt="" width="40" height="40" />
-                  <img src={avatar2} alt="" width="40" height="40" />
-                  <img src={avatar3} alt="" width="40" height="40" />
-                  <img src={avatar4} alt="" width="40" height="40" />
-                </div>
-                <div>
-                  <div className="stars">★★★★★</div>
-                  <p>Rated {STATS.rating} · Trusted by {STATS.students} students and parents worldwide</p>
-                </div>
-              </div>
             </div>
 
             <div className="hero-art">
@@ -213,7 +196,7 @@ export default function App() {
               <div className="floating-card card-exams-new">
                 <span className="exam-tag active">SAT</span>
                 <span className="exam-tag active">ACT</span>
-                <span className="exam-tag">AP</span>
+                <span className="exam-tag active">AP</span>
               </div>
             </div>
           </div>
@@ -279,127 +262,49 @@ export default function App() {
 
         <ProgramsHub />
 
-        {/* Free Demo Test Callout Banner */}
-        <section className="shell" style={{ margin: '48px auto' }}>
-          <div style={{
-            background: 'linear-gradient(135deg, #06172a 0%, #0d2c54 50%, #06172a 100%)',
-            borderRadius: '24px',
-            border: '1px solid rgba(56, 189, 248, 0.25)',
-            padding: '36px 32px',
-            boxShadow: '0 20px 40px -15px rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '24px',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div style={{ maxWidth: '600px', zIndex: 1 }}>
-              <div style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '4px 12px',
-                borderRadius: '9999px',
-                background: 'rgba(56, 189, 248, 0.15)',
-                color: '#38bdf8',
-                fontSize: '12px',
-                fontWeight: 700,
-                border: '1px solid rgba(56, 189, 248, 0.3)',
-                marginBottom: '12px'
-              }}>
-                FREE PRACTICE TEST
-              </div>
-              <h3 style={{ fontSize: '26px', fontWeight: 800, color: '#ffffff', lineHeight: 1.2, margin: '0 0 10px 0' }}>
-                Not ready to talk to anyone yet? Take a free practice test first.
-              </h3>
-              <p style={{ fontSize: '14px', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
-                Sit one timed SAT or ACT practice test in our real exam interface and get your scaled score with section, topic and question-level analytics. No card, no sales call.
-              </p>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', minWidth: '220px', zIndex: 1 }}>
-              <Link to="/free-test?exam=SAT" className="btn btn-secondary" style={{ textAlign: 'center', fontWeight: 700 }}>
-                Free SAT Practice Test →
-              </Link>
-              <Link to="/free-test?exam=ACT" className="btn btn-outline" style={{ textAlign: 'center', borderColor: 'rgba(255,255,255,0.2)', color: '#ffffff' }}>
-                Free ACT Practice Test →
-              </Link>
-            </div>
-          </div>
-        </section>
-
         <section className="cta-section shell">
           <div className="process-cta">
             <span className="process-cta-dots process-cta-dots-tr" aria-hidden="true" />
             <span className="process-cta-dots process-cta-dots-bl" aria-hidden="true" />
-            <div>
+            <div className="cta-copy">
+              <span className="cta-eyebrow">Your path to a higher score</span>
               <h3>
                 <span className="cta-line">Every step is <em>personalized.</em></span>
                 <span className="cta-line">Every action is <em>guided.</em></span>
                 <span className="cta-line">Every goal is <em>achievable.</em></span>
               </h3>
-              <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
-                {PRIMARY_CTA} <span aria-hidden="true">→</span>
-              </a>
+              <div className="cta-actions">
+                <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
+                  {PRIMARY_CTA} <span aria-hidden="true">→</span>
+                </a>
+                <Link className="cta-link" to="/free-test">
+                  Or take a free practice test <span aria-hidden="true">→</span>
+                </Link>
+              </div>
             </div>
-            <div className="cta-graphic" aria-hidden="true">
-              <svg viewBox="0 0 260 170" width="100%" height="100%">
-                <defs>
-                  <linearGradient id="ctaGoldBar" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#ffe29a" />
-                    <stop offset="45%" stopColor="#f2a92e" />
-                    <stop offset="100%" stopColor="#b9781a" />
-                  </linearGradient>
-                  <radialGradient id="ctaRingGold" cx="35%" cy="30%" r="75%">
-                    <stop offset="0%" stopColor="#ffe9ae" />
-                    <stop offset="55%" stopColor="#efa62e" />
-                    <stop offset="100%" stopColor="#a8690f" />
-                  </radialGradient>
-                  <radialGradient id="ctaRingCream" cx="35%" cy="30%" r="75%">
-                    <stop offset="0%" stopColor="#fff6e2" />
-                    <stop offset="100%" stopColor="#f2ddb2" />
-                  </radialGradient>
-                  <linearGradient id="ctaArrow" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#ffe29a" />
-                    <stop offset="100%" stopColor="#b9781a" />
-                  </linearGradient>
-                  <radialGradient id="ctaGlow" cx="50%" cy="50%" r="50%">
-                    <stop offset="0%" stopColor="#ffb400" stopOpacity="0.55" />
-                    <stop offset="100%" stopColor="#ffb400" stopOpacity="0" />
-                  </radialGradient>
-                </defs>
-
-                {/* ambient rings */}
-                <circle cx="205" cy="70" r="88" fill="none" stroke="#ffffff" strokeOpacity="0.06" />
-                <circle cx="205" cy="70" r="68" fill="none" stroke="#ffffff" strokeOpacity="0.08" />
-
-                {/* ground glow */}
-                <ellipse cx="150" cy="146" rx="105" ry="14" fill="url(#ctaGlow)" />
-
-                {/* bars */}
-                <rect x="6" y="108" width="18" height="26" rx="4" fill="url(#ctaGoldBar)" opacity="0.7" />
-                <rect x="30" y="94" width="18" height="40" rx="4" fill="url(#ctaGoldBar)" opacity="0.8" />
-                <rect x="54" y="78" width="18" height="56" rx="4" fill="url(#ctaGoldBar)" opacity="0.88" />
-                <rect x="78" y="60" width="18" height="74" rx="4" fill="url(#ctaGoldBar)" opacity="0.94" />
-                <rect x="102" y="40" width="18" height="94" rx="4" fill="url(#ctaGoldBar)" />
-                <rect x="126" y="18" width="18" height="116" rx="4" fill="url(#ctaGoldBar)" />
-
-                {/* target */}
-                <circle cx="205" cy="70" r="54" fill="none" stroke="#06172a" strokeOpacity="0.5" strokeWidth="2" />
-                <circle cx="205" cy="70" r="51" fill="url(#ctaRingGold)" />
-                <circle cx="205" cy="70" r="40" fill="url(#ctaRingCream)" />
-                <circle cx="205" cy="70" r="29" fill="url(#ctaRingGold)" />
-                <circle cx="205" cy="70" r="18" fill="url(#ctaRingCream)" />
-                <circle cx="205" cy="70" r="7" fill="#c9860f" />
-
-                {/* arrow — rises from the bars and bursts through the target */}
-                <path d="M162 113 150 117M162 113 158 101" stroke="url(#ctaArrow)" strokeWidth="4.5" strokeLinecap="round" />
-                <line x1="162" y1="113" x2="238" y2="33" stroke="url(#ctaArrow)" strokeWidth="5.5" strokeLinecap="round" />
-                <path d="M252 23 236 29 246 39Z" fill="url(#ctaArrow)" />
-              </svg>
-            </div>
+            <ol className="cta-steps" aria-label="How it starts">
+              <li>
+                <span className="cta-step-num">1</span>
+                <div>
+                  <strong>Free diagnostic lesson</strong>
+                  <span>Find out exactly where your score stands today.</span>
+                </div>
+              </li>
+              <li>
+                <span className="cta-step-num">2</span>
+                <div>
+                  <strong>Personalized plan</strong>
+                  <span>A week-by-week roadmap built around your test date.</span>
+                </div>
+              </li>
+              <li>
+                <span className="cta-step-num">3</span>
+                <div>
+                  <strong>Weekly progress report</strong>
+                  <span>Parents see scores, homework and what comes next.</span>
+                </div>
+              </li>
+            </ol>
           </div>
         </section>
 
