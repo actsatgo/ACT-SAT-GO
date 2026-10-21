@@ -2174,7 +2174,7 @@ h1 span,
   align-items: center;
   gap: 18px;
   width: max-content;
-  animation: uni-scroll 28s linear infinite;
+  animation: uni-scroll 45s linear infinite;
 }
 
 .university-marquee:hover .university-track {
