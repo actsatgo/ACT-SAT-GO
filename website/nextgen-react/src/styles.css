@@ -820,6 +820,7 @@ h1 span,
 .cta-steps {
   position: relative;
   z-index: 1;
+  align-self: center;
   list-style: none;
   margin: 0;
   padding: 12px 14px;
@@ -834,8 +835,7 @@ h1 span,
   display: flex;
   align-items: center;
   gap: 18px;
-  min-height: 104px;
-  padding: 16px 14px;
+  padding: 10px 14px;
   border-radius: 14px;
   transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
@@ -3580,6 +3580,8 @@ h1 span,
 html, body {
   max-width: 100%;
   overflow-x: hidden;
+  /* clip (unlike hidden) doesn't make body a scroll container, so the sticky header keeps working */
+  overflow-x: clip;
 }
 
 @media (max-width: 680px) {

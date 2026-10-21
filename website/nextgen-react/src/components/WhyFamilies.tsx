@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { PRIMARY_CTA, SECONDARY_CTA } from '../site';
 
@@ -11,15 +11,48 @@ const ROWS = [
   { label: 'Tools', others: 'Scattered apps and worksheets', asg: 'Lessons, practice and mock tests in one platform' },
 ];
 
+// Resting position: handle near the left edge, ACT SAT GO almost fully shown.
+const REST = 96;
+
 export function WhyFamilies({ onBook }: { onBook: () => void }) {
   // How much of the ACT SAT GO side is revealed, from the right edge (0–100).
-  const [reveal, setReveal] = useState(66);
+  const [reveal, setReveal] = useState(REST);
+  const current = useRef(REST);
+  const target = useRef(REST);
+  const frame = useRef(0);
 
-  // On phones the tiles stack in one column, so a mid-way split cuts every line.
-  // Start with ACT SAT GO almost fully shown and let visitors drag to see the rest.
-  useEffect(() => {
-    if (window.matchMedia('(max-width: 520px)').matches) setReveal(94);
-  }, []);
+  useEffect(() => () => cancelAnimationFrame(frame.current), []);
+
+  // Glide the split towards `to` instead of jumping there.
+  const glideTo = (to: number) => {
+    target.current = to;
+    if (frame.current) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      current.current = to;
+      setReveal(to);
+      return;
+    }
+    const step = () => {
+      const diff = target.current - current.current;
+      if (Math.abs(diff) < 0.2) {
+        current.current = target.current;
+        setReveal(target.current);
+        frame.current = 0;
+        return;
+      }
+      current.current += diff * 0.12;
+      setReveal(current.current);
+      frame.current = requestAnimationFrame(step);
+    };
+    frame.current = requestAnimationFrame(step);
+  };
+
+  const jumpTo = (to: number) => {
+    cancelAnimationFrame(frame.current);
+    frame.current = 0;
+    current.current = target.current = to;
+    setReveal(to);
+  };
 
   return (
     <section className="why shell" id="why-us">
@@ -36,7 +69,10 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
           if (e.pointerType !== 'mouse') return;
           const box = e.currentTarget.getBoundingClientRect();
           const x = Math.min(1, Math.max(0, (e.clientX - box.left) / box.width));
-          setReveal(Math.round(100 - x * 100));
+          glideTo(100 - x * 100);
+        }}
+        onPointerLeave={(e) => {
+          if (e.pointerType === 'mouse') glideTo(REST);
         }}
       >
         <span className="why-tag why-tag-them" aria-hidden="true">Typical tutoring</span>
@@ -64,8 +100,8 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
           type="range"
           min={0}
           max={100}
-          value={reveal}
-          onChange={(e) => setReveal(Number(e.target.value))}
+          value={Math.round(reveal)}
+          onChange={(e) => jumpTo(Number(e.target.value))}
           aria-label="Drag to compare typical tutoring with ACT SAT GO"
         />
       </div>
