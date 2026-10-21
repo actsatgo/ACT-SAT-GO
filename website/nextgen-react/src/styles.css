@@ -2964,7 +2964,7 @@ h1 span,
   right: -16px;
   bottom: -16px;
   width: 46px;
-  height: 46px;
+  height: 54px;
   border-radius: 50%;
   background: linear-gradient(135deg, #ffb92e, #f59b00);
   color: white;
@@ -4137,7 +4137,7 @@ html, body {
   top: 50%;
   left: 50%;
   width: 46px;
-  height: 46px;
+  height: 54px;
   margin: -23px 0 0 -23px;
   display: grid;
   place-items: center;
@@ -4170,3 +4170,14 @@ html, body {
   .why-tile { min-height: 0; padding: 14px; }
 }
 
+
+/* Image logo in the header and footer */
+.brand-logo-img {
+  display: block;
+  height: 54px;
+  width: auto;
+}
+.footer .brand-logo-img { height: 60px; }
+@media (max-width: 680px) {
+  .brand-logo-img { height: 44px; }
+}
