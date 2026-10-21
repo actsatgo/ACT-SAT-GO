@@ -110,23 +110,36 @@
 }
 
 .site-header.is-compact .nav {
-  min-height: 58px;
+  min-height: 46px;
 }
 
 .site-header.is-compact .brand-logo-img {
-  height: 38px;
+  height: 32px;
 }
 
 :root .site-header.is-compact .nav-btn-book {
-  min-height: 36px;
+  --pb-in: 3px;
+  --pb-bd: 26px;
+  min-height: 32px;
+  font-size: 13px;
+}
+
+:root .site-header.is-compact :is(.nav-btn-free-test, .contact-dropdown > .btn-primary) {
+  min-height: 32px;
+  font-size: 13px;
 }
 
 @media (max-width: 1040px) {
   .site-header.is-compact .brand-logo-img {
-    height: 34px;
+    height: 30px;
+  }
+
+  .site-header.is-compact .nav-toggle {
+    width: 36px;
+    height: 36px;
   }
 
   .site-header.is-compact .nav.is-open .nav-links {
-    top: 58px;
+    top: 46px;
   }
 }
