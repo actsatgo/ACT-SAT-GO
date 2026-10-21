@@ -751,7 +751,7 @@ h1 span,
 }
 
 .cta-section {
-  padding: 0 0 64px;
+  padding: 0 0 40px;
 }
 
 .process-cta .cta-copy {
@@ -3113,10 +3113,10 @@ h1 span,
    (--p, set inline). Cards rise in one after another (--i) when scrolled
    into view; hover lifts the card and fills its bar. */
 .process {
-  padding: 72px 0;
+  padding: 36px 0 24px;
   background: var(--soft);
 }
-.process .section-heading { margin-bottom: 44px; }
+.process .section-heading { margin-bottom: 32px; }
 .process-flow {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -3230,7 +3230,8 @@ h1 span,
   animation: processGoalPulse 2.4s ease-in-out infinite;
 }
 .process-step:last-child:hover .process-icon {
-  background: rgba(255, 180, 0, 0.28);
+  background: #ffffff;
+  color: var(--gold-2);
 }
 .process-step:last-child:hover {
   box-shadow: 0 26px 50px -18px rgba(255, 180, 0, 0.45);
