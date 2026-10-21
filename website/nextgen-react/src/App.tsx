@@ -301,7 +301,6 @@ export default function App() {
             <div className="section-heading">
               <span className="ss-eyebrow">Success stories</span>
               <h2>Real students. Real results.</h2>
-              <p>Personal 1-on-1 plans, built around each student's goal school.</p>
             </div>
             <a className="view-all-link" href="#testimonials">Read parent &amp; student reviews <span aria-hidden="true">→</span></a>
           </div>

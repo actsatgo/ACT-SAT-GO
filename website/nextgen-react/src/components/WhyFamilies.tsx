@@ -24,9 +24,8 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
   return (
     <section className="why shell" id="why-us">
       <div className="why-head">
-        <span className="why-eyebrow">Why families choose ACT SAT GO</span>
-        <h2>See the difference a real plan makes.</h2>
-        <p>1-on-1 SAT tutoring with a personal plan, a mentor and weekly parent reports.</p>
+        <h2>Why families choose <em>ACT SAT GO</em></h2>
+        <p>See the difference a real 1-on-1 plan makes.</p>
       </div>
 
       <div
