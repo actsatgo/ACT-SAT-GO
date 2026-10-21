@@ -283,10 +283,6 @@ html:not(.js) .reveal {
   background: #fff;
 }
 
-.sticky-cta {
-  display: none;
-}
-
 @media (max-width: 860px) {
   .hiw-steps,
   .pain-grid {
@@ -295,29 +291,9 @@ html:not(.js) .reveal {
 }
 
 @media (max-width: 640px) {
-  .sticky-cta {
-    display: block;
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 900;
-    padding: 10px 84px 10px 12px;
-    padding-bottom: calc(10px + env(safe-area-inset-bottom));
-    background: rgba(4, 17, 31, 0.94);
-    backdrop-filter: blur(6px);
-  }
-  .sticky-cta-btn {
-    width: 100%;
-    justify-content: center;
-    text-align: center;
-  }
-  body {
-    padding-bottom: 72px;
-  }
   .whatsapp-fab {
-    right: 14px;
-    bottom: calc(8px + env(safe-area-inset-bottom));
+    right: 16px;
+    bottom: calc(16px + env(safe-area-inset-bottom));
     width: 52px;
     height: 52px;
   }
