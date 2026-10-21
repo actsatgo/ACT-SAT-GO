@@ -143,3 +143,244 @@
     top: 46px;
   }
 }
+
+/* Book button in the top bar on phones and tablets (the desktop actions are hidden there).
+   Selector carries .btn.btn-primary to outrank the shared pill rule in buttons.css. */
+:root .site-header .btn.btn-primary.nav-book-mobile {
+  display: none;
+}
+
+@media (max-width: 1040px) {
+  .site-header .nav {
+    gap: 8px;
+  }
+
+  .site-header .brand {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+
+  :root .site-header .btn.btn-primary.nav-book-mobile {
+    --pb-in: 4px;
+    --pb-bd: 28px;
+    display: inline-flex;
+    flex-shrink: 0;
+    margin-left: auto;
+    min-height: 36px;
+    padding-right: 1em;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  :root .site-header .btn.btn-primary.nav-book-mobile:is(:hover, :focus-visible) {
+    padding-right: calc(var(--pb-in) + var(--pb-bd) + 0.8em);
+    padding-left: 1em;
+  }
+
+  .site-header .nav-book-mobile + .nav-toggle {
+    flex-shrink: 0;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 400px) {
+  .site-header .brand-logo-img,
+  .site-header.is-compact .brand-logo-img {
+    height: 30px;
+  }
+
+  :root .site-header .btn.btn-primary.nav-book-mobile {
+    --pb-bd: 26px;
+    min-height: 34px;
+    font-size: 12.5px;
+  }
+
+  .site-header .nav-toggle,
+  .site-header.is-compact .nav-toggle {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* ── Phone menu ──────────────────────────────────────────────────────
+   Three-line toggle that turns into an X, and a tidy full-height drawer:
+   one row per link, Programs as a collapsible list, then the actions. */
+.nav-home-label,
+.nav-contact-row {
+  display: none;
+}
+
+@media (max-width: 1040px) {
+  .site-header .nav-toggle {
+    flex-direction: column;
+    gap: 4px;
+    padding: 0;
+    background: #ffffff;
+    cursor: pointer;
+  }
+
+  .site-header .nav-toggle span {
+    width: 18px;
+    margin: 0;
+    border-radius: 2px;
+    transition: transform 0.25s ease, opacity 0.2s ease;
+  }
+
+  .site-header .nav-toggle[aria-expanded="true"] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+  .site-header .nav-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+  .site-header .nav-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+  body.nav-locked {
+    overflow: hidden;
+  }
+
+  .site-header .nav.is-open .nav-links {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    max-height: calc(100dvh - 76px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 6px 20px 24px;
+    font-size: 16px;
+  }
+
+  .site-header.is-compact .nav.is-open .nav-links {
+    max-height: calc(100dvh - 46px);
+  }
+
+  /* One row per link, with a hairline between rows */
+  .site-header .nav.is-open .nav-links > a,
+  .site-header .nav.is-open .nav-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 2px;
+    border-bottom: 1px solid var(--line);
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .site-header .nav.is-open .nav-links > a::after {
+    display: none;
+  }
+
+  .site-header .nav-home-label {
+    display: inline;
+  }
+
+  .site-header .nav.is-open .nav-dropdown-toggle {
+    justify-content: space-between;
+  }
+
+  .site-header .nav-dropdown-toggle > span {
+    transition: transform 0.25s ease;
+  }
+
+  .site-header .nav-dropdown.is-open > .nav-dropdown-toggle > span {
+    transform: rotate(180deg);
+  }
+
+  /* Programs: closed until tapped, then an indented list */
+  .site-header .nav-links .nav-dropdown-menu {
+    display: none;
+    margin: 0;
+    padding: 4px 0 8px 14px;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+    background: none;
+  }
+
+  .site-header .nav-links .nav-dropdown.is-open .nav-dropdown-menu {
+    display: grid;
+  }
+
+  .site-header .nav-links .nav-dropdown-menu a {
+    padding: 10px 12px;
+    border-left: 2px solid var(--line);
+    border-radius: 0;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .site-header .nav-links .nav-dropdown-menu a:hover {
+    border-left-color: #fc9b0a;
+  }
+
+  /* Actions under the links */
+  .site-header .nav.is-open .nav-links-mobile-actions {
+    gap: 12px;
+    margin-top: 18px;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  :root .site-header .nav-links-mobile-actions .btn-secondary {
+    min-height: 48px;
+    border: 1.5px solid var(--navy);
+    border-radius: 999px;
+    text-decoration: none;
+    font-size: 15px;
+  }
+
+  .site-header .nav-contact-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .site-header .nav-contact-row a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 48px;
+    border-radius: 999px;
+    background: var(--soft);
+    border: 1px solid var(--line);
+    color: var(--navy);
+    font-size: 14.5px;
+    font-weight: 800;
+  }
+
+  .site-header .nav-contact-row a::after {
+    display: none;
+  }
+
+  .site-header .nav-contact-row svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  .site-header .nav-contact-row a:first-child svg {
+    color: #25d366;
+  }
+
+  .site-header .nav-contact-row a:last-child svg {
+    color: #fc9b0a;
+  }
+
+  .site-header .nav.is-open .nav-social {
+    justify-content: center;
+    margin-top: 4px;
+    padding-top: 16px;
+  }
+}
+
+@media (max-width: 1040px) {
+  .site-header .nav-links .nav-dropdown .nav-dropdown-menu {
+    position: static;
+    transform: none;
+    min-width: 0;
+    box-shadow: none;
+  }
+}
+
+/* The menu already has WhatsApp, so the floating button steps aside while it is open */
+body.nav-locked .whatsapp-fab {
+  display: none;
+}

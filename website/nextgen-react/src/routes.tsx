@@ -3,7 +3,6 @@ import { Navigate, matchRoutes, useLocation, useRoutes, type RouteObject } from 
 import { metaForPath, canonicalUrl } from './seo';
 import { trackPageView, trackPixelNavigation } from './lib/analytics';
 import { WhatsAppButton } from './components/WhatsAppButton';
-import { StickyCta } from './components/StickyCta';
 
 // Route table shared by the browser entry (main.tsx) and the prerenderer
 // (entry-server.tsx). Each page is its own JS chunk; `preloadRoute` resolves
@@ -128,7 +127,6 @@ export function AppRoutes() {
     <>
       <RouteMeta />
       <Suspense fallback={null}>{element}</Suspense>
-      {!isAdmin && <StickyCta />}
       {!isAdmin && <WhatsAppButton />}
     </>
   );
