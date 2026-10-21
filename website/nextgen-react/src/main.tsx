@@ -14,6 +14,7 @@ import './careers.css';
 import './free-test.css';
 import './growth.css';
 import './buttons.css';
+import './header.css';
 
 initAnalytics();
 

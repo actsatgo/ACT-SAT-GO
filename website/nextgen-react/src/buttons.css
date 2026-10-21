@@ -166,12 +166,10 @@
   box-shadow: 0 0 0 4px rgba(255, 180, 0, 0.2);
 }
 
-/* ── On navy backgrounds: white 3D key that floods gold on hover ─────────
-   The button sits on a pale edge so it reads as a raised key. On hover it
-   lifts, gold pours out from the bubble and the "A" becomes a check; on
-   press it sinks onto its edge. */
+/* ── On navy backgrounds: soft white pill that floods gold on hover ──────
+   Same answer-bubble pill as above, recoloured so it stands out on navy. */
 :root :is(
-  .site-header, .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
+  .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
   .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
   .ap-guides-cta, .newsletter-box
 ) :is(
@@ -183,15 +181,13 @@
   .ap-guides-cta-btn,
   .newsletter-btn
 ) {
-  background: #ffffff;
+  background: #f4f6fa;
   color: var(--navy);
-  box-shadow: 0 6px 0 #c3cedb, 0 12px 22px rgba(0, 0, 0, 0.35);
-  transform: translateY(0);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.35s ease, color 0.35s ease;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.14);
 }
 
 :root :is(
-  .site-header, .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
+  .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
   .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
   .ap-guides-cta, .newsletter-box
 ) :is(
@@ -203,11 +199,11 @@
   .ap-guides-cta-btn,
   .newsletter-btn
 )::after {
-  background: linear-gradient(180deg, var(--gold), var(--gold-2));
+  background: var(--gold);
 }
 
 :root :is(
-  .site-header, .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
+  .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
   .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
   .ap-guides-cta, .newsletter-box
 ) :is(
@@ -219,14 +215,13 @@
   .ap-guides-cta-btn,
   .newsletter-btn
 ):is(:hover, :focus-visible):not(:disabled) {
-  background: #ffffff;
+  background: #f4f6fa;
   color: var(--navy);
-  transform: translateY(-3px);
-  box-shadow: 0 9px 0 #b86f00, 0 18px 30px rgba(255, 180, 0, 0.3);
+  box-shadow: 0 0 0 2px var(--gold), 0 0 0 7px rgba(255, 180, 0, 0.25);
 }
 
 :root :is(
-  .site-header, .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
+  .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
   .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
   .ap-guides-cta, .newsletter-box
 ) :is(
@@ -243,37 +238,11 @@
   color: var(--gold);
 }
 
-:root :is(
-  .site-header, .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
-  .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
-  .ap-guides-cta, .newsletter-box
-) :is(
-  .btn-primary:not(.contact-dropdown > .btn-primary),
-  .c-submit-btn,
-  .ft-submit-btn,
-  .form-submit-btn,
-  .careers-cta-btn,
-  .ap-guides-cta-btn,
-  .newsletter-btn
-):active:not(:disabled) {
-  transform: translateY(5px);
-  box-shadow: 0 1px 0 #b86f00, 0 4px 10px rgba(0, 0, 0, 0.3);
-  transition-duration: 0.08s;
-}
-
-/* The header Contact Us toggle has no bubble or flood, so it fills directly */
-:root .site-header .contact-dropdown > .btn-primary {
-  background: #ffffff;
-  color: var(--navy);
-  box-shadow: 0 5px 0 #c3cedb, 0 10px 18px rgba(0, 0, 0, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.35s ease;
-}
-
-:root .site-header .contact-dropdown > .btn-primary:is(:hover, :focus-visible) {
-  background: var(--gold);
-  color: var(--navy);
-  transform: translateY(-2px);
-  box-shadow: 0 7px 0 #b86f00, 0 14px 24px rgba(255, 180, 0, 0.3);
+/* Header Contact Us toggle: gold pill that turns navy on hover */
+:root .contact-dropdown > .btn-primary:is(:hover, :focus-visible) {
+  background: var(--navy);
+  color: #ffffff;
+  transform: none;
 }
 
 /* ── Secondary: text with a gold underline ──────────────────────────── */
@@ -311,8 +280,5 @@
   :root :is(.btn-primary, .c-submit-btn, .ft-submit-btn, .form-submit-btn, .careers-cta-btn, .careers-job-apply-btn, .ap-guides-cta-btn, .newsletter-btn, .btn-secondary, .btn-outline, .why-btn-outline, .btn)::before,
   :root :is(.btn-primary, .c-submit-btn, .ft-submit-btn, .form-submit-btn, .careers-cta-btn, .careers-job-apply-btn, .ap-guides-cta-btn, .newsletter-btn, .btn-secondary, .btn-outline, .why-btn-outline, .btn)::after {
     transition: none;
-  }
-  :root :is(.btn-primary, .c-submit-btn, .ft-submit-btn, .form-submit-btn, .careers-cta-btn, .ap-guides-cta-btn, .newsletter-btn):is(:hover, :focus-visible, :active) {
-    transform: none;
   }
 }
