@@ -1,8 +1,17 @@
-/* ── Site-wide CTA buttons: "answer bubble" pill ─────────────────────────
-   Primary: gold pill with an SAT answer bubble. On hover navy floods out
-   from the bubble and the "A" turns into a check.
+/* ── Site-wide CTA buttons: "travelling arrow" pill ───────────────────────
+   Primary: a pill with a round arrow badge at its left end. On hover the
+   badge travels to the right end and sweeps the new colour in behind it,
+   leaving a thin outline of the original colour; the label shifts to make room.
+   Colours come from custom properties so navy sections only swap the palette:
+   on white the pill is the logo gradient and turns navy, on navy it is soft
+   white and turns to the logo gradient.
    Secondary: plain text with a gold underline that draws in on hover.
    Loaded last and scoped with :root so it wins over per-page button rules. */
+
+:root {
+  --logo-grad: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
+  --soft-white: #f4f6fa;
+}
 
 :root :is(
   .btn-primary:not(.contact-dropdown > .btn-primary),
@@ -14,29 +23,67 @@
   .ap-guides-cta-btn,
   .newsletter-btn
 ) {
+  --pb-bg: var(--logo-grad);
+  --pb-fg: var(--navy);
+  --pb-badge: var(--navy);
+  --pb-arrow: #ffffff;
+  --pb-trail: var(--navy);
+  --pb-fg-hover: #ffffff;
+  --pb-badge-hover: var(--logo-grad);
+  --pb-arrow-hover: var(--navy);
+  --pb-in: 6px;
+  --pb-bd: 40px;
+  --pb-ease: cubic-bezier(0.65, 0, 0.35, 1);
   position: relative;
   isolation: isolate;
   overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.75em;
+  gap: 0.6em;
   min-height: 52px;
-  padding: 6px 1.6em 6px 8px;
+  padding: 0 1.6em 0 calc(var(--pb-in) + var(--pb-bd) + 0.8em);
   border: 0;
   border-radius: 999px;
-  background: var(--gold);
-  color: var(--navy);
+  background: var(--pb-bg);
+  color: var(--pb-fg);
+  font-family: inherit;
   font-weight: 900;
   text-decoration: none;
-  box-shadow: 0 0 0 4px rgba(255, 180, 0, 0.2);
+  box-shadow: 0 10px 24px -14px rgba(6, 26, 47, 0.55);
   filter: none;
   transform: none;
   cursor: pointer;
-  transition: color 0.35s ease, box-shadow 0.3s ease;
+  transition: padding 0.55s var(--pb-ease), color 0.4s ease;
 }
 
-/* The answer bubble */
+/* Navy sections: soft white pill that turns to the logo gradient */
+:root :is(
+  .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
+  .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
+  .ap-guides-cta, .newsletter-box
+) :is(
+  .btn-primary:not(.contact-dropdown > .btn-primary),
+  .c-submit-btn,
+  .ft-submit-btn,
+  .form-submit-btn,
+  .careers-cta-btn,
+  .careers-job-apply-btn,
+  .ap-guides-cta-btn,
+  .newsletter-btn
+) {
+  --pb-bg: var(--soft-white);
+  --pb-fg: var(--navy);
+  --pb-badge: var(--logo-grad);
+  --pb-arrow: var(--navy);
+  --pb-trail: var(--logo-grad);
+  --pb-fg-hover: var(--navy);
+  --pb-badge-hover: var(--soft-white);
+  --pb-arrow-hover: var(--navy);
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.7);
+}
+
+/* The arrow badge */
 :root :is(
   .btn-primary:not(.contact-dropdown > .btn-primary),
   .c-submit-btn,
@@ -47,22 +94,25 @@
   .ap-guides-cta-btn,
   .newsletter-btn
 )::before {
-  content: "A";
-  flex: none;
-  width: 2.25em;
-  height: 2.25em;
+  content: "→";
+  position: absolute;
+  top: 50%;
+  left: var(--pb-in);
+  width: var(--pb-bd);
+  height: var(--pb-bd);
   display: grid;
   place-items: center;
-  border: 2.5px solid var(--navy);
   border-radius: 50%;
-  color: var(--navy);
-  font-size: 0.9em;
+  background: var(--pb-badge);
+  color: var(--pb-arrow);
+  font-size: 1.05em;
   font-weight: 900;
   line-height: 1;
-  transition: background 0.3s ease, border-color 0.3s ease;
+  transform: translateY(-50%);
+  transition: left 0.55s var(--pb-ease), background 0.4s ease, color 0.4s ease;
 }
 
-/* The navy flood, drawn behind the label */
+/* The colour that the badge drags behind it */
 :root :is(
   .btn-primary:not(.contact-dropdown > .btn-primary),
   .c-submit-btn,
@@ -75,11 +125,14 @@
 )::after {
   content: "";
   position: absolute;
-  inset: 0;
+  top: var(--pb-in);
+  bottom: var(--pb-in);
+  left: var(--pb-in);
+  width: var(--pb-bd);
   z-index: -1;
-  background: var(--navy);
-  clip-path: circle(0% at 28px 50%);
-  transition: clip-path 0.5s cubic-bezier(0.6, 0.05, 0.3, 1);
+  border-radius: 999px;
+  background: var(--pb-trail);
+  transition: width 0.55s var(--pb-ease), left 0.55s var(--pb-ease), top 0.55s ease, bottom 0.55s ease;
 }
 
 :root :is(
@@ -92,10 +145,10 @@
   .ap-guides-cta-btn,
   .newsletter-btn
 ):is(:hover, :focus-visible):not(:disabled) {
-  background: var(--gold);
-  color: #ffffff;
+  padding: 0 calc(var(--pb-in) + var(--pb-bd) + 0.8em) 0 1.6em;
+  background: var(--pb-bg);
+  color: var(--pb-fg-hover);
   transform: none;
-  box-shadow: 0 0 0 2px var(--gold), 0 0 0 7px rgba(255, 180, 0, 0.25);
 }
 
 :root :is(
@@ -108,11 +161,12 @@
   .ap-guides-cta-btn,
   .newsletter-btn
 ):is(:hover, :focus-visible):not(:disabled)::before {
-  content: "✓";
-  border-color: var(--gold);
-  background: var(--gold);
+  left: calc(100% - var(--pb-in) - var(--pb-bd));
+  background: var(--pb-badge-hover);
+  color: var(--pb-arrow-hover);
 }
 
+/* Fill to a 3px outline of the original colour */
 :root :is(
   .btn-primary:not(.contact-dropdown > .btn-primary),
   .c-submit-btn,
@@ -123,7 +177,10 @@
   .ap-guides-cta-btn,
   .newsletter-btn
 ):is(:hover, :focus-visible):not(:disabled)::after {
-  clip-path: circle(150% at 28px 50%);
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc(100% - 6px);
 }
 
 :root :is(
@@ -140,7 +197,7 @@
   cursor: not-allowed;
 }
 
-/* The bubble replaces the trailing arrow or icon */
+/* The badge replaces the trailing arrow or icon */
 :root :is(
   .btn-primary:not(.contact-dropdown > .btn-primary),
   .ft-submit-btn,
@@ -151,94 +208,22 @@
 
 /* Compact size in the header */
 :root .nav-btn-book {
+  --pb-in: 5px;
+  --pb-bd: 32px;
   min-height: 42px;
-  padding: 4px 1.1em 4px 5px;
   font-size: 14px;
-  gap: 0.6em;
 }
 
-/* Contact Us menu toggle in the header: same pill, no bubble */
+/* Contact Us menu toggle in the header: same pill, no badge */
 :root .contact-dropdown > .btn-primary {
   border: 0;
   border-radius: 999px;
-  background: var(--gold);
+  background: var(--logo-grad);
   color: var(--navy);
-  box-shadow: 0 0 0 4px rgba(255, 180, 0, 0.2);
+  box-shadow: 0 10px 24px -14px rgba(6, 26, 47, 0.55);
+  transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* ── On navy backgrounds: soft white pill that floods gold on hover ──────
-   Same answer-bubble pill as above, recoloured so it stands out on navy. */
-:root :is(
-  .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
-  .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
-  .ap-guides-cta, .newsletter-box
-) :is(
-  .btn-primary:not(.contact-dropdown > .btn-primary),
-  .c-submit-btn,
-  .ft-submit-btn,
-  .form-submit-btn,
-  .careers-cta-btn,
-  .ap-guides-cta-btn,
-  .newsletter-btn
-) {
-  background: #f4f6fa;
-  color: var(--navy);
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.14);
-}
-
-:root :is(
-  .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
-  .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
-  .ap-guides-cta, .newsletter-box
-) :is(
-  .btn-primary:not(.contact-dropdown > .btn-primary),
-  .c-submit-btn,
-  .ft-submit-btn,
-  .form-submit-btn,
-  .careers-cta-btn,
-  .ap-guides-cta-btn,
-  .newsletter-btn
-)::after {
-  background: var(--gold);
-}
-
-:root :is(
-  .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
-  .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
-  .ap-guides-cta, .newsletter-box
-) :is(
-  .btn-primary:not(.contact-dropdown > .btn-primary),
-  .c-submit-btn,
-  .ft-submit-btn,
-  .form-submit-btn,
-  .careers-cta-btn,
-  .ap-guides-cta-btn,
-  .newsletter-btn
-):is(:hover, :focus-visible):not(:disabled) {
-  background: #f4f6fa;
-  color: var(--navy);
-  box-shadow: 0 0 0 2px var(--gold), 0 0 0 7px rgba(255, 180, 0, 0.25);
-}
-
-:root :is(
-  .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
-  .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
-  .ap-guides-cta, .newsletter-box
-) :is(
-  .btn-primary:not(.contact-dropdown > .btn-primary),
-  .c-submit-btn,
-  .ft-submit-btn,
-  .form-submit-btn,
-  .careers-cta-btn,
-  .ap-guides-cta-btn,
-  .newsletter-btn
-):is(:hover, :focus-visible):not(:disabled)::before {
-  border-color: var(--navy);
-  background: var(--navy);
-  color: var(--gold);
-}
-
-/* Header Contact Us toggle: gold pill that turns navy on hover */
 :root .contact-dropdown > .btn-primary:is(:hover, :focus-visible) {
   background: var(--navy);
   color: #ffffff;
@@ -256,7 +241,7 @@
   backdrop-filter: none;
   font-weight: 800;
   text-decoration: underline;
-  text-decoration-color: var(--gold);
+  text-decoration-color: #fc9b0a;
   text-decoration-thickness: 3px;
   text-underline-offset: 7px;
   transform: none;
