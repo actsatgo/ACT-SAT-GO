@@ -771,6 +771,27 @@ h1 span,
   color: var(--gold);
 }
 
+/* In the process banner the label is the section heading, in white with a gold bar */
+.process-cta .cta-eyebrow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  text-transform: none;
+  color: #ffffff;
+}
+
+.process-cta .cta-eyebrow::after {
+  content: "";
+  width: 56px;
+  height: 4px;
+  border-radius: 99px;
+  background: var(--gold);
+}
+
 .process-cta .cta-copy h3 {
   margin: 0;
 }
@@ -801,7 +822,7 @@ h1 span,
   z-index: 1;
   list-style: none;
   margin: 0;
-  padding: 10px 26px;
+  padding: 12px 14px;
   border-radius: 20px;
   background: #fff;
   border: 1px solid rgba(255, 255, 255, 0.6);
@@ -811,26 +832,49 @@ h1 span,
 .cta-steps li {
   position: relative;
   display: flex;
-  gap: 16px;
-  padding: 18px 0;
+  align-items: center;
+  gap: 18px;
+  min-height: 104px;
+  padding: 16px 14px;
+  border-radius: 14px;
+  transition: background 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.cta-steps li + li {
-  border-top: 1px solid var(--line);
-}
-
-/* gold rail joining the step numbers */
-.cta-steps li:not(:last-child)::after {
+/* gold rail joining the step numbers: each step draws the half above and below its number */
+.cta-steps li::before,
+.cta-steps li::after {
   content: "";
   position: absolute;
-  left: 17px;
-  top: 56px;
-  bottom: -18px;
+  left: 31px;
   width: 2px;
-  background: linear-gradient(var(--gold), rgba(255, 180, 0, 0.25));
+  background: rgba(255, 180, 0, 0.45);
+}
+.cta-steps li::before { top: 0; height: 50%; }
+.cta-steps li::after { top: 50%; bottom: 0; }
+.cta-steps li:first-child::before,
+.cta-steps li:last-child::after { display: none; }
+
+.cta-steps li:is(:hover, :focus-within) {
+  background: #fff7e0;
+  transform: translateX(6px);
+  box-shadow: inset 4px 0 0 var(--gold);
+}
+
+.cta-steps li:is(:hover, :focus-within) .cta-step-num {
+  background: var(--navy);
+  color: var(--gold);
+  transform: scale(1.12);
+  box-shadow: 0 0 0 6px rgba(255, 180, 0, 0.35);
+}
+
+.cta-steps li:is(:hover, :focus-within) strong {
+  color: #b86f00;
 }
 
 .cta-step-num {
+  position: relative;
+  z-index: 1;
+  transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
   flex: none;
   width: 36px;
   height: 36px;
@@ -849,6 +893,7 @@ h1 span,
   font-size: 17px;
   color: var(--navy);
   margin-bottom: 4px;
+  transition: color 0.25s ease;
 }
 
 .cta-steps li span:not(.cta-step-num) {
@@ -867,7 +912,10 @@ h1 span,
     font-size: 25px;
   }
   .cta-steps {
-    padding: 4px 18px;
+    padding: 8px;
+  }
+  .process-cta .cta-eyebrow {
+    font-size: 22px;
   }
 }
 
