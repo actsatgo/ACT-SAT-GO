@@ -20,6 +20,7 @@ import { PainPoints } from './components/PainPoints';
 import { HowItWorks } from './components/HowItWorks';
 import { FaqSection } from './components/FaqSection';
 import { TutorCards } from './components/TutorCards';
+import { SuccessStories } from './components/SuccessStories';
 import { HOME_FAQ } from './data/faq';
 
 // useLayoutEffect warns during prerendering; fall back to useEffect on the server.
@@ -435,17 +436,13 @@ export default function App() {
         <section className="success shell" id="results">
           <div className="success-heading-row">
             <div className="section-heading">
-              <h2>Success Stories</h2>
-              <p>Real students. Real results.</p>
+              <span className="ss-eyebrow">Success stories</span>
+              <h2>Real students. Real results.</h2>
+              <p>Personal 1-on-1 plans, built around each student's goal school.</p>
             </div>
             <a className="view-all-link" href="#testimonials">Read parent &amp; student reviews <span aria-hidden="true">→</span></a>
           </div>
-          <div className="story-grid">
-            <article><div className="portrait">A</div><h3>Ananya K.</h3><span className="exam-type">SAT Score</span><strong>1540 / 1600</strong><p>+230 points improvement</p><span>University of Michigan</span></article>
-            <article><div className="portrait">R</div><h3>Rohan S.</h3><span className="exam-type">ACT Score</span><strong>33 / 36</strong><p>+6 points improvement</p><span>Georgia Tech</span></article>
-            <article><div className="portrait">M</div><h3>Meera P.</h3><span className="exam-type">AP Score</span><strong>5 / 5</strong><p>AP Calculus BC</p><span>Stanford University</span></article>
-            <article><div className="portrait">A</div><h3>Arjun D.</h3><span className="exam-type">SAT Score</span><strong>1510 / 1600</strong><p>+210 points improvement</p><span>UC Berkeley</span></article>
-          </div>
+          <SuccessStories onBook={() => openConsultationModal('General')} />
           <p className="uni-strip-label">Our students have been accepted to top universities worldwide.</p>
           <Universities />
         </section>
