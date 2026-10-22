@@ -23,12 +23,6 @@ import { HOME_FAQ } from './data/faq';
 import { IconGlobe, IconUser, IconUsers, IconHeartCheck, IconGraduationCap, IconChart, IconDocument, IconClipboardCheck, IconLink, IconRoute, IconMonitor, IconFlag, IconNetwork, IconTrophy } from './components/Icons';
 
 
-const HERO_CHECKS = [
-  'Free diagnostic before the first lesson',
-  'Homework and practice tests after every session',
-  'Weekly progress report for parents',
-];
-
 export default function App() {
   useScrollReveal();
 
@@ -91,18 +85,7 @@ export default function App() {
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell hero-grid">
             <div className="hero-copy">
-              <p className="hero-eyebrow"><b>New</b> Digital SAT prep for the 2026–27 test dates</p>
               <h1>Raise your teen&rsquo;s SAT score with <span>1&#8209;on&#8209;1 expert tutoring</span></h1>
-              <p className="hero-text">A personal plan built from a free diagnostic, live lessons with a specialist tutor, and a progress report in your inbox every week.</p>
-              <ul className="hero-checks">
-                {HERO_CHECKS.map((c) => (
-                  <li key={c}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" strokeOpacity="0.35" /><path d="m7.5 12.5 3 3 6-6.5" /></svg>
-                    {c}
-                  </li>
-                ))}
-              </ul>
-
               <div className="hero-actions-new">
                 <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
                   {PRIMARY_CTA} <span aria-hidden="true">→</span>
@@ -112,12 +95,6 @@ export default function App() {
                 </Link>
               </div>
               <p className="hero-micro">Free and no obligation. Live online, scheduled around your time zone.</p>
-
-              <div className="hero-proof">
-                <a href={SITE.googleReviewUrl} target="_blank" rel="noopener noreferrer"><span className="stars" aria-hidden="true">★★★★★</span><b>{STATS.rating}</b> Google rating</a>
-                <div><b>{STATS.students}</b> students</div>
-                <div>Students from <b>{STUDENT_COUNTRIES.join(', ')}</b></div>
-              </div>
             </div>
 
             <div className="hero-art">
@@ -139,15 +116,14 @@ export default function App() {
 
               <img src={heroImg} alt="Student in a live 1-on-1 online tutoring session" width="1200" height="952" {...{ fetchpriority: 'high' }} />
 
-              {/* Next session: shows the weekly rhythm */}
-              <div className="floating-card card-next">
-                <span className="card-next-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
-                </span>
-                <div>
-                  <strong>Next session: Tue 6 pm</strong>
-                  <span>Reading &amp; Writing, Module 2</span>
-                </div>
+              {/* Personalized plan: floats on its own, separate from the photo */}
+              <div className="floating-card card-plan-glass">
+                <strong>Personalized Plan</strong>
+                <ul>
+                  <li>Diagnostic Test</li>
+                  <li>Targeted Practice</li>
+                  <li>Performance Tracking</li>
+                </ul>
               </div>
 
               {/* A real result from Success Stories */}
@@ -166,9 +142,9 @@ export default function App() {
 
               {/* Programs: each tag opens its page */}
               <nav className="floating-card card-exams-new" aria-label="Programs">
-                <Link className="exam-tag" to="/sat">SAT <span aria-hidden="true">→</span></Link>
-                <Link className="exam-tag" to="/act">ACT <span aria-hidden="true">→</span></Link>
-                <Link className="exam-tag" to="/ap">AP <span aria-hidden="true">→</span></Link>
+                <Link className="exam-tag" to="/sat">SAT</Link>
+                <Link className="exam-tag" to="/act">ACT</Link>
+                <Link className="exam-tag" to="/ap">AP</Link>
               </nav>
             </div>
           </div>
@@ -194,6 +170,19 @@ export default function App() {
           <div>
             <span className="stat-icon" aria-hidden="true"><IconHeartCheck /></span>
             <div className="stat-text"><CountUp value={STATS.satisfaction} /><span>Parent Satisfaction</span></div>
+          </div>
+          <div>
+            <a className="stat-rating" href={SITE.googleReviewUrl} target="_blank" rel="noopener noreferrer">
+              <span className="stat-icon stat-google" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                </svg>
+              </span>
+              <div className="stat-text"><strong>{STATS.rating}</strong><span>Google Rating</span></div>
+            </a>
           </div>
         </section>
 

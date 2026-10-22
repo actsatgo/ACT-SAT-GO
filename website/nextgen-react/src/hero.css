@@ -1,6 +1,6 @@
 /* ── Homepage hero ───────────────────────────────────────────────────
-   Shorter headline, ticks, reassurance line and a proof strip on the left;
-   a real result card, a "next session" card and program links on the photo.
+   Headline, buttons and a reassurance line on the left; a glass result
+   card and program links on the floating photo.
    Loaded last so it overrides the older hero rules in styles.css. */
 #home h1 {
   margin: 16px 0 18px;
@@ -11,63 +11,11 @@
 }
 
 #home h1 span {
+  white-space: nowrap;
   background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-}
-
-.hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  padding: 6px 14px 6px 7px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 13.5px;
-  font-weight: 800;
-}
-
-.hero-eyebrow b {
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
-  color: var(--navy);
-  font-size: 12px;
-  font-weight: 900;
-}
-
-#home .hero-text {
-  max-width: 520px;
-  margin-bottom: 0;
-  line-height: 1.6;
-}
-
-.hero-checks {
-  display: grid;
-  gap: 10px;
-  margin: 20px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.hero-checks li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.hero-checks svg {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  color: var(--gold);
 }
 
 #home .hero-actions-new {
@@ -79,79 +27,6 @@
   margin: 12px 0 0;
   color: rgba(255, 255, 255, 0.6);
   font-size: 13.5px;
-}
-
-.hero-proof {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px 24px;
-  margin-top: 24px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.hero-proof > * {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  color: rgba(255, 255, 255, 0.72);
-  font-size: 14px;
-}
-
-.hero-proof b {
-  color: #ffffff;
-  font-size: 16px;
-  font-weight: 900;
-}
-
-.hero-proof div:last-child b {
-  font-size: 14px;
-}
-
-.hero-proof a:hover b {
-  color: var(--gold);
-}
-
-/* Next session card (top left of the photo) */
-.card-next {
-  position: absolute;
-  left: 16px;
-  top: 8%;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px 12px 12px;
-  animation: floatY-soft 6.5s ease-in-out infinite;
-}
-
-.card-next-icon {
-  flex: none;
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
-  color: var(--navy);
-}
-
-.card-next-icon svg {
-  width: 20px;
-  height: 20px;
-}
-
-.card-next strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.card-next div span {
-  display: block;
-  color: rgba(255, 255, 255, 0.62);
-  font-size: 12.5px;
 }
 
 /* Result card (overlaps the photo's left edge) */
@@ -216,42 +91,30 @@
   font-size: 12.5px;
 }
 
-/* Program tags are links now */
+/* Program tags: translucent gradient glass, links to each program */
 #home .exam-tag {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  justify-content: center;
   min-width: 96px;
   padding: 9px 14px;
-  border: 0;
+  border: 1px solid rgba(253, 185, 19, 0.55);
   border-radius: 10px;
-  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
+  background: linear-gradient(135deg, rgba(253, 185, 19, 0.84) 0%, rgba(252, 155, 10, 0.8) 55%, rgba(249, 124, 10, 0.76) 100%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   color: var(--navy);
   font-size: 14px;
   text-decoration: none;
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
-#home .exam-tag span {
-  transition: transform 0.2s ease;
-}
-
 #home .exam-tag:hover {
-  background: var(--soft-white, #f4f6fa);
+  background: linear-gradient(135deg, rgba(253, 185, 19, 0.95) 0%, rgba(252, 155, 10, 0.92) 55%, rgba(249, 124, 10, 0.9) 100%);
   transform: translateX(-4px);
 }
 
-#home .exam-tag:hover span {
-  transform: translateX(3px);
-}
-
 @media (max-width: 900px) {
-  .card-next {
-    left: 0;
-    top: 10%;
-  }
-
   .card-result {
     left: 0;
     top: 38%;
@@ -260,32 +123,31 @@
 
 /* Phones: the cards drop into normal flow under the photo */
 @media (max-width: 680px) {
-  .hero-checks li {
-    font-size: 15px;
-  }
-
-  .hero-proof {
-    gap: 8px 18px;
-  }
-
-  .card-next,
   .card-result {
     position: static;
-    animation: none;
-  }
-
-  .card-result {
     width: 100%;
-  }
-
-  .card-next {
-    display: none;
+    animation: none;
   }
 }
 
+/* Glass result card: the photo shows through it */
+#home .card-result {
+  background: rgba(7, 25, 46, 0.42);
+  border-color: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(6px) saturate(1.2);
+  -webkit-backdrop-filter: blur(6px) saturate(1.2);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.6);
+}
+
+/* Hero photo floats gently, like the SAT page hero */
+#home .hero-art img {
+  filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.5));
+  animation: satHeroFloat 6.5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .card-next,
-  .card-result {
+  .card-result,
+  #home .hero-art img {
     animation: none;
   }
 }
@@ -293,4 +155,220 @@
 /* Room for the proof strip above the overlapping stats band */
 #home.hero {
   padding-bottom: 64px;
+}
+
+/* Google rating in the stats band (links to the reviews) */
+.stat-rating {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.stat-rating .stat-icon {
+  color: var(--gold);
+  font-size: 28px;
+  opacity: 1;
+}
+
+.stat-rating:hover strong {
+  color: #b77900;
+}
+
+/* ── Testimonials: shorter video cards, four across on wide screens ── */
+.testimonial-slider article.video-card {
+  flex-basis: calc((100% - 3 * 18px) / 4);
+  min-height: 0;
+  padding: 14px 14px 16px;
+}
+
+.testimonial-slider article.video-card .video-wrapper {
+  padding-bottom: 120%;
+  margin-bottom: 12px;
+}
+
+.testimonial-slider article.video-card .video-thumb {
+  background-position: center 30%;
+}
+
+@media (max-width: 1040px) {
+  .testimonial-slider article.video-card {
+    flex-basis: calc((100% - 2 * 18px) / 3);
+  }
+}
+
+@media (max-width: 760px) {
+  .testimonial-slider article.video-card {
+    flex-basis: calc((100% - 18px) / 2);
+  }
+}
+
+@media (max-width: 480px) {
+  .testimonial-slider article.video-card {
+    flex-basis: 78%;
+  }
+}
+
+/* Slimmer stats band */
+@media (min-width: 681px) {
+  #home ~ .stats-band,
+  .stats-band {
+    padding: 14px 24px;
+  }
+
+  .stats-band > div strong,
+  .stats-band-reach strong {
+    font-size: 21px;
+    line-height: 1.15;
+  }
+
+  .stats-band > div span {
+    font-size: 11.5px;
+  }
+
+  .stat-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .stat-rating .stat-icon {
+    font-size: 22px;
+  }
+}
+
+/* "1-on-1 expert tutoring" stays on one line, so the headline scales a
+   little lower on mid-size screens to fit it */
+@media (min-width: 901px) and (max-width: 1240px) {
+  #home h1 {
+    font-size: clamp(32px, 3.6vw, 44px);
+  }
+}
+
+@media (max-width: 420px) {
+  #home h1 {
+    font-size: clamp(26px, 7.6vw, 32px);
+  }
+}
+
+/* Photo sits a little higher */
+#home .hero-art img {
+  top: -28px;
+}
+
+/* Personalized plan: glass card with its own float, independent of the photo */
+.card-plan-glass {
+  position: absolute;
+  right: 2%;
+  top: 50%;
+  z-index: 3;
+  width: 228px;
+  padding: 16px 18px 14px;
+  background: rgba(7, 25, 46, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(6px) saturate(1.2);
+  -webkit-backdrop-filter: blur(6px) saturate(1.2);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.6);
+  animation: floatY-soft 8.5s ease-in-out infinite 1.6s;
+}
+
+.card-plan-glass strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.card-plan-glass ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card-plan-glass li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 13.5px;
+}
+
+.card-plan-glass li::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 11px;
+  height: 6px;
+  margin-top: -3px;
+  border-left: 2.5px solid #fdb913;
+  border-bottom: 2.5px solid #fdb913;
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 900px) {
+  .card-plan-glass {
+    right: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  #home .hero-art img {
+    top: 0;
+  }
+
+  /* Phones: a smaller card stays on the photo, over the laptop */
+  .card-plan-glass {
+    position: absolute;
+    top: 112px;
+    right: 8px;
+    width: 168px;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .card-plan-glass strong {
+    margin-bottom: 5px;
+    font-size: 13px;
+  }
+
+  .card-plan-glass ul {
+    gap: 3px;
+  }
+
+  .card-plan-glass li {
+    gap: 7px;
+    font-size: 11.5px;
+  }
+
+  .card-plan-glass li::before {
+    width: 8px;
+    height: 4px;
+    border-width: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-plan-glass {
+    top: 74px;
+    width: auto;
+  }
+
+  .card-plan-glass li {
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-plan-glass {
+    animation: none;
+  }
+}
+
+/* Google "G" for the rating stat */
+.stat-rating .stat-google svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }

@@ -59,6 +59,8 @@ const VIDEO_TESTIMONIALS: Testimonial[] = [
   { name: 'Mary', videoId: 'YNSQmcPqfCc', quote: 'My honest review after working with ACT SAT GO.', details: 'SAT Prep Student' },
 ];
 
+const AUTO_ADVANCE_MS = 4000;
+
 function VideoTestimonial({ videoId, name }: { videoId: string; name: string }) {
   const [playing, setPlaying] = useState(false);
 
@@ -106,9 +108,39 @@ export function Testimonials() {
     const clamped = Math.max(0, Math.min(list.length - 1, i));
     const el = trackRef.current;
     const card = el?.children[clamped] as HTMLElement | undefined;
-    card?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+    // Scroll the track only, so the page itself never jumps.
+    if (el && card) el.scrollTo({ left: card.offsetLeft - el.offsetLeft, behavior: 'smooth' });
     setActive(clamped);
   };
+
+  // Auto-advance every few seconds while the section is on screen. Pauses on
+  // hover or keyboard focus, stops once a video is playing, and loops back to
+  // the start after the last full view.
+  const [paused, setPaused] = useState(false);
+  const [onScreen, setOnScreen] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), { threshold: 0.35 });
+    io.observe(node);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (paused || !onScreen) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = window.setInterval(() => {
+      const el = trackRef.current;
+      if (!el || el.querySelector('iframe')) return;
+      const first = el.children[0] as HTMLElement | undefined;
+      const perView = first ? Math.max(1, Math.round(el.clientWidth / first.offsetWidth)) : 1;
+      const lastStart = Math.max(0, list.length - perView);
+      scrollToIndex(active >= lastStart ? 0 : active + 1);
+    }, AUTO_ADVANCE_MS);
+    return () => window.clearInterval(id);
+  });
 
   const handleScroll = () => {
     const el = trackRef.current;
@@ -126,7 +158,7 @@ export function Testimonials() {
   };
 
   return (
-    <section className="testimonials section-dark" id="testimonials">
+    <section className="testimonials section-dark" id="testimonials" ref={sectionRef}>
       <div className="shell">
         <div className="section-heading inverse">
           <h2>What Our Students &amp; Parents Say</h2>
@@ -140,7 +172,14 @@ export function Testimonials() {
           </button>
         </div>
 
-        <div className="testimonial-carousel">
+        <div
+          className="testimonial-carousel"
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocus={() => setPaused(true)}
+          onBlur={() => setPaused(false)}
+          onTouchStart={() => setPaused(true)}
+        >
           <button
             className="testimonial-arrow prev"
             type="button"
