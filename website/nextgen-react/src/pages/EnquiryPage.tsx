@@ -7,6 +7,7 @@ import { trackLead, leadSource, trackContactClick } from '../lib/analytics';
 import { SITE, PRIMARY_CTA } from '../site';
 import { HowItWorks } from '../components/HowItWorks';
 import { WHATSAPP_HREF } from '../components/WhatsAppButton';
+import { DarkSelect, PHONE_CODE_OPTIONS, EXAM_OPTIONS as EXAM_SELECT_OPTIONS } from '../components/DarkSelect';
 
 const EXAM_OPTIONS = ['General', 'SAT', 'ACT', 'AP Prep', 'K-12 Tutoring'];
 
@@ -115,25 +116,13 @@ export function EnquiryPage() {
                   <div className="c-form-group">
                     <label htmlFor="enq-phone">Phone Number</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <select
-                        className="c-input"
-                        style={{ width: '110px', padding: '0 8px', backgroundColor: '#0d1b31', color: 'white' }}
+                      <DarkSelect
+                        className="dark-select-code"
+                        ariaLabel="Country code"
                         value={phoneCountryCode}
-                        onChange={(e) => setPhoneCountryCode(e.target.value)}
-                      >
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+1">+1 (US)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+91">+91 (IN)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+44">+44 (UK)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+971">+971 (AE)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+65">+65 (SG)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+61">+61 (AU)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+966">+966 (SA)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+974">+974 (QA)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+968">+968 (OM)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+965">+965 (KW)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+973">+973 (BH)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+852">+852 (HK)</option>
-                      </select>
+                        options={PHONE_CODE_OPTIONS}
+                        onChange={setPhoneCountryCode}
+                      />
                       <input
                         id="enq-phone"
                         type="tel"
@@ -148,18 +137,12 @@ export function EnquiryPage() {
 
                   <div className="c-form-group">
                     <label htmlFor="enq-exam">Exam / Program Interest</label>
-                    <select
+                    <DarkSelect
                       id="enq-exam"
-                      className="c-input"
                       value={formData.exam}
-                      onChange={(e) => setFormData({ ...formData, exam: e.target.value })}
-                    >
-                      <option value="General">General / Other</option>
-                      <option value="SAT">SAT Prep</option>
-                      <option value="ACT">ACT Prep</option>
-                      <option value="AP Prep">AP Prep</option>
-                      <option value="K-12 Tutoring">K-12 Tutoring</option>
-                    </select>
+                      options={EXAM_SELECT_OPTIONS}
+                      onChange={(exam) => setFormData({ ...formData, exam })}
+                    />
                   </div>
 
                   <div className="c-form-group">
