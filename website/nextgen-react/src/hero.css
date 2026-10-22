@@ -1,6 +1,6 @@
 /* ── Homepage hero ───────────────────────────────────────────────────
-   Shorter headline, ticks, reassurance line and a proof strip on the left;
-   a real result card, a "next session" card and program links on the photo.
+   Headline, buttons and a reassurance line on the left; a glass result
+   card and program links on the floating photo.
    Loaded last so it overrides the older hero rules in styles.css. */
 #home h1 {
   margin: 16px 0 18px;
@@ -15,59 +15,6 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-}
-
-.hero-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 0;
-  padding: 6px 14px 6px 7px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
-  color: rgba(255, 255, 255, 0.9);
-  font-size: 13.5px;
-  font-weight: 800;
-}
-
-.hero-eyebrow b {
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
-  color: var(--navy);
-  font-size: 12px;
-  font-weight: 900;
-}
-
-#home .hero-text {
-  max-width: 520px;
-  margin-bottom: 0;
-  line-height: 1.6;
-}
-
-.hero-checks {
-  display: grid;
-  gap: 10px;
-  margin: 20px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.hero-checks li {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: rgba(255, 255, 255, 0.92);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-.hero-checks svg {
-  flex: none;
-  width: 22px;
-  height: 22px;
-  color: var(--gold);
 }
 
 #home .hero-actions-new {
@@ -182,10 +129,6 @@
 
 /* Phones: the cards drop into normal flow under the photo */
 @media (max-width: 680px) {
-  .hero-checks li {
-    font-size: 15px;
-  }
-
   .card-result {
     position: static;
     width: 100%;
@@ -270,5 +213,32 @@
 @media (max-width: 480px) {
   .testimonial-slider article.video-card {
     flex-basis: 78%;
+  }
+}
+
+/* Slimmer stats band */
+@media (min-width: 681px) {
+  #home ~ .stats-band,
+  .stats-band {
+    padding: 14px 24px;
+  }
+
+  .stats-band > div strong,
+  .stats-band-reach strong {
+    font-size: 21px;
+    line-height: 1.15;
+  }
+
+  .stats-band > div span {
+    font-size: 11.5px;
+  }
+
+  .stat-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .stat-rating .stat-icon {
+    font-size: 22px;
   }
 }

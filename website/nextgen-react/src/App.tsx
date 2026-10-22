@@ -23,12 +23,6 @@ import { HOME_FAQ } from './data/faq';
 import { IconGlobe, IconUser, IconUsers, IconHeartCheck, IconGraduationCap, IconChart, IconDocument, IconClipboardCheck, IconLink, IconRoute, IconMonitor, IconFlag, IconNetwork, IconTrophy } from './components/Icons';
 
 
-const HERO_CHECKS = [
-  'Free diagnostic before the first lesson',
-  'Homework and practice tests after every session',
-  'Weekly progress report for parents',
-];
-
 export default function App() {
   useScrollReveal();
 
@@ -91,18 +85,7 @@ export default function App() {
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell hero-grid">
             <div className="hero-copy">
-              <p className="hero-eyebrow"><b>New</b> Digital SAT prep for the 2026–27 test dates</p>
               <h1>Raise your teen&rsquo;s SAT score with <span>1&#8209;on&#8209;1 expert tutoring</span></h1>
-              <p className="hero-text">A personal plan built from a free diagnostic, live lessons with a specialist tutor, and a progress report in your inbox every week.</p>
-              <ul className="hero-checks">
-                {HERO_CHECKS.map((c) => (
-                  <li key={c}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" strokeOpacity="0.35" /><path d="m7.5 12.5 3 3 6-6.5" /></svg>
-                    {c}
-                  </li>
-                ))}
-              </ul>
-
               <div className="hero-actions-new">
                 <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
                   {PRIMARY_CTA} <span aria-hidden="true">→</span>
