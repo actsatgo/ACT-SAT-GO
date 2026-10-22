@@ -13,18 +13,34 @@ const DEFAULT_JOBS = [
   {
     id: 'job_1',
     dept: 'Academics',
-    title: 'SAT & ACT Math Tutor',
+    title: 'SAT Math Tutor',
     location: 'Remote (Global)',
     type: 'Freelance',
-    desc: 'Teach algebra, problem solving and advanced math one student at a time, turning each diagnostic into a clear plan for their target score.',
+    desc: 'Teach Digital SAT Math one student at a time, from algebra to advanced math, turning each diagnostic into a clear plan for the target score.',
+  },
+  {
+    id: 'job_1b',
+    dept: 'Academics',
+    title: 'ACT Math Tutor',
+    location: 'Remote (Global)',
+    type: 'Freelance',
+    desc: 'Prepare students for ACT Math with fast, accurate problem solving across algebra, geometry and trigonometry, plus a pacing strategy that works.',
   },
   {
     id: 'job_2',
     dept: 'Academics',
-    title: 'SAT & ACT Reading and Writing Tutor',
+    title: 'SAT Verbal Tutor',
     location: 'Remote (Global)',
     type: 'Freelance',
-    desc: 'Coach reading comprehension, grammar and pacing for the Digital SAT and the ACT English and Reading sections.',
+    desc: 'Coach the Digital SAT Reading and Writing section: comprehension, grammar and timing, with a plan built around each student\'s diagnostic.',
+  },
+  {
+    id: 'job_2b',
+    dept: 'Academics',
+    title: 'ACT English Tutor',
+    location: 'Remote (Global)',
+    type: 'Freelance',
+    desc: 'Teach grammar, punctuation and rhetorical skills for ACT English, with timed practice that builds speed and accuracy.',
   },
   {
     id: 'job_3',
@@ -318,6 +334,24 @@ export function CareersPage() {
     return () => el.removeEventListener('scroll', handleScroll);
   }, [shownJobs.length]);
 
+  // Arrow buttons: move the carousel by exactly one card, pausing the auto-scroll briefly
+  const jobsArrowTimer = useRef<number | undefined>(undefined);
+  const scrollJobs = (dir: 1 | -1) => {
+    const el = jobsMarqueeRef.current;
+    const card = el?.querySelector<HTMLElement>('.careers-job-card');
+    if (!el || !card) return;
+    const gap = parseFloat(getComputedStyle(card.parentElement as HTMLElement).columnGap) || 0;
+    const step = card.offsetWidth + gap;
+    const singleWidth = el.scrollWidth / 2;
+    if (dir < 0 && el.scrollLeft < step) el.scrollLeft += singleWidth;
+    jobsPausedRef.current = true;
+    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+    window.clearTimeout(jobsArrowTimer.current);
+    jobsArrowTimer.current = window.setTimeout(() => {
+      jobsPausedRef.current = false;
+    }, 2500);
+  };
+
   const handleJobsPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== 'mouse') return; // let touch/trackpad use native scrolling
     const el = jobsMarqueeRef.current;
@@ -513,7 +547,7 @@ export function CareersPage() {
               </p>
               <a
                 href="#open-positions"
-                className="careers-hero-cta"
+                className="btn btn-primary careers-hero-btn"
                 onClick={(e) => {
                   e.preventDefault();
                   const el = document.getElementById('open-positions');
@@ -521,9 +555,6 @@ export function CareersPage() {
                 }}
               >
                 View Open Positions
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
               </a>
             </div>
 
@@ -541,7 +572,9 @@ export function CareersPage() {
               Every role is fully remote. Tutors choose their own hours and teach 1-on-1; team members work
               directly with families in the USA, UK, India, Singapore and UAE.
             </p>
+            <p className="careers-jobs-freelance">Freelancers are always welcome to apply.</p>
 
+            <div className="careers-jobs-bar">
             <div className="careers-tabs" role="tablist" aria-label="Filter roles">
               {(
                 [
@@ -561,6 +594,15 @@ export function CareersPage() {
                   {label}
                 </button>
               ))}
+            </div>
+              <div className="careers-jobs-arrows">
+                <button type="button" aria-label="Previous role" onClick={() => scrollJobs(-1)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+                </button>
+                <button type="button" aria-label="Next role" onClick={() => scrollJobs(1)}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+                </button>
+              </div>
             </div>
 
             {/* Job cards */}
@@ -860,11 +902,11 @@ export function CareersPage() {
                         />
                       </div>
                       <div className="form-group">
-                        <label htmlFor="hourlyRate">Expected Hourly Rate (USD) <small>optional</small></label>
+                        <label htmlFor="hourlyRate">Expected Hourly Rate (INR) <small>optional</small></label>
                         <input
                           type="text"
                           id="hourlyRate"
-                          placeholder="e.g. $35/hr"
+                          placeholder="e.g. ₹1,500/hr"
                           value={form.hourlyRate}
                           onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}
                         />

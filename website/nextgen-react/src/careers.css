@@ -1606,12 +1606,13 @@
   padding: 14px 0 16px;
 }
 
-:root .careers-job-card .careers-job-apply-btn {
+:root .careers-jobs-section .careers-jobs-track .careers-job-card .careers-job-apply-btn {
+  /* same height as the Book Free Session button in the sticky bar (32px) */
   --pb-in: 4px;
-  --pb-bd: 30px;
+  --pb-bd: 24px;
   width: 210px;
-  min-height: 40px;
-  font-size: 14.5px;
+  min-height: 32px;
+  font-size: 14px;
 }
 
 .careers-job-card:hover .careers-job-head {
@@ -1780,4 +1781,120 @@
 .careers-form-card .test-prep-menu .checklist-item input:checked {
   background: var(--gold-2);
   border-color: var(--gold-2);
+}
+
+/* Round 3: freelancers note, filter + arrows bar, compact form fields,
+   gold 3D edge on the form's left, tighter hero */
+.careers-jobs-freelance {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: -16px 0 28px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fff6dd;
+  color: #8a5a00;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.careers-jobs-freelance::before {
+  content: '✓';
+  color: var(--gold-2);
+  font-weight: 900;
+}
+
+.careers-jobs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.careers-jobs-section .careers-jobs-bar .careers-tabs {
+  margin-bottom: 0;
+}
+
+.careers-jobs-arrows {
+  display: flex;
+  gap: 10px;
+}
+
+.careers-jobs-arrows button {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1.5px solid #dde3ed;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--navy);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.careers-jobs-arrows button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.careers-jobs-arrows button:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.careers-jobs-arrows button:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.careers-form-card {
+  box-shadow: -6px 0 0 #fc9b0a, 0 30px 60px -28px rgba(0, 0, 0, 0.65);
+}
+
+.careers-form-card .careers-application-form input[type="text"],
+.careers-form-card .careers-application-form input[type="email"],
+.careers-form-card .careers-application-form input[type="tel"],
+.careers-form-card .careers-application-form input[type="url"],
+.careers-form-card .careers-application-form select,
+.careers-form-card .test-prep-toggle {
+  height: 42px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.careers-form-card .careers-application-form textarea {
+  min-height: 0;
+  height: 72px;
+  padding: 10px 14px;
+}
+
+.careers-form-card .careers-application-form .form-group {
+  margin-bottom: 16px;
+}
+
+.careers-form-card .careers-application-form .phone-code-select {
+  width: 104px;
+  flex: none;
+  padding: 0 6px 0 10px;
+  font-size: 14px;
+}
+
+.careers-form-card .file-uploader-box {
+  min-height: 42px;
+  padding: 6px 12px;
+}
+
+.careers-form-card .file-drop-icon {
+  width: 30px;
+  height: 30px;
+}
+
+.careers-hero-section {
+  min-height: clamp(460px, 36vw, 560px);
+  padding: 36px 0 52px;
 }
