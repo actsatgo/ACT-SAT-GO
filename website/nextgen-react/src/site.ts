@@ -37,7 +37,7 @@ export const SITE = {
  */
 export const STATS = {
   students: '1,000+',
-  tutors: '300+',
+  tutors: '30+',
   rating: '4.9/5',
   satisfaction: '98%',
 };

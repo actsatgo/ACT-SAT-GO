@@ -23,6 +23,9 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
   // How much of the remaining gap to close each frame: quick while following the mouse, gentle when returning.
   const speed = useRef(0.12);
 
+  // Touch: true while a finger is holding the handle.
+  const dragging = useRef(false);
+
   useEffect(() => () => cancelAnimationFrame(frame.current), []);
 
   // Glide the split towards `to` instead of jumping there.
@@ -66,13 +69,25 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
       <div
         className="why-slider"
         style={{ '--pos': `${100 - reveal}%` } as CSSProperties}
+        onPointerDown={(e) => {
+          // Touch: only a finger placed on the handle starts a drag; taps elsewhere and vertical swipes do nothing.
+          if (e.pointerType === 'mouse') return;
+          const box = e.currentTarget.getBoundingClientRect();
+          const handleX = box.left + ((100 - current.current) / 100) * box.width;
+          if (Math.abs(e.clientX - handleX) > 36) return;
+          dragging.current = true;
+          e.currentTarget.setPointerCapture(e.pointerId);
+        }}
         onPointerMove={(e) => {
-          // With a mouse the split follows the pointer, no click needed. Touch still drags the range input.
-          if (e.pointerType !== 'mouse') return;
           const box = e.currentTarget.getBoundingClientRect();
           const x = Math.min(1, Math.max(0, (e.clientX - box.left) / box.width));
-          glideTo(100 - x * 100, 0.45);
+          // With a mouse the split follows the pointer, no click needed.
+          if (e.pointerType === 'mouse') glideTo(100 - x * 100, 0.45);
+          // With a finger it follows the drag, in the direction of the drag.
+          else if (dragging.current) jumpTo(100 - x * 100);
         }}
+        onPointerUp={() => { dragging.current = false; }}
+        onPointerCancel={() => { dragging.current = false; }}
         onPointerLeave={(e) => {
           if (e.pointerType === 'mouse') glideTo(REST, 0.12);
         }}
@@ -102,8 +117,8 @@ export function WhyFamilies({ onBook }: { onBook: () => void }) {
           type="range"
           min={0}
           max={100}
-          value={Math.round(reveal)}
-          onChange={(e) => jumpTo(Number(e.target.value))}
+          value={Math.round(100 - reveal)}
+          onChange={(e) => jumpTo(100 - Number(e.target.value))}
           aria-label="Drag to compare typical tutoring with ACT SAT GO"
         />
       </div>

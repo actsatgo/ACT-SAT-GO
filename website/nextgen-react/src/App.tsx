@@ -112,12 +112,6 @@ export default function App() {
                 </Link>
               </div>
               <p className="hero-micro">Free and no obligation. Live online, scheduled around your time zone.</p>
-
-              <div className="hero-proof">
-                <a href={SITE.googleReviewUrl} target="_blank" rel="noopener noreferrer"><span className="stars" aria-hidden="true">★★★★★</span><b>{STATS.rating}</b> Google rating</a>
-                <div><b>{STATS.students}</b> students</div>
-                <div>Students from <b>{STUDENT_COUNTRIES.join(', ')}</b></div>
-              </div>
             </div>
 
             <div className="hero-art">
@@ -138,17 +132,6 @@ export default function App() {
               </div>
 
               <img src={heroImg} alt="Student in a live 1-on-1 online tutoring session" width="1200" height="952" {...{ fetchpriority: 'high' }} />
-
-              {/* Next session: shows the weekly rhythm */}
-              <div className="floating-card card-next">
-                <span className="card-next-icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
-                </span>
-                <div>
-                  <strong>Next session: Tue 6 pm</strong>
-                  <span>Reading &amp; Writing, Module 2</span>
-                </div>
-              </div>
 
               {/* A real result from Success Stories */}
               <div className="floating-card card-result">
@@ -194,6 +177,12 @@ export default function App() {
           <div>
             <span className="stat-icon" aria-hidden="true"><IconHeartCheck /></span>
             <div className="stat-text"><CountUp value={STATS.satisfaction} /><span>Parent Satisfaction</span></div>
+          </div>
+          <div>
+            <a className="stat-rating" href={SITE.googleReviewUrl} target="_blank" rel="noopener noreferrer">
+              <span className="stat-icon" aria-hidden="true">★</span>
+              <div className="stat-text"><strong>{STATS.rating}</strong><span>Google Rating</span></div>
+            </a>
           </div>
         </section>
 
