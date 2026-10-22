@@ -43,9 +43,10 @@ function UniLogo({ name, domain, logo }: { name: string; domain: string; logo?: 
   );
 }
 
-export function Universities() {
+export function Universities({ title }: { title?: string }) {
   return (
     <div className="university-marquee">
+      {title && <h3 className="uni-strip-label">{title}</h3>}
       <div className="university-track">
         {[...UNIVERSITIES, ...UNIVERSITIES].map((u, i) => (
           <UniLogo key={`${u.name}-${i}`} name={u.name} domain={u.domain} logo={u.logo} />

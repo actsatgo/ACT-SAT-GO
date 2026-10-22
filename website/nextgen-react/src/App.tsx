@@ -305,8 +305,7 @@ export default function App() {
             <a className="view-all-link" href="#testimonials">Read parent &amp; student reviews <span aria-hidden="true">→</span></a>
           </div>
           <SuccessStories onBook={() => openConsultationModal('General')} />
-          <h3 className="uni-strip-label">Our students have been accepted to top universities worldwide</h3>
-          <Universities />
+          <Universities title="Our students have been accepted to top universities worldwide" />
         </section>
 
         <TutorCards />
