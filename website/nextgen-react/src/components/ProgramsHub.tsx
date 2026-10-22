@@ -4,6 +4,25 @@ import img1 from '../assets/img/1.webp';
 import img2 from '../assets/img/2.webp';
 import img3 from '../assets/img/3.webp';
 
+const ORBIT_CHIPS = ['Personalized guidance', 'Proven strategies', 'Stronger results'];
+
+function OrbitCheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12.5 10 17 19 7" />
+    </svg>
+  );
+}
+
+function OrbitTrendIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 17l6-6 4 4 8-8" />
+      <path d="M15 7h6v6" />
+    </svg>
+  );
+}
+
 function HubBadgeCapIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="currentColor">
@@ -65,23 +84,31 @@ export function ProgramsHub() {
       <div className="shell">
         <div className="hub-header">
           <div>
+            <p className="hub-eyebrow">Our Programs</p>
             <h2>
-              Our Programs,<br />
               Your Path to <span>Success</span>
             </h2>
             <p className="hub-subtitle">
               Expert-led programs designed to help students excel at every stage of their academic journey.
             </p>
           </div>
-          <div className="hub-badge">
-            <span className="hub-badge-icon" aria-hidden="true">
-              <HubBadgeCapIcon />
-            </span>
-            <p>
-              Personalized guidance.<br />
-              Proven strategies.<br />
-              <span>Stronger results.</span>
-            </p>
+          {/* The three promises circle the cap; hover pauses them so they can be read */}
+          <div className="hub-orbit">
+            <span className="hub-orbit-ring" aria-hidden="true" />
+            <span className="hub-orbit-ring hub-orbit-ring-inner" aria-hidden="true" />
+            <span className="hub-orbit-core" aria-hidden="true"><HubBadgeCapIcon /></span>
+            <ul className="hub-orbit-carrier">
+              {ORBIT_CHIPS.map((c, i) => (
+                <li key={c} className={`hub-orbit-arm hub-orbit-arm-${i + 1}`}>
+                  <span className="hub-orbit-upright">
+                    <span className={`hub-orbit-chip${i === 2 ? ' is-gold' : ''}`}>
+                      <i aria-hidden="true">{i === 2 ? <OrbitTrendIcon /> : <OrbitCheckIcon />}</i>
+                      {c}
+                    </span>
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
