@@ -419,3 +419,69 @@
   mask-image: linear-gradient(to right, transparent 0, #000 9%), linear-gradient(to top, transparent 0, #000 10%);
   mask-composite: intersect;
 }
+
+/* ── Full study-desk photo ────────────────────────────────────────────
+   The whole scene is shown (no crop) and its edges fade into the navy
+   hero so it reads as part of the background. The floating cards sit on
+   the empty areas of the photo. */
+#home .hero-art img {
+  min-height: 0;
+  height: auto;
+  object-fit: fill;
+  border-radius: 0;
+  filter: none;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 90%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 10%, #000 86%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 90%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 10%, #000 86%, transparent 100%);
+  mask-composite: intersect;
+}
+
+#home .card-result {
+  left: 2%;
+  top: 7%;
+  width: 210px;
+}
+
+/* Two columns: the card sits on the empty wall left of her face */
+@media (min-width: 1041px) {
+  #home .card-result {
+    left: -58px;
+    top: 9%;
+  }
+}
+
+#home .card-exams-new {
+  right: 3%;
+  top: 16%;
+}
+
+#home .card-plan-glass {
+  right: 3%;
+  top: 49%;
+}
+
+@media (max-width: 680px) {
+  #home .card-result {
+    width: 100%;
+  }
+
+  #home .card-plan-glass {
+    top: calc((100vw - 24px) * 0.37);
+  }
+}
+
+/* Two-column hero: the faded photo reaches a little into the gap so the
+   scene stays large; on smaller laptops the cards scale down with it */
+@media (min-width: 1041px) {
+  #home .hero-art img {
+    width: calc(100% + 64px);
+    max-width: none;
+    margin-left: -64px;
+  }
+}
+
+@media (min-width: 1041px) and (max-width: 1240px) {
+  #home :is(.card-result, .card-exams-new, .card-plan-glass) {
+    zoom: 0.82;
+  }
+}
