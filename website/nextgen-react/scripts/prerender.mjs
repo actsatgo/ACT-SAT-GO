@@ -19,7 +19,7 @@ const ssrDir = path.join(root, 'dist-ssr');
 
 const entry = fs.readdirSync(ssrDir).find((f) => /^entry-server\.(m?js)$/.test(f));
 if (!entry) throw new Error('dist-ssr/entry-server.js not found — run vite build --ssr first');
-const { render, PAGES, headTags, canonicalUrl, SITE, ARTICLES } = await import(pathToFileURL(path.join(ssrDir, entry)).href);
+const { render, PAGES, headTags, canonicalUrl, SITE, ARTICLES, AP_SUBJECTS } = await import(pathToFileURL(path.join(ssrDir, entry)).href);
 
 const template = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
 const HEAD_RE = /<!--head-tags-->[\s\S]*?<!--\/head-tags-->/;
@@ -47,6 +47,7 @@ const ROUTE_SOURCES = {
   '/404': ['src/pages/NotFoundPage.tsx'],
 };
 for (const a of ARTICLES) ROUTE_SOURCES[`/resources/${a.slug}`] = ['src/pages/ArticlePage.tsx', 'src/data/articles.ts'];
+for (const s of AP_SUBJECTS) ROUTE_SOURCES[`/ap/${s.slug}`] = ['src/pages/ApSubjectPage.tsx'];
 
 const manifestPath = path.join(dist, '.vite', 'manifest.json');
 const manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : {};
@@ -78,8 +79,11 @@ function outFile(routePath) {
 
 const today = new Date().toISOString().slice(0, 10);
 const sitemapUrls = [];
-// Articles report their own "last updated" date so search engines can trust lastmod.
-const articleUpdated = Object.fromEntries(ARTICLES.map((a) => [canonicalUrl(`/resources/${a.slug}`), a.updated]));
+// Articles and AP subject guides report their own "last updated" date so search engines can trust lastmod.
+const articleUpdated = Object.fromEntries([
+  ...ARTICLES.map((a) => [canonicalUrl(`/resources/${a.slug}`), a.updated]),
+  ...AP_SUBJECTS.map((s) => [canonicalUrl(`/ap/${s.slug}`), s.updated]),
+]);
 
 for (const meta of PAGES) {
   const url = meta.path === '/404' ? '/this-page-does-not-exist' : meta.path;
@@ -123,6 +127,7 @@ const SECTIONS = [
   ['Tutoring programs', ['/sat', '/act', '/ap', '/k-12-tutoring', '/future-programs']],
   ['Free resources', ['/free-test', '/resources']],
   ['Guides', ARTICLES.map((a) => `/resources/${a.slug}`)],
+  ['AP exam guides', AP_SUBJECTS.map((s) => `/ap/${s.slug}`)],
   ['About and booking', ['/about-us', '/consultation', '/careers']],
   ['Policies', ['/refund-policy', '/child-safety', '/privacy-policy', '/terms']],
 ];
