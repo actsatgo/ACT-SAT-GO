@@ -1338,7 +1338,7 @@ export function CareersPage() {
 
                     <div className="form-group">
                       <label htmlFor="remarks">
-                        {applyKind === 'ops' ? 'Why ACT SAT GO?' : 'Remarks (If Any)'} {applyKind === 'ops' &&}
+                        {applyKind === 'ops' ? 'Why ACT SAT GO?' : 'Remarks (If Any)'}
                       </label>
                       <textarea
                         id="remarks"
