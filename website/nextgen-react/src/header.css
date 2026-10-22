@@ -110,23 +110,20 @@
 }
 
 .site-header.is-compact .nav {
-  min-height: 46px;
+  min-height: 54px;
 }
 
 .site-header.is-compact .brand-logo-img {
   height: 32px;
 }
 
-:root .site-header.is-compact .nav-btn-book {
-  --pb-in: 3px;
-  --pb-bd: 26px;
-  min-height: 32px;
-  font-size: 13px;
-}
-
-:root .site-header.is-compact :is(.nav-btn-free-test, .contact-dropdown > .btn-primary) {
-  min-height: 32px;
-  font-size: 13px;
+/* The header buttons keep their size when the bar slims: resizing the
+   pill mid-transition stretched the round arrow badge out of shape. */
+:root .site-header .btn.btn-primary.nav-btn-book {
+  --pb-in: 5px;
+  --pb-bd: 32px;
+  min-height: 42px;
+  font-size: 14px;
 }
 
 @media (max-width: 1040px) {
@@ -140,7 +137,7 @@
   }
 
   .site-header.is-compact .nav.is-open .nav-links {
-    top: 46px;
+    top: 54px;
   }
 }
 

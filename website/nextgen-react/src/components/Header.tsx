@@ -20,8 +20,13 @@ export function Header() {
   const [compact, setCompact] = useState(false);
 
   // Slim the pinned header once the page has scrolled past the top.
+  // Slimming shortens the page by ~30px, so separate on/off thresholds keep
+  // the resulting scroll jump from toggling it straight back (flicker).
   useEffect(() => {
-    const onScroll = () => setCompact(window.scrollY > 40);
+    const onScroll = () => {
+      const y = window.scrollY;
+      setCompact((c) => (c ? y > 8 : y > 80));
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -43,7 +48,7 @@ export function Header() {
       <nav className={`nav shell${open ? ' is-open' : ''}`} aria-label="Primary navigation">
         <Brand onNavigate={close} />
         {/* Phones and tablets: the main action stays in the top bar next to the menu */}
-        <Link to="/consultation" className="btn btn-primary nav-btn-book nav-book-mobile" onClick={close}>Book Free Lesson</Link>
+        <Link to="/consultation" className="btn btn-primary nav-btn-book nav-book-mobile" onClick={close}>Book Free Session</Link>
         <button
           className="nav-toggle"
           type="button"
@@ -145,7 +150,7 @@ export function Header() {
           <Link to="/free-test" className="btn btn-secondary nav-btn-free-test" style={{ marginRight: '8px' }}>
             Free Practice Test
           </Link>
-          <Link to="/consultation" className="btn btn-primary nav-btn-book">Book Free Lesson</Link>
+          <Link to="/consultation" className="btn btn-primary nav-btn-book">Book Free Session</Link>
         </div>
       </nav>
     </header>
