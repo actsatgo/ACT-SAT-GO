@@ -7,7 +7,6 @@ import { Universities } from './components/Universities';
 import { ProgramsHub } from './components/ProgramsHub';
 import { CountUp } from './components/CountUp';
 import { useScrollReveal } from './hooks/useScrollReveal';
-import { ACT_PAGE } from './data/programs';
 import heroImg from './assets/img/hero-y1.webp';
 import { QUERY_API_BASE } from './config';
 import { trackLead, leadSource, trackContactClick } from './lib/analytics';
@@ -320,12 +319,11 @@ export default function App() {
         <FaqSection items={HOME_FAQ} />
 
         {/* CTA + Stats */}
-        <section className="prog-cta section-dark" id="consultation">
-          <span className="orb orb-gold" aria-hidden="true" />
+        <section className="prog-cta home-cta" id="consultation">
           <div className="shell">
             <div className="prog-cta-banner">
               <div>
-                <h2>Ready to Achieve Your Dream Score?</h2>
+                <h2>Ready to Achieve Your <span>Dream Score?</span></h2>
                 <p>
                   Book a <strong>free diagnostic lesson</strong>: your child gets a baseline score, you get a clear plan for the
                   target score and test date. No payment, no obligation.
@@ -336,20 +334,6 @@ export default function App() {
                   {PRIMARY_CTA} <span aria-hidden="true">→</span>
                 </a>
               </div>
-            </div>
-            <div className="prog-stats">
-              {ACT_PAGE.stats.map((s, idx) => (
-                <div key={s.label}>
-                  {[
-                    <svg key="1" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '28px', height: '28px', color: 'var(--gold)' }}><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path><path d="M12 2a6 6 0 0 1 6 6v3.5c0 3.3-2.7 6-6 6s-6-2.7-6-6V8a6 6 0 0 1 6-6z"></path></svg>,
-                    <svg key="2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '28px', height: '28px', color: 'var(--gold)' }}><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>,
-                    <svg key="3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '28px', height: '28px', color: 'var(--gold)' }}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>,
-                    <svg key="4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '28px', height: '28px', color: 'var(--gold)' }}><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>,
-                  ][idx]}
-                  <strong style={{ marginTop: '8px' }}>{s.value}</strong>
-                  <span>{s.label}</span>
-                </div>
-              ))}
             </div>
           </div>
         </section>

@@ -639,8 +639,8 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
             </div>
             <div className="prog-stats">
               {data.stats.map((s) => (
-                <div key={s.label}>
-                  <CountUp value={s.value} />
+                <div key={s.label} className={s.text ? 'prog-stat-text' : undefined}>
+                  {s.text ? <strong>{s.value}</strong> : <CountUp value={s.value} />}
                   <span>{s.label}</span>
                 </div>
               ))}
