@@ -32,11 +32,11 @@
 /* Result card (overlaps the photo's left edge) */
 .card-result {
   position: absolute;
-  left: -20px;
-  top: 22%;
+  left: -240px;
+  top: -38px;
   z-index: 3;
   width: 226px;
-  padding: 16px 18px;
+  padding: 13px 16px 12px;
   animation: floatY-soft 7.5s ease-in-out infinite 0.5s;
 }
 
@@ -81,8 +81,8 @@
 .card-result svg {
   display: block;
   width: 100%;
-  height: 40px;
-  margin-top: 8px;
+  height: 30px;
+  margin-top: 6px;
 }
 
 .card-result p {
@@ -403,8 +403,19 @@
   white-space: nowrap;
 }
 
-@media (min-width: 901px) and (max-width: 1240px) {
+/* Stacked hero (tablets): the card sits on the photo's empty top-left */
+@media (min-width: 681px) and (max-width: 1040px) {
   .card-result {
-    left: -80px;
+    left: 0;
+    top: 6%;
   }
+}
+
+/* The photo is cropped on the left and bottom (through the books and mug):
+   fade those edges into the navy so it doesn't look cut off */
+#home .hero-art img {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%), linear-gradient(to top, transparent 0, #000 10%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0, #000 9%), linear-gradient(to top, transparent 0, #000 10%);
+  mask-composite: intersect;
 }
