@@ -524,3 +524,27 @@
     top: 56%;
   }
 }
+
+/* Closing CTA sits on the light page as a navy card, so it no longer
+   runs straight into the navy footer */
+.prog-cta.home-cta {
+  padding: 8px 0 64px;
+  background: transparent;
+  color: var(--navy);
+}
+
+.home-cta .prog-cta-banner {
+  position: relative;
+  overflow: hidden;
+  border: 0;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(253, 185, 19, 0.14), transparent 40%),
+    linear-gradient(135deg, #061a2f 0%, #0d2f52 60%, #164476 100%);
+  box-shadow: 0 28px 60px -34px rgba(6, 26, 47, 0.6);
+  color: #ffffff;
+}
+
+.home-cta .prog-cta-banner h2 {
+  color: #ffffff;
+}

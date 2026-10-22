@@ -319,8 +319,7 @@ export default function App() {
         <FaqSection items={HOME_FAQ} />
 
         {/* CTA + Stats */}
-        <section className="prog-cta section-dark" id="consultation">
-          <span className="orb orb-gold" aria-hidden="true" />
+        <section className="prog-cta home-cta" id="consultation">
           <div className="shell">
             <div className="prog-cta-banner">
               <div>
