@@ -84,6 +84,7 @@ export function ProgramsHub() {
       <div className="shell">
         <div className="hub-header">
           <div>
+            <p className="hub-eyebrow">Our Programs</p>
             <h2>
               Your Path to <span>Success</span>
             </h2>

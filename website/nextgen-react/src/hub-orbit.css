@@ -192,3 +192,24 @@
     animation: none;
   }
 }
+
+/* Section label above "Your Path to Success" */
+.hub-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 6px;
+  color: var(--gold);
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.hub-eyebrow::before {
+  content: "";
+  width: 28px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
+}
