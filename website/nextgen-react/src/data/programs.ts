@@ -86,7 +86,7 @@ export interface ProgramPageData {
 const SHARED_STATS: Stat[] = [
   { value: '90+', label: 'Top Scores Achieved' },
   { value: STATS.students, label: 'Students Trained' },
-  { value: STATS.rating, label: 'Student Rating' },
+  { value: STATS.rating, label: 'Google Rating' },
   { value: STATS.satisfaction, label: 'Parent Satisfaction' },
 ];
 

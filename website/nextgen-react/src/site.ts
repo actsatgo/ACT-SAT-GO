@@ -36,12 +36,14 @@ export const SITE = {
  * and only with numbers you can back up.
  */
 export const STATS = {
-  students: '5,000+',
+  students: '1,000+',
   tutors: '300+',
-  countries: '50+',
-  rating: '4.8/5',
+  rating: '4.9/5',
   satisfaction: '98%',
 };
+
+/** Where our students are. Shown instead of a country count. */
+export const STUDENT_COUNTRIES = ['USA', 'UK', 'India', 'Singapore', 'UAE'];
 
 /** The one name for the primary call to action, used everywhere. */
 export const PRIMARY_CTA = 'Book a Free Diagnostic Lesson';
