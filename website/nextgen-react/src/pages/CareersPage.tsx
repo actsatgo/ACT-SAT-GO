@@ -334,8 +334,10 @@ export function CareersPage() {
     return () => el.removeEventListener('scroll', handleScroll);
   }, [shownJobs.length]);
 
-  // Arrow buttons: move the carousel by exactly one card, pausing the auto-scroll briefly
+  // Arrow buttons: glide the carousel by exactly one card in either direction, wrapping
+  // around the duplicated list so both arrows loop forever. Auto-scroll pauses briefly.
   const jobsArrowTimer = useRef<number | undefined>(undefined);
+  const jobsArrowAnim = useRef<number | undefined>(undefined);
   const scrollJobs = (dir: 1 | -1) => {
     const el = jobsMarqueeRef.current;
     const card = el?.querySelector<HTMLElement>('.careers-job-card');
@@ -343,9 +345,24 @@ export function CareersPage() {
     const gap = parseFloat(getComputedStyle(card.parentElement as HTMLElement).columnGap) || 0;
     const step = card.offsetWidth + gap;
     const singleWidth = el.scrollWidth / 2;
-    if (dir < 0 && el.scrollLeft < step) el.scrollLeft += singleWidth;
+    if (singleWidth <= 0) return;
+    const wrap = (x: number) => ((x % singleWidth) + singleWidth) % singleWidth;
+    // Start from the nearest card edge so repeated clicks stay aligned
+    const from = Math.round(el.scrollLeft / step) * step;
+    const startAt = el.scrollLeft;
+    const delta = from + dir * step - startAt;
+    const duration = 450;
+    let t0: number | null = null;
+    if (jobsArrowAnim.current) cancelAnimationFrame(jobsArrowAnim.current);
     jobsPausedRef.current = true;
-    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+    const tick = (time: number) => {
+      if (t0 === null) t0 = time;
+      const t = Math.min(1, (time - t0) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.scrollLeft = wrap(startAt + delta * eased);
+      if (t < 1) jobsArrowAnim.current = requestAnimationFrame(tick);
+    };
+    jobsArrowAnim.current = requestAnimationFrame(tick);
     window.clearTimeout(jobsArrowTimer.current);
     jobsArrowTimer.current = window.setTimeout(() => {
       jobsPausedRef.current = false;
@@ -595,17 +612,13 @@ export function CareersPage() {
                 </button>
               ))}
             </div>
-              <div className="careers-jobs-arrows">
-                <button type="button" aria-label="Previous role" onClick={() => scrollJobs(-1)}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
-                </button>
-                <button type="button" aria-label="Next role" onClick={() => scrollJobs(1)}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
-                </button>
-              </div>
             </div>
 
-            {/* Job cards */}
+            {/* Job cards, with an arrow on each side */}
+            <div className="careers-jobs-carousel">
+              <button type="button" className="careers-jobs-arrow is-prev" aria-label="Previous role" onClick={() => scrollJobs(-1)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+              </button>
             <div
               className="careers-jobs-marquee"
               ref={jobsMarqueeRef}
@@ -644,6 +657,11 @@ export function CareersPage() {
                   </article>
                 ))}
               </div>
+            </div>
+
+              <button type="button" className="careers-jobs-arrow is-next" aria-label="Next role" onClick={() => scrollJobs(1)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+              </button>
             </div>
 
             <div className="careers-jobs-more">
