@@ -525,68 +525,32 @@
   }
 }
 
-/* Closing CTA: frosted white glass on the light page, with soft gold and
-   blue glows behind it showing through */
-.home-cta {
-  position: relative;
+/* Closing CTA: navy card on the light page with a faint line texture and
+   a thin gold edge underneath for a gentle raised look */
+.prog-cta.home-cta {
+  overflow: visible;
   padding: 8px 0 72px;
-}
-
-.home-cta .shell {
-  position: relative;
-}
-
-.home-cta .shell::before,
-.home-cta .shell::after {
-  content: "";
-  position: absolute;
-  z-index: 0;
-  border-radius: 50%;
-  filter: blur(40px);
-  pointer-events: none;
-}
-
-.home-cta .shell::before {
-  left: 6%;
-  top: -10px;
-  width: 280px;
-  height: 160px;
-  background: rgba(253, 185, 19, 0.55);
-}
-
-.home-cta .shell::after {
-  right: 8%;
-  bottom: -20px;
-  width: 320px;
-  height: 180px;
-  background: rgba(28, 95, 165, 0.45);
+  background: transparent;
 }
 
 .home-cta .prog-cta-banner {
-  position: relative;
-  z-index: 1;
-  border: 1px solid rgba(255, 255, 255, 0.9);
+  border: 0;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.55);
-  backdrop-filter: blur(18px) saturate(1.4);
-  -webkit-backdrop-filter: blur(18px) saturate(1.4);
-  box-shadow: inset 0 1px 0 #ffffff, 0 24px 50px -28px rgba(6, 26, 47, 0.45);
-  color: var(--navy);
+  background:
+    radial-gradient(circle at 100% 0%, rgba(253, 185, 19, 0.16), transparent 42%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 44px),
+    linear-gradient(135deg, #061a2f 0%, #0d2f52 60%, #164476 100%);
+  box-shadow: 0 5px 0 #fc9b0a, 0 22px 40px -24px rgba(6, 26, 47, 0.55);
+  color: #ffffff;
 }
 
 .home-cta .prog-cta-banner h2 {
-  color: var(--navy);
+  color: #ffffff;
 }
 
-.home-cta .prog-cta-banner p {
-  color: var(--muted);
-}
-
-.home-cta .prog-cta-banner p strong {
-  color: #b77900;
-}
-
-@media (max-width: 680px) {
-  .home-cta .shell::before { width: 180px; height: 120px; }
-  .home-cta .shell::after { width: 200px; height: 140px; }
+.home-cta .prog-cta-banner h2 span {
+  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }

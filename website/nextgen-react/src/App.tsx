@@ -319,11 +319,11 @@ export default function App() {
         <FaqSection items={HOME_FAQ} />
 
         {/* CTA + Stats */}
-        <section className="home-cta" id="consultation">
+        <section className="prog-cta home-cta" id="consultation">
           <div className="shell">
             <div className="prog-cta-banner">
               <div>
-                <h2>Ready to Achieve Your Dream Score?</h2>
+                <h2>Ready to Achieve Your <span>Dream Score?</span></h2>
                 <p>
                   Book a <strong>free diagnostic lesson</strong>: your child gets a baseline score, you get a clear plan for the
                   target score and test date. No payment, no obligation.
