@@ -3520,7 +3520,7 @@ h1 span,
 
 .c-textarea {
   min-height: 80px;
-  resize: vertical;
+  resize: none;
 }
 
 .c-submit-btn {
