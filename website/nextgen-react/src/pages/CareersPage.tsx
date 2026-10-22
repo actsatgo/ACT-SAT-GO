@@ -1051,7 +1051,6 @@ export function CareersPage() {
                       {applyKind === 'ops'
                         ? (opsForm.role ? `Apply: ${opsForm.role}` : 'Join our operations team')
                         : (applyRole ? `Apply: ${applyRole}` : 'Apply to teach with us')}
-                      <small>Fields marked * are required.</small>
                     </h3>
 
                     <div className="careers-apply-kind" role="tablist" aria-label="Application type">
@@ -1176,7 +1175,7 @@ export function CareersPage() {
                           <input
                             type="text"
                             id="hourlyRate"
-                            placeholder="e.g. ₹1,500/hr"
+                            placeholder="e.g. ₹600/hr"
                             value={form.hourlyRate}
                             onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}
                           />
@@ -1362,12 +1361,11 @@ export function CareersPage() {
 
                       {applyKind === 'tutor' ? (
                         <div className="form-group">
-                          <label htmlFor="videoUrl">Tutoring Video Introduction Link *</label>
+                          <label htmlFor="videoUrl">Tutoring Video Introduction Link</label>
                           <input
                             type="url"
                             id="videoUrl"
                             placeholder="e.g. Loom, YouTube, Google Drive link"
-                            required
                             value={form.videoUrl}
                             onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
                           />

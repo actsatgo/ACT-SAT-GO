@@ -2141,3 +2141,8 @@
   border-bottom: 2.5px solid #fc9b0a;
   transform: rotate(45deg) translate(-2px, -2px);
 }
+
+/* Remarks box keeps a fixed size */
+.careers-form-card .careers-application-form textarea {
+  resize: none;
+}
