@@ -11,6 +11,8 @@ import type { ProgramPageData } from '../data/programs';
 import apHeroImg from '../assets/img/ap-hero-photo.webp';
 import satHeroImg from '../assets/img/sat-hero.webp';
 import highlightsImg from '../assets/img/highlights-girl-cutout.webp';
+import highlightsActImg from '../assets/img/highlights-act-cutout.webp';
+import highlightsApImg from '../assets/img/highlights-ap-cutout.webp';
 
 
 function getHighlightIcon(label: string, value: string) {
@@ -531,7 +533,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
               </div>
             </div>
             <div className="highlights-photo reveal" aria-hidden="true">
-              <img src={highlightsImg} alt={`Student preparing for the ${data.exam} with ACT SAT GO`} loading="lazy" />
+              <img src={isAp ? highlightsApImg : isAct ? highlightsActImg : highlightsImg} alt={`Student preparing for the ${data.exam} with ACT SAT GO`} loading="lazy" />
             </div>
           </div>
         </section>
