@@ -221,6 +221,78 @@ const PARTNER_PERKS = [
    PAGE
  ───────────────────────────────────────────── */
 
+// Single-choice dropdown styled like the Test Prep menu (used in the Operations form)
+function FormDropdown({
+  id,
+  value,
+  placeholder,
+  options,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  placeholder: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+
+  const current = options.find((o) => o.value === value);
+  return (
+    <div
+      className="test-prep-dropdown form-dropdown"
+      ref={ref}
+      onKeyDown={(e) => {
+        // Escape closes the menu without also closing the pop-up
+        if (e.key === 'Escape' && open) {
+          e.stopPropagation();
+          setOpen(false);
+        }
+      }}
+    >
+      <button
+        type="button"
+        id={id}
+        className={`test-prep-toggle${open ? ' is-open' : ''}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className={current ? '' : 'is-placeholder'}>{current ? current.label : placeholder}</span>
+      </button>
+      {open && (
+        <div className="test-prep-menu form-dropdown-menu" role="listbox">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              role="option"
+              aria-selected={o.value === value}
+              className={`form-dropdown-option${o.value === value ? ' is-selected' : ''}`}
+              onClick={() => {
+                onChange(o.value);
+                setOpen(false);
+              }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CareersPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cvDragOver, setCvDragOver] = useState(false);
@@ -1161,36 +1233,23 @@ export function CareersPage() {
                       <div className="form-row">
                         <div className="form-group">
                           <label htmlFor="opsRole">Role Applying For *</label>
-                          <select
+                          <FormDropdown
                             id="opsRole"
-                            required
                             value={opsForm.role}
-                            onChange={(e) => setOpsForm({ ...opsForm, role: e.target.value })}
-                          >
-                            <option value="">Select a role</option>
-                            {opsRoles.map((r) => (
-                              <option key={r} value={r}>{r}</option>
-                            ))}
-                            {opsForm.role && !opsRoles.includes(opsForm.role) && opsForm.role !== 'Other' && (
-                              <option value={opsForm.role}>{opsForm.role}</option>
-                            )}
-                            <option value="Other">Other / open application</option>
-                          </select>
+                            placeholder="Select a role"
+                            options={[...opsRoles.map((r) => ({ value: r, label: r })), ...(opsForm.role && !opsRoles.includes(opsForm.role) && opsForm.role !== 'Other' ? [{ value: opsForm.role, label: opsForm.role }] : []), { value: 'Other', label: 'Other / open application' }]}
+                            onChange={(v) => setOpsForm((f) => ({ ...f, role: v }))}
+                          />
                         </div>
                         <div className="form-group">
                           <label htmlFor="opsExperience">Work Experience *</label>
-                          <select
+                          <FormDropdown
                             id="opsExperience"
-                            required
                             value={opsForm.experience}
-                            onChange={(e) => setOpsForm({ ...opsForm, experience: e.target.value })}
-                          >
-                            <option value="">Select years</option>
-                            <option>Fresher (0-1 years)</option>
-                            <option>1-3 years</option>
-                            <option>3-5 years</option>
-                            <option>5+ years</option>
-                          </select>
+                            placeholder="Select years"
+                            options={[{ value: 'Fresher (0-1 years)', label: 'Fresher (0-1 years)' }, { value: '1-3 years', label: '1-3 years' }, { value: '3-5 years', label: '3-5 years' }, { value: '5+ years', label: '5+ years' }]}
+                            onChange={(v) => setOpsForm((f) => ({ ...f, experience: v }))}
+                          />
                         </div>
                       </div>
 
@@ -1207,17 +1266,13 @@ export function CareersPage() {
                         </div>
                         <div className="form-group">
                           <label htmlFor="opsAvailability">Availability *</label>
-                          <select
+                          <FormDropdown
                             id="opsAvailability"
-                            required
                             value={opsForm.availability}
-                            onChange={(e) => setOpsForm({ ...opsForm, availability: e.target.value })}
-                          >
-                            <option value="">Select one</option>
-                            <option>Full-time</option>
-                            <option>Part-time</option>
-                            <option>Freelance</option>
-                          </select>
+                            placeholder="Select one"
+                            options={[{ value: 'Full-time', label: 'Full-time' }, { value: 'Part-time', label: 'Part-time' }, { value: 'Freelance', label: 'Freelance' }]}
+                            onChange={(v) => setOpsForm((f) => ({ ...f, availability: v }))}
+                          />
                         </div>
                       </div>
 
@@ -1234,17 +1289,13 @@ export function CareersPage() {
                         </div>
                         <div className="form-group">
                           <label htmlFor="opsNotice">Notice Period</label>
-                          <select
+                          <FormDropdown
                             id="opsNotice"
                             value={opsForm.notice}
-                            onChange={(e) => setOpsForm({ ...opsForm, notice: e.target.value })}
-                          >
-                            <option value="">Select one</option>
-                            <option>Immediate</option>
-                            <option>15 days</option>
-                            <option>30 days</option>
-                            <option>60 days or more</option>
-                          </select>
+                            placeholder="Select one"
+                            options={[{ value: 'Immediate', label: 'Immediate' }, { value: '15 days', label: '15 days' }, { value: '30 days', label: '30 days' }, { value: '60 days or more', label: '60 days or more' }]}
+                            onChange={(v) => setOpsForm((f) => ({ ...f, notice: v }))}
+                          />
                         </div>
                       </div>
                       </>

@@ -2096,3 +2096,48 @@
 .careers-form-card .careers-application-form select:not(.phone-code-select):invalid {
   color: #9aa6b5;
 }
+
+/* Single-choice dropdowns in the Operations form */
+.form-dropdown-menu {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.form-dropdown-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.form-dropdown-option:hover,
+.form-dropdown-option:focus-visible {
+  background: #f3f7fd;
+  outline: none;
+}
+
+.form-dropdown-option.is-selected {
+  background: #fff6dd;
+  color: #8a5a00;
+}
+
+.form-dropdown-option.is-selected::after {
+  content: '';
+  width: 6px;
+  height: 11px;
+  margin-right: 4px;
+  border-right: 2.5px solid #fc9b0a;
+  border-bottom: 2.5px solid #fc9b0a;
+  transform: rotate(45deg) translate(-2px, -2px);
+}
