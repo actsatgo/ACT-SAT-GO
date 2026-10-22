@@ -11,6 +11,7 @@
 }
 
 #home h1 span {
+  white-space: nowrap;
   background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -234,4 +235,140 @@
   .stat-rating .stat-icon {
     font-size: 22px;
   }
+}
+
+/* "1-on-1 expert tutoring" stays on one line, so the headline scales a
+   little lower on mid-size screens to fit it */
+@media (min-width: 901px) and (max-width: 1240px) {
+  #home h1 {
+    font-size: clamp(32px, 3.6vw, 44px);
+  }
+}
+
+@media (max-width: 420px) {
+  #home h1 {
+    font-size: clamp(26px, 7.6vw, 32px);
+  }
+}
+
+/* Photo sits a little higher */
+#home .hero-art img {
+  top: -28px;
+}
+
+/* Personalized plan: glass card with its own float, independent of the photo */
+.card-plan-glass {
+  position: absolute;
+  right: 2%;
+  top: 50%;
+  z-index: 3;
+  width: 228px;
+  padding: 16px 18px 14px;
+  background: rgba(7, 25, 46, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(6px) saturate(1.2);
+  -webkit-backdrop-filter: blur(6px) saturate(1.2);
+  box-shadow: 0 18px 40px -18px rgba(0, 0, 0, 0.6);
+  animation: floatY-soft 8.5s ease-in-out infinite 1.6s;
+}
+
+.card-plan-glass strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.card-plan-glass ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card-plan-glass li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(255, 255, 255, 0.86);
+  font-size: 13.5px;
+}
+
+.card-plan-glass li::before {
+  content: "";
+  flex: 0 0 auto;
+  width: 11px;
+  height: 6px;
+  margin-top: -3px;
+  border-left: 2.5px solid #fdb913;
+  border-bottom: 2.5px solid #fdb913;
+  transform: rotate(-45deg);
+}
+
+@media (max-width: 900px) {
+  .card-plan-glass {
+    right: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  #home .hero-art img {
+    top: 0;
+  }
+
+  /* Phones: a smaller card stays on the photo, over the laptop */
+  .card-plan-glass {
+    position: absolute;
+    top: 112px;
+    right: 8px;
+    width: 168px;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
+  .card-plan-glass strong {
+    margin-bottom: 5px;
+    font-size: 13px;
+  }
+
+  .card-plan-glass ul {
+    gap: 3px;
+  }
+
+  .card-plan-glass li {
+    gap: 7px;
+    font-size: 11.5px;
+  }
+
+  .card-plan-glass li::before {
+    width: 8px;
+    height: 4px;
+    border-width: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-plan-glass {
+    top: 74px;
+    width: auto;
+  }
+
+  .card-plan-glass li {
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-plan-glass {
+    animation: none;
+  }
+}
+
+/* Google "G" for the rating stat */
+.stat-rating .stat-google svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
