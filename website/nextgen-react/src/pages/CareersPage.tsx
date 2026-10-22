@@ -227,6 +227,16 @@ export function CareersPage() {
   const [testPrepOpen, setTestPrepOpen] = useState(false);
   const [applyOpen, setApplyOpen] = useState(false);
   const [applyRole, setApplyRole] = useState('');
+  const [applyKind, setApplyKind] = useState<'tutor' | 'ops'>('tutor');
+  const [opsForm, setOpsForm] = useState({
+    role: '',
+    experience: '',
+    currentRole: '',
+    availability: '',
+    salary: '',
+    notice: '',
+    linkedin: '',
+  });
   const testPrepRef = useRef<HTMLDivElement>(null);
 
   // Close the test prep dropdown on an outside click or Escape
@@ -250,6 +260,8 @@ export function CareersPage() {
   const jobsDragRef = useRef({ dragging: false, moved: false, startX: 0, startScroll: 0 });
   const [jobs, setJobs] = useState<Job[]>([]);
   const [jobFilter, setJobFilter] = useState<'all' | 'academics' | 'operations'>('all');
+  const isAcademicDept = (dept?: string) => (dept || '').toLowerCase().includes('academ');
+  const opsRoles = Array.from(new Set(jobs.filter((j) => !isAcademicDept(j.dept)).map((j) => j.title)));
   const shownJobs = jobs.filter((job) => {
     if (jobFilter === 'all') return true;
     const academic = (job.dept || '').toLowerCase().includes('academ');
@@ -413,8 +425,11 @@ export function CareersPage() {
   };
 
   // Application form lives in a pop-up; Escape or the backdrop closes it, page scroll is locked while open
-  const openApply = (role = '') => {
+  const openApply = (role = '', kind: 'tutor' | 'ops' = 'tutor') => {
     setApplyRole(role);
+    setApplyKind(kind);
+    if (kind === 'ops') setOpsForm((f) => ({ ...f, role }));
+    setErrorMsg('');
     setApplyOpen(true);
   };
 
@@ -436,7 +451,11 @@ export function CareersPage() {
     };
   }, [applyOpen, testPrepOpen]);
 
-  const handleApplyClick = (jobTitle: string) => {
+  const handleApplyClick = (jobTitle: string, dept?: string) => {
+    if (dept && !isAcademicDept(dept)) {
+      openApply(jobTitle, 'ops');
+      return;
+    }
     let subject = jobTitle;
     let testPrep: string[] = [];
     
@@ -509,6 +528,23 @@ export function CareersPage() {
       setErrorMsg('Please upload your CV.');
       return;
     }
+    const isOps = applyKind === 'ops';
+    if (isOps && (!opsForm.role || !opsForm.experience || !opsForm.availability)) {
+      setErrorMsg('Please choose the role, your experience and your availability.');
+      return;
+    }
+    // Operations applications go to the same applications list as tutors; the role is
+    // stored as the subject and the extra answers are summarised in the remarks.
+    const opsSummary = [
+      `Role: ${opsForm.role}`,
+      `Experience: ${opsForm.experience}`,
+      opsForm.currentRole && `Current / last role: ${opsForm.currentRole}`,
+      `Availability: ${opsForm.availability}`,
+      opsForm.salary && `Expected monthly salary (INR): ${opsForm.salary}`,
+      opsForm.notice && `Notice period: ${opsForm.notice}`,
+      opsForm.linkedin && `LinkedIn: ${opsForm.linkedin}`,
+      form.remarks && `Notes: ${form.remarks}`,
+    ].filter(Boolean).join('\n');
 
     setSubmitStatus('submitting');
     setErrorMsg('');
@@ -524,15 +560,27 @@ export function CareersPage() {
           email: form.email,
           phone: `${phoneCountryCode} ${phoneLocalNumber}`.trim(),
           city: form.city,
-          subject: form.subject,
-          testPrep: form.testPrep,
-          grades: form.grades,
-          hourlyRate: form.hourlyRate,
           cvFile,
-          videoUrl: form.videoUrl,
-          message: form.remarks,
-          remarks: form.remarks,
           type: 'Tutor',
+          ...(isOps
+            ? {
+                exam: 'Operations',
+                subject: `Operations: ${opsForm.role}`,
+                hourlyRate: opsForm.salary ? `₹${opsForm.salary.replace(/^₹\s*|\/month$/g, '')}/month` : '',
+                companiesWorkedWith: opsForm.currentRole,
+                videoUrl: opsForm.linkedin,
+                message: opsSummary,
+                remarks: opsSummary,
+              }
+            : {
+                subject: form.subject,
+                testPrep: form.testPrep,
+                grades: form.grades,
+                hourlyRate: form.hourlyRate,
+                videoUrl: form.videoUrl,
+                message: form.remarks,
+                remarks: form.remarks,
+              }),
         }),
       });
 
@@ -553,6 +601,7 @@ export function CareersPage() {
           remarks: '',
         });
         setCvFile(null);
+        setOpsForm({ role: '', experience: '', currentRole: '', availability: '', salary: '', notice: '', linkedin: '' });
       } else {
         const data = await response.json().catch(() => ({}));
         setErrorMsg(data.error || 'Failed to submit application.');
@@ -676,7 +725,7 @@ export function CareersPage() {
                     <div className="careers-job-footer">
                       <button
                         type="button"
-                        onClick={() => handleApplyClick(job.title)}
+                        onClick={() => handleApplyClick(job.title, job.dept)}
                         className="careers-job-apply-btn"
                       >
                         Apply Now
@@ -902,7 +951,7 @@ export function CareersPage() {
               if (e.target === e.currentTarget) setApplyOpen(false);
             }}
           >
-            <div className="careers-apply-dialog" role="dialog" aria-modal="true" aria-label="Tutor application form">
+            <div className="careers-apply-dialog" role="dialog" aria-modal="true" aria-label={applyKind === 'ops' ? 'Operations application form' : 'Tutor application form'}>
               <button type="button" className="careers-apply-close" aria-label="Close" onClick={() => setApplyOpen(false)}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
               </button>
@@ -916,7 +965,9 @@ export function CareersPage() {
                     </div>
                     <h3>Application Submitted!</h3>
                     <p>
-                      Thank you for applying. Our academic coordinators will review your CV and video introduction. We will contact you via WhatsApp or Email if your profile matches our requirements.
+                      {applyKind === 'ops'
+                        ? 'Thank you for applying. Our team will review your CV and contact you via WhatsApp or Email if your profile matches the role.'
+                        : 'Thank you for applying. Our academic coordinators will review your CV and video introduction. We will contact you via WhatsApp or Email if your profile matches our requirements.'}
                     </p>
                     <button className="btn-reset-form" onClick={() => setSubmitStatus('idle')}>
                       Submit Another Application
@@ -925,9 +976,37 @@ export function CareersPage() {
                 ) : (
                   <form onSubmit={handleSubmit} className="careers-application-form">
                     <h3 className="form-legend">
-                      {applyRole ? `Apply: ${applyRole}` : 'Apply to teach with us'}
+                      {applyKind === 'ops'
+                        ? (opsForm.role ? `Apply: ${opsForm.role}` : 'Join our operations team')
+                        : (applyRole ? `Apply: ${applyRole}` : 'Apply to teach with us')}
                       <small>Fields marked * are required.</small>
                     </h3>
+
+                    <div className="careers-apply-kind" role="tablist" aria-label="Application type">
+                      {(
+                        [
+                          ['tutor', 'Tutor'],
+                          ['ops', 'Operations'],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          role="tab"
+                          aria-selected={applyKind === key}
+                          className={`careers-tab${applyKind === key ? ' is-active' : ''}`}
+                          onClick={() => {
+                            if (applyKind === key) return;
+                            setApplyKind(key);
+                            setApplyRole('');
+                            setOpsForm((f) => ({ ...f, role: '' }));
+                            setErrorMsg('');
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
                     
                     {errorMsg && (
                       <div className="careers-form-error-banner animate-fade-in" role="alert">
@@ -1006,74 +1085,170 @@ export function CareersPage() {
                       </div>
                     </div>
 
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label htmlFor="subject">Subject / Expertise *</label>
-                        <input
-                          type="text"
-                          id="subject"
-                          placeholder="e.g. SAT Math, AP Physics"
-                          required
-                          value={form.subject}
-                          onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="hourlyRate">Expected Hourly Rate (INR) <small>optional</small></label>
-                        <input
-                          type="text"
-                          id="hourlyRate"
-                          placeholder="e.g. ₹1,500/hr"
-                          value={form.hourlyRate}
-                          onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="form-row">
-                      <div className="form-group">
-                        <label htmlFor="grades">Grades *</label>
-                        <input
-                          type="text"
-                          id="grades"
-                          placeholder="e.g. Grades 9-12"
-                          required
-                          value={form.grades}
-                          onChange={(e) => setForm({ ...form, grades: e.target.value })}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label id="test-prep-label">Test Prep Specializations *</label>
-                        <div className="test-prep-dropdown" ref={testPrepRef}>
-                          <button
-                            type="button"
-                            className={`test-prep-toggle${testPrepOpen ? ' is-open' : ''}`}
-                            aria-haspopup="listbox"
-                            aria-expanded={testPrepOpen}
-                            aria-labelledby="test-prep-label"
-                            onClick={() => setTestPrepOpen((o) => !o)}
-                          >
-                            <span className={form.testPrep.length ? '' : 'is-placeholder'}>
-                              {form.testPrep.length ? form.testPrep.join(', ') : 'Select one or more'}
-                            </span>
-                          </button>
-                          {testPrepOpen && (
-                            <div className="test-prep-menu" role="listbox" aria-multiselectable="true">
-                              {TEST_PREP_OPTIONS.map((option) => (
-                                <label key={option} className="checklist-item">
-                                  <input
-                                    type="checkbox"
-                                    checked={form.testPrep.includes(option)}
-                                    onChange={() => handleTestPrepChange(option)}
-                                  />
-                                  <span className="checklist-label">{option}</span>
-                                </label>
-                              ))}
-                            </div>
-                          )}
+                    {applyKind === 'tutor' ? (
+                      <>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="subject">Subject / Expertise *</label>
+                          <input
+                            type="text"
+                            id="subject"
+                            placeholder="e.g. SAT Math, AP Physics"
+                            required
+                            value={form.subject}
+                            onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="hourlyRate">Expected Hourly Rate (INR) <small>optional</small></label>
+                          <input
+                            type="text"
+                            id="hourlyRate"
+                            placeholder="e.g. ₹1,500/hr"
+                            value={form.hourlyRate}
+                            onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}
+                          />
                         </div>
                       </div>
-                    </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="grades">Grades *</label>
+                          <input
+                            type="text"
+                            id="grades"
+                            placeholder="e.g. Grades 9-12"
+                            required
+                            value={form.grades}
+                            onChange={(e) => setForm({ ...form, grades: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label id="test-prep-label">Test Prep Specializations *</label>
+                          <div className="test-prep-dropdown" ref={testPrepRef}>
+                            <button
+                              type="button"
+                              className={`test-prep-toggle${testPrepOpen ? ' is-open' : ''}`}
+                              aria-haspopup="listbox"
+                              aria-expanded={testPrepOpen}
+                              aria-labelledby="test-prep-label"
+                              onClick={() => setTestPrepOpen((o) => !o)}
+                            >
+                              <span className={form.testPrep.length ? '' : 'is-placeholder'}>
+                                {form.testPrep.length ? form.testPrep.join(', ') : 'Select one or more'}
+                              </span>
+                            </button>
+                            {testPrepOpen && (
+                              <div className="test-prep-menu" role="listbox" aria-multiselectable="true">
+                                {TEST_PREP_OPTIONS.map((option) => (
+                                  <label key={option} className="checklist-item">
+                                    <input
+                                      type="checkbox"
+                                      checked={form.testPrep.includes(option)}
+                                      onChange={() => handleTestPrepChange(option)}
+                                    />
+                                    <span className="checklist-label">{option}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      </>
+                    ) : (
+                      <>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="opsRole">Role Applying For *</label>
+                          <select
+                            id="opsRole"
+                            required
+                            value={opsForm.role}
+                            onChange={(e) => setOpsForm({ ...opsForm, role: e.target.value })}
+                          >
+                            <option value="">Select a role</option>
+                            {opsRoles.map((r) => (
+                              <option key={r} value={r}>{r}</option>
+                            ))}
+                            {opsForm.role && !opsRoles.includes(opsForm.role) && opsForm.role !== 'Other' && (
+                              <option value={opsForm.role}>{opsForm.role}</option>
+                            )}
+                            <option value="Other">Other / open application</option>
+                          </select>
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="opsExperience">Work Experience *</label>
+                          <select
+                            id="opsExperience"
+                            required
+                            value={opsForm.experience}
+                            onChange={(e) => setOpsForm({ ...opsForm, experience: e.target.value })}
+                          >
+                            <option value="">Select years</option>
+                            <option>Fresher (0-1 years)</option>
+                            <option>1-3 years</option>
+                            <option>3-5 years</option>
+                            <option>5+ years</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="opsCurrentRole">Current / Last Role and Company <small>optional</small></label>
+                          <input
+                            type="text"
+                            id="opsCurrentRole"
+                            placeholder="e.g. Admissions Counsellor, XYZ Education"
+                            value={opsForm.currentRole}
+                            onChange={(e) => setOpsForm({ ...opsForm, currentRole: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="opsAvailability">Availability *</label>
+                          <select
+                            id="opsAvailability"
+                            required
+                            value={opsForm.availability}
+                            onChange={(e) => setOpsForm({ ...opsForm, availability: e.target.value })}
+                          >
+                            <option value="">Select one</option>
+                            <option>Full-time</option>
+                            <option>Part-time</option>
+                            <option>Freelance</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="opsSalary">Expected Monthly Salary (INR) <small>optional</small></label>
+                          <input
+                            type="text"
+                            id="opsSalary"
+                            placeholder="e.g. ₹40,000/month"
+                            value={opsForm.salary}
+                            onChange={(e) => setOpsForm({ ...opsForm, salary: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="opsNotice">Notice Period <small>optional</small></label>
+                          <select
+                            id="opsNotice"
+                            value={opsForm.notice}
+                            onChange={(e) => setOpsForm({ ...opsForm, notice: e.target.value })}
+                          >
+                            <option value="">Select one</option>
+                            <option>Immediate</option>
+                            <option>15 days</option>
+                            <option>30 days</option>
+                            <option>60 days or more</option>
+                          </select>
+                        </div>
+                      </div>
+                      </>
+                    )}
 
                     <div className="form-row">
                       <div className="form-group">
@@ -1134,26 +1309,43 @@ export function CareersPage() {
                         </div>
                       </div>
 
-                      <div className="form-group">
-                        <label htmlFor="videoUrl">Tutoring Video Introduction Link *</label>
-                        <input
-                          type="url"
-                          id="videoUrl"
-                          placeholder="e.g. Loom, YouTube, Google Drive link"
-                          required
-                          value={form.videoUrl}
-                          onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
-                        />
-                        <span className="field-hint">Please provide a 2-3 min video link explaining a concept or introducing yourself.</span>
-                      </div>
+                      {applyKind === 'tutor' ? (
+                        <div className="form-group">
+                          <label htmlFor="videoUrl">Tutoring Video Introduction Link *</label>
+                          <input
+                            type="url"
+                            id="videoUrl"
+                            placeholder="e.g. Loom, YouTube, Google Drive link"
+                            required
+                            value={form.videoUrl}
+                            onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
+                          />
+                          <span className="field-hint">Please provide a 2-3 min video link explaining a concept or introducing yourself.</span>
+                        </div>
+                      ) : (
+                        <div className="form-group">
+                          <label htmlFor="opsLinkedin">LinkedIn Profile <small>optional</small></label>
+                          <input
+                            type="url"
+                            id="opsLinkedin"
+                            placeholder="https://linkedin.com/in/your-name"
+                            value={opsForm.linkedin}
+                            onChange={(e) => setOpsForm({ ...opsForm, linkedin: e.target.value })}
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="remarks">Remarks (If Any)</label>
+                      <label htmlFor="remarks">
+                        {applyKind === 'ops' ? 'Why ACT SAT GO?' : 'Remarks (If Any)'} {applyKind === 'ops' && <small>optional</small>}
+                      </label>
                       <textarea
                         id="remarks"
                         rows={3}
-                        placeholder="Any additional details or schedule preferences..."
+                        placeholder={applyKind === 'ops'
+                          ? 'A few lines on why this role suits you...'
+                          : 'Any additional details or schedule preferences...'}
                         value={form.remarks}
                         onChange={(e) => setForm({ ...form, remarks: e.target.value })}
                       />

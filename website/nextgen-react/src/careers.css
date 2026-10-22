@@ -2065,3 +2065,34 @@
     animation: none;
   }
 }
+
+/* Tutor / Operations switch at the top of the application pop-up */
+.careers-apply-kind {
+  display: flex;
+  gap: 8px;
+  margin: -8px 0 20px;
+}
+
+.careers-form-card .careers-application-form label small {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+/* Plain dropdowns in the pop-up match the custom Test Prep dropdown */
+.careers-form-card .careers-application-form select:not(.phone-code-select) {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0 40px 0 14px;
+  font-size: 15px;
+  color: var(--navy);
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23061a2f' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 16px;
+  cursor: pointer;
+}
+
+.careers-form-card .careers-application-form select:not(.phone-code-select):invalid {
+  color: #9aa6b5;
+}
