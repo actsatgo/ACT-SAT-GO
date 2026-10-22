@@ -319,7 +319,7 @@ export default function App() {
         <FaqSection items={HOME_FAQ} />
 
         {/* CTA + Stats */}
-        <section className="prog-cta home-cta" id="consultation">
+        <section className="home-cta" id="consultation">
           <div className="shell">
             <div className="prog-cta-banner">
               <div>
