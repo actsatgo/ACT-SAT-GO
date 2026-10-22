@@ -574,7 +574,7 @@ export function FreeTestPage() {
 
                   <div className="ft-form-row">
                     <div className="ft-form-group">
-                      <label htmlFor="ft-target-score">Target Score (Optional)</label>
+                      <label htmlFor="ft-target-score">Target Score</label>
                       <input
                         id="ft-target-score"
                         type="text"
@@ -586,7 +586,7 @@ export function FreeTestPage() {
                     </div>
 
                     <div className="ft-form-group">
-                      <label htmlFor="ft-school">School Name (Optional)</label>
+                      <label htmlFor="ft-school">School Name</label>
                       <input
                         id="ft-school"
                         type="text"

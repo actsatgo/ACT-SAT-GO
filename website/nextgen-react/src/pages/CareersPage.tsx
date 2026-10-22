@@ -1100,7 +1100,7 @@ export function CareersPage() {
                           />
                         </div>
                         <div className="form-group">
-                          <label htmlFor="hourlyRate">Expected Hourly Rate (INR) <small>optional</small></label>
+                          <label htmlFor="hourlyRate">Expected Hourly Rate (INR)</label>
                           <input
                             type="text"
                             id="hourlyRate"
@@ -1196,7 +1196,7 @@ export function CareersPage() {
 
                       <div className="form-row">
                         <div className="form-group">
-                          <label htmlFor="opsCurrentRole">Current / Last Role and Company <small>optional</small></label>
+                          <label htmlFor="opsCurrentRole">Current / Last Role and Company</label>
                           <input
                             type="text"
                             id="opsCurrentRole"
@@ -1223,7 +1223,7 @@ export function CareersPage() {
 
                       <div className="form-row">
                         <div className="form-group">
-                          <label htmlFor="opsSalary">Expected Monthly Salary (INR) <small>optional</small></label>
+                          <label htmlFor="opsSalary">Expected Monthly Salary (INR)</label>
                           <input
                             type="text"
                             id="opsSalary"
@@ -1233,7 +1233,7 @@ export function CareersPage() {
                           />
                         </div>
                         <div className="form-group">
-                          <label htmlFor="opsNotice">Notice Period <small>optional</small></label>
+                          <label htmlFor="opsNotice">Notice Period</label>
                           <select
                             id="opsNotice"
                             value={opsForm.notice}
@@ -1324,7 +1324,7 @@ export function CareersPage() {
                         </div>
                       ) : (
                         <div className="form-group">
-                          <label htmlFor="opsLinkedin">LinkedIn Profile <small>optional</small></label>
+                          <label htmlFor="opsLinkedin">LinkedIn Profile</label>
                           <input
                             type="url"
                             id="opsLinkedin"
@@ -1338,7 +1338,7 @@ export function CareersPage() {
 
                     <div className="form-group">
                       <label htmlFor="remarks">
-                        {applyKind === 'ops' ? 'Why ACT SAT GO?' : 'Remarks (If Any)'} {applyKind === 'ops' && <small>optional</small>}
+                        {applyKind === 'ops' ? 'Why ACT SAT GO?' : 'Remarks (If Any)'} {applyKind === 'ops' &&}
                       </label>
                       <textarea
                         id="remarks"

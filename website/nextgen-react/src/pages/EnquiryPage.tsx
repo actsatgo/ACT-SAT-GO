@@ -166,7 +166,7 @@ export function EnquiryPage() {
                   </div>
 
                   <div className="c-form-group">
-                    <label htmlFor="enq-message">Target score and test date (optional)</label>
+                    <label htmlFor="enq-message">Target score and test date</label>
                     <textarea
                       id="enq-message"
                       className="c-input c-textarea"

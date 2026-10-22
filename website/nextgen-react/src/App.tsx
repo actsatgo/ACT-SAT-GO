@@ -440,7 +440,7 @@ export default function App() {
               </div>
 
               <div className="c-form-group">
-                <label htmlFor="modal-message">Target score and test date (optional)</label>
+                <label htmlFor="modal-message">Target score and test date</label>
                 <textarea
                   id="modal-message"
                   className="c-input c-textarea"
