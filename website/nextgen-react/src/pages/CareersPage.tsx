@@ -208,11 +208,36 @@ const PARTNER_PERKS = [
 export function CareersPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cvDragOver, setCvDragOver] = useState(false);
+  const [testPrepOpen, setTestPrepOpen] = useState(false);
+  const testPrepRef = useRef<HTMLDivElement>(null);
+
+  // Close the test prep dropdown on an outside click or Escape
+  useEffect(() => {
+    if (!testPrepOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!testPrepRef.current?.contains(e.target as Node)) setTestPrepOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setTestPrepOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [testPrepOpen]);
   const jobsMarqueeRef = useRef<HTMLDivElement>(null);
   const jobsPausedRef = useRef(false);
   const jobsDragRef = useRef({ dragging: false, moved: false, startX: 0, startScroll: 0 });
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [phoneCountryCode, setPhoneCountryCode] = useState('+1');
+  const [jobFilter, setJobFilter] = useState<'all' | 'academics' | 'operations'>('all');
+  const shownJobs = jobs.filter((job) => {
+    if (jobFilter === 'all') return true;
+    const academic = (job.dept || '').toLowerCase().includes('academ');
+    return jobFilter === 'academics' ? academic : !academic;
+  });
+  const [phoneCountryCode, setPhoneCountryCode] = useState('+91');
   const [phoneLocalNumber, setPhoneLocalNumber] = useState('');
   const [form, setForm] = useState({
     name: '',
@@ -274,7 +299,7 @@ export function CareersPage() {
     };
     rafId = requestAnimationFrame(step);
     return () => cancelAnimationFrame(rafId);
-  }, [jobs.length]);
+  }, [shownJobs.length]);
 
   // Keep the loop seamless: once scrolled past one full copy of the (duplicated) list, jump back.
   useEffect(() => {
@@ -291,7 +316,7 @@ export function CareersPage() {
     };
     el.addEventListener('scroll', handleScroll, { passive: true });
     return () => el.removeEventListener('scroll', handleScroll);
-  }, [jobs.length]);
+  }, [shownJobs.length]);
 
   const handleJobsPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== 'mouse') return; // let touch/trackpad use native scrolling
@@ -434,7 +459,7 @@ export function CareersPage() {
 
       if (response.ok) {
         setSubmitStatus('success');
-        setPhoneCountryCode('+1');
+        setPhoneCountryCode('+91');
         setPhoneLocalNumber('');
         setForm({
           name: '',
@@ -517,6 +542,27 @@ export function CareersPage() {
               directly with families in the USA, UK, India, Singapore and UAE.
             </p>
 
+            <div className="careers-tabs" role="tablist" aria-label="Filter roles">
+              {(
+                [
+                  ['all', 'All'],
+                  ['academics', 'Academics'],
+                  ['operations', 'Operations'],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={jobFilter === key}
+                  className={`careers-tab${jobFilter === key ? ' is-active' : ''}`}
+                  onClick={() => setJobFilter(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
             {/* Job cards */}
             <div
               className="careers-jobs-marquee"
@@ -530,7 +576,7 @@ export function CareersPage() {
               onClickCapture={handleJobsClickCapture}
             >
               <div className="careers-jobs-track">
-                {[...jobs, ...jobs].map((job, i) => (
+                {[...shownJobs, ...shownJobs].map((job, i) => (
                   <article key={`${job.id || job.title}-${i}`} className="careers-job-card">
                     <header className="careers-job-head">
                       <span className="careers-job-avatar" aria-hidden="true">{jobIcon(job.dept || '')}</span>
@@ -543,7 +589,6 @@ export function CareersPage() {
                     </header>
                     <div className="careers-job-body">
                       <p className="careers-job-desc">{job.desc}</p>
-                      <span className="careers-job-location">{job.location}</span>
                     </div>
                     <div className="careers-job-footer">
                       <button
@@ -720,7 +765,6 @@ export function CareersPage() {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="careers-application-form">
-                    <span className="careers-form-badge">Remote · Flexible hours</span>
                     <h3 className="form-legend">
                       Apply to teach with us
                       <small>Fields marked * are required.</small>
@@ -766,8 +810,8 @@ export function CareersPage() {
                             value={phoneCountryCode}
                             onChange={(e) => setPhoneCountryCode(e.target.value)}
                           >
-                            <option value="+1">+1 (US)</option>
                             <option value="+91">+91 (IN)</option>
+                            <option value="+1">+1 (US)</option>
                             <option value="+44">+44 (UK)</option>
                             <option value="+971">+971 (AE)</option>
                             <option value="+65">+65 (SG)</option>
@@ -827,103 +871,122 @@ export function CareersPage() {
                       </div>
                     </div>
 
-                    <div className="form-group">
-                      <label htmlFor="grades">Grades / Target Audiences *</label>
-                      <input
-                        type="text"
-                        id="grades"
-                        placeholder="e.g. Grades 9-12, College"
-                        required
-                        value={form.grades}
-                        onChange={(e) => setForm({ ...form, grades: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Test Prep Specializations (Select Multiple) *</label>
-                      <div className="test-prep-checklist">
-                        {TEST_PREP_OPTIONS.map((option) => (
-                          <label key={option} className="checklist-item">
-                            <input
-                              type="checkbox"
-                              checked={form.testPrep.includes(option)}
-                              onChange={() => handleTestPrepChange(option)}
-                            />
-                            <span className="checklist-label">{option}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="cv-upload" className="cv-upload-label">
-                        Upload CV (PDF, DOC, DOCX - Max 5MB) *
-                      </label>
-                      <div
-                        className={`file-uploader-box${cvDragOver ? ' is-dragover' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        aria-label="Upload CV"
-                        onClick={() => fileInputRef.current?.click()}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            fileInputRef.current?.click();
-                          }
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          setCvDragOver(true);
-                        }}
-                        onDragLeave={() => setCvDragOver(false)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          setCvDragOver(false);
-                          const file = e.dataTransfer.files?.[0];
-                          if (file) readCvFile(file);
-                        }}
-                      >
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="grades">Grades *</label>
                         <input
-                          type="file"
-                          ref={fileInputRef}
-                          id="cv-upload"
-                          accept=".pdf,.doc,.docx"
-                          onChange={handleFileChange}
-                          style={{ display: 'none' }}
+                          type="text"
+                          id="grades"
+                          placeholder="e.g. Grades 9-12"
+                          required
+                          value={form.grades}
+                          onChange={(e) => setForm({ ...form, grades: e.target.value })}
                         />
-                        <span className="file-drop-icon" aria-hidden="true">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="17 8 12 3 7 8" />
-                            <line x1="12" y1="3" x2="12" y2="15" />
-                          </svg>
-                        </span>
-                        <span className="file-drop-text">
-                          {cvFile ? (
-                            <strong>{cvFile.name}</strong>
-                          ) : (
-                            <strong>
-                              Drop your CV here or <u>browse</u>
-                            </strong>
+                      </div>
+                      <div className="form-group">
+                        <label id="test-prep-label">Test Prep Specializations *</label>
+                        <div className="test-prep-dropdown" ref={testPrepRef}>
+                          <button
+                            type="button"
+                            className={`test-prep-toggle${testPrepOpen ? ' is-open' : ''}`}
+                            aria-haspopup="listbox"
+                            aria-expanded={testPrepOpen}
+                            aria-labelledby="test-prep-label"
+                            onClick={() => setTestPrepOpen((o) => !o)}
+                          >
+                            <span className={form.testPrep.length ? '' : 'is-placeholder'}>
+                              {form.testPrep.length ? form.testPrep.join(', ') : 'Select one or more'}
+                            </span>
+                          </button>
+                          {testPrepOpen && (
+                            <div className="test-prep-menu" role="listbox" aria-multiselectable="true">
+                              {TEST_PREP_OPTIONS.map((option) => (
+                                <label key={option} className="checklist-item">
+                                  <input
+                                    type="checkbox"
+                                    checked={form.testPrep.includes(option)}
+                                    onChange={() => handleTestPrepChange(option)}
+                                  />
+                                  <span className="checklist-label">{option}</span>
+                                </label>
+                              ))}
+                            </div>
                           )}
-                          <span className="file-name-display">
-                            {cvFile ? 'Click to choose a different file' : 'PDF, DOC or DOCX, up to 5MB'}
-                          </span>
-                        </span>
+                        </div>
                       </div>
                     </div>
 
-                    <div className="form-group">
-                      <label htmlFor="videoUrl">Tutoring Video Introduction Link *</label>
-                      <input
-                        type="url"
-                        id="videoUrl"
-                        placeholder="e.g. Loom, YouTube, Google Drive link"
-                        required
-                        value={form.videoUrl}
-                        onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
-                      />
-                      <span className="field-hint">Please provide a 2-3 min video link explaining a concept or introducing yourself.</span>
+                    <div className="form-row">
+                      <div className="form-group">
+                        <label htmlFor="cv-upload" className="cv-upload-label">
+                          Upload CV (PDF, DOC, DOCX - Max 5MB) *
+                        </label>
+                        <div
+                          className={`file-uploader-box${cvDragOver ? ' is-dragover' : ''}`}
+                          role="button"
+                          tabIndex={0}
+                          aria-label="Upload CV"
+                          onClick={() => fileInputRef.current?.click()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              fileInputRef.current?.click();
+                            }
+                          }}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setCvDragOver(true);
+                          }}
+                          onDragLeave={() => setCvDragOver(false)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setCvDragOver(false);
+                            const file = e.dataTransfer.files?.[0];
+                            if (file) readCvFile(file);
+                          }}
+                        >
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            id="cv-upload"
+                            accept=".pdf,.doc,.docx"
+                            onChange={handleFileChange}
+                            style={{ display: 'none' }}
+                          />
+                          <span className="file-drop-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="17 8 12 3 7 8" />
+                              <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
+                          </span>
+                          <span className="file-drop-text">
+                            {cvFile ? (
+                              <strong>{cvFile.name}</strong>
+                            ) : (
+                              <strong>
+                                Drop your CV here or <u>browse</u>
+                              </strong>
+                            )}
+                            <span className="file-name-display">
+                              {cvFile ? 'Click to choose a different file' : 'PDF, DOC or DOCX, up to 5MB'}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="form-group">
+                        <label htmlFor="videoUrl">Tutoring Video Introduction Link *</label>
+                        <input
+                          type="url"
+                          id="videoUrl"
+                          placeholder="e.g. Loom, YouTube, Google Drive link"
+                          required
+                          value={form.videoUrl}
+                          onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
+                        />
+                        <span className="field-hint">Please provide a 2-3 min video link explaining a concept or introducing yourself.</span>
+                      </div>
                     </div>
 
                     <div className="form-group">
