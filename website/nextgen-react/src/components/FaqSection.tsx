@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import type { FaqItem } from '../data/faq';
 
 /** Accessible FAQ built on <details>; content is server-rendered for SEO. */
-export function FaqSection({ items, title = 'Questions parents ask' }: { items: FaqItem[]; title?: string }) {
+export function FaqSection({ items, title = 'FAQs' }: { items: FaqItem[]; title?: string }) {
   return (
     <section className="faq shell" id="faq" aria-labelledby="faq-title">
       <div className="section-heading center">

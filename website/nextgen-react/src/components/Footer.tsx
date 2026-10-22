@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Brand } from './Brand';
 import { WHATSAPP_HREF } from './WhatsAppButton';
-import { SITE, PRIMARY_CTA, CONSULT_PATH } from '../site';
+import { SITE, CONSULT_PATH } from '../site';
 import { trackContactClick } from '../lib/analytics';
 
 /** Site-wide footer — one copy, so contact details and links never drift apart. */
@@ -77,7 +77,6 @@ export function Footer() {
               <a href={`mailto:${SITE.email}`} onClick={() => trackContactClick('email')}>{SITE.email}</a>
             </li>
           </ul>
-          <Link className="btn btn-primary footer-cta" to={CONSULT_PATH}>{PRIMARY_CTA}</Link>
         </div>
       </div>
 
