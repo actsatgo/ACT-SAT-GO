@@ -182,10 +182,15 @@
   width: 100%;
   height: auto;
   display: block;
-  border-radius: 24px;
-  /* same gentle float + grounding shadow as the SAT hero (.sat-hero-img) */
-  filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.5));
-  animation: careers-hero-float 6.5s ease-in-out infinite;
+  /* no frame: the photo's edges fade into the navy hero so it reads as one scene */
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, #000 16%, #000 88%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 12%, #000 80%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0, #000 16%, #000 88%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 12%, #000 80%, transparent 100%);
+  mask-composite: intersect;
 }
 
 @keyframes careers-hero-float {
