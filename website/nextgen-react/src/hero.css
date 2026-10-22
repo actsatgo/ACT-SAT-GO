@@ -445,8 +445,8 @@
 /* Two columns: the card sits on the empty wall left of her face */
 @media (min-width: 1041px) {
   #home .card-result {
-    left: -58px;
-    top: 9%;
+    left: -128px;
+    top: 8%;
   }
 }
 
@@ -473,15 +473,47 @@
 /* Two-column hero: the faded photo reaches a little into the gap so the
    scene stays large; on smaller laptops the cards scale down with it */
 @media (min-width: 1041px) {
+  #home.hero {
+    padding-top: 24px;
+    padding-bottom: 40px;
+  }
+
+  #home .hero-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #home .hero-copy {
+    position: relative;
+    z-index: 4;
+  }
+
+  /* Bigger photo: it reaches into the gap on the left and its faded
+     top and bottom edges bleed past the section padding */
   #home .hero-art img {
-    width: calc(100% + 64px);
+    top: 0;
+    width: calc(100% + 120px);
     max-width: none;
-    margin-left: -64px;
+    margin: -36px 0 -64px -120px;
   }
 }
 
 @media (min-width: 1041px) and (max-width: 1240px) {
   #home :is(.card-result, .card-exams-new, .card-plan-glass) {
     zoom: 0.82;
+  }
+}
+
+@media (min-width: 1041px) and (max-width: 1240px) {
+  #home .hero-art img {
+    width: calc(100% + 40px);
+    margin-left: -40px;
+  }
+
+  #home .card-result {
+    left: -60px;
+  }
+
+  #home .card-plan-glass {
+    top: 56%;
   }
 }
