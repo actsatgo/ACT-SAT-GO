@@ -672,7 +672,7 @@
 
 /* Hero photo: full-height on the right, its left edge fading into the navy */
 .k12-hero {
-  min-height: clamp(560px, 46vw, 700px);
+  min-height: clamp(460px, 37vw, 560px);
   display: flex;
   align-items: center;
 }
@@ -680,7 +680,7 @@
 .k12-hero > .shell.k12-hero-grid {
   flex: none;
   grid-template-columns: minmax(0, 0.48fr) 1fr;
-  padding-block: 56px;
+  padding-block: 44px;
 }
 
 .k12-hero-bg {
@@ -688,7 +688,7 @@
   top: 0;
   right: 0;
   z-index: 1;
-  width: 66%;
+  width: 56%;
   height: 100%;
   object-fit: cover;
   object-position: 70% 30%;

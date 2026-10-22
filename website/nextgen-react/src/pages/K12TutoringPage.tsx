@@ -247,7 +247,6 @@ export function K12TutoringPage() {
           <span className="orb orb-ring" aria-hidden="true" />
           <div className="shell k12-hero-grid">
             <div className="k12-hero-copy">
-              <span className="eyebrow-hero">K-12 TUTORING</span>
               <h1>
                 Personalized Support.<br />
                 Stronger Foundations.<br />
