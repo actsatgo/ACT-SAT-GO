@@ -1012,3 +1012,69 @@
   }
 }
 
+
+/* Hero: the team photo is the whole backdrop (people on the right, empty
+   navy on the left for the copy). Phones stack the photo above the copy. */
+.careers-hero-section {
+  display: grid;
+  align-content: center;
+  min-height: clamp(520px, 42vw, 640px);
+  padding: 72px 0;
+  background: linear-gradient(180deg, #052042 0%, #021a36 100%);
+}
+
+.careers-hero-section::before {
+  display: none;
+}
+
+.careers-hero-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 100% 65%;
+}
+
+.careers-hero-section .careers-hero-grid {
+  grid-template-columns: 1fr;
+}
+
+.careers-hero-section .careers-hero-copy {
+  max-width: min(560px, 40vw);
+}
+
+@media (max-width: 960px) {
+  .careers-hero-section {
+    display: block;
+    min-height: 0;
+    padding: 0 0 48px;
+  }
+
+  .careers-hero-bg {
+    position: relative;
+    display: block;
+    height: auto;
+    aspect-ratio: 1672 / 941;
+    object-fit: cover;
+    object-position: 85% 50%;
+    -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 70%, transparent 100%);
+  }
+
+  .careers-hero-section .careers-hero-grid {
+    margin-top: -24px;
+  }
+
+  .careers-hero-section .careers-hero-copy {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  .careers-hero-bg {
+    aspect-ratio: 4 / 3;
+    object-position: 92% 50%;
+  }
+}
