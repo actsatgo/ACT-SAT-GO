@@ -1502,6 +1502,825 @@ export const ARTICLES: Article[] = [
     ],
   },
   {
+    slug: 'sat-test-day-checklist',
+    title: 'SAT Test Day Checklist: What to Bring and What to Expect',
+    metaTitle: 'SAT Test Day Checklist: What to Bring and Expect | ACT SAT GO',
+    description:
+      'A complete Digital SAT test day checklist for students and parents: Bluebook setup, what to bring, what to leave at home, the night-before routine and what happens in the test room.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'SAT',
+    answer:
+      'Bring a fully charged laptop or tablet with Bluebook installed and exam setup complete, your admission ticket, an acceptable photo ID, pencils or pens, and your charger. An approved calculator, a snack and water are optional. Finish exam setup in Bluebook before test day, because that is what creates your admission ticket.',
+    sections: [
+      {
+        heading: 'One week before: handle the tech',
+        list: [
+          'Install or update Bluebook on the exact device you will bring. School-managed devices sometimes need the school’s IT team to install it, so ask early.',
+          'Complete exam setup in Bluebook. This step creates your admission ticket and cannot be done at the test center.',
+          'Take one full practice test on that same device, so you know the app runs smoothly and the on-screen tools feel familiar.',
+          'No device of your own? College Board can lend one if you request it well in advance through your registration.',
+          'Log in to your College Board account and confirm your test center address and any center-specific instructions.',
+        ],
+      },
+      {
+        heading: 'What to bring',
+        table: {
+          head: ['Item', 'Required?', 'Notes'],
+          rows: [
+            ['Laptop or tablet', 'Required', 'Fully charged, Bluebook installed, exam setup complete'],
+            ['Admission ticket', 'Required', 'Printed or ready to show'],
+            ['Photo ID', 'Required', 'School or government ID that matches your registration name'],
+            ['Pencils or pens', 'Required', 'For the scratch paper the center provides'],
+            ['Charger', 'Strongly recommended', 'Outlets are not guaranteed, but bring it anyway'],
+            ['Approved calculator', 'Optional', 'Bluebook has a built-in Desmos graphing calculator'],
+            ['Snack and water', 'Optional', 'For the 10-minute break'],
+            ['Light layer', 'Optional', 'Testing rooms are often cold'],
+          ],
+        },
+      },
+      {
+        heading: 'What to leave at home',
+        paragraphs: [
+          'Phones and smartwatches must be powered off and stored for the whole test, including the break. Being seen with a phone can get scores cancelled. Leave notes, books, highlighters, separate timers and earbuds at home unless an approved accommodation allows them.',
+        ],
+      },
+      {
+        heading: 'The night before and the morning of',
+        list: [
+          'Stop studying by early evening. A light look at your error log or formula list is fine; cramming new content is not.',
+          'Eat a normal dinner, keep caffeine at your usual level and get a full night’s sleep.',
+          'Set two alarms and plan your route, including traffic and parking.',
+          'Eat a real breakfast. You will be testing for more than two hours.',
+          'Arrive early. Your admission ticket shows the arrival time, and late arrivals may be turned away.',
+          'Warm up with two or three easy questions you have already solved, just to get into test mode.',
+        ],
+      },
+      {
+        heading: 'What happens in the test room',
+        list: [
+          'Check-in: staff verify your ID and admission ticket and seat you.',
+          'Start: proctors read instructions and give you a start code for Bluebook.',
+          'Reading and Writing: two 32-minute modules of 27 questions each.',
+          'Break: 10 minutes. Stand up, eat, drink water, and keep your phone off.',
+          'Math: two 35-minute modules of 22 questions each.',
+          'Finish: Bluebook submits your answers automatically when the last module ends.',
+        ],
+      },
+      {
+        heading: 'If something goes wrong',
+        paragraphs: [
+          'If your device freezes, the battery dies or the app crashes, raise your hand right away. Bluebook saves your work as you go, and proctors are trained to get you back into the test.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Do I need to print my SAT admission ticket?',
+        a: 'Your admission ticket is created when you complete exam setup in Bluebook. Have it printed or ready to show at check-in, and check your College Board account for your test center’s instructions.',
+      },
+      {
+        q: 'Can I bring my own calculator to the Digital SAT?',
+        a: 'Yes, as long as it is on College Board’s approved list. You do not need one, because Bluebook includes a Desmos graphing calculator on every Math question.',
+      },
+      {
+        q: 'What time should I arrive for the SAT?',
+        a: 'Follow the arrival time on your admission ticket and plan to get there early. Students who arrive after doors close may not be admitted.',
+      },
+      {
+        q: 'Is there a break during the SAT?',
+        a: 'Yes. There is a 10-minute break between the Reading and Writing section and the Math section. Phones must stay off during the break.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: The Digital SAT', url: 'https://satsuite.collegeboard.org/digital' },
+      { name: 'College Board: Calculator Policy', url: 'https://satsuite.collegeboard.org/digital/what-to-bring-do/calculator-policy' },
+    ],
+  },
+  {
+    slug: 'common-sat-mistakes',
+    title: '12 Common SAT Mistakes and How to Fix Each One',
+    metaTitle: '12 Common SAT Mistakes and How to Fix Them | ACT SAT GO',
+    description:
+      'The Digital SAT mistakes that cost students the most points, from solving for the wrong value to guessing at grammar by ear, with a practical fix for each one.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'SAT',
+    answer:
+      'Most lost SAT points come from a handful of repeatable mistakes, not from missing knowledge: spending too long on one question, leaving answers blank, reviewing practice tests poorly, choosing answers that sound right but are not supported by the text, and solving for the wrong value in Math. Each one can be fixed with a specific habit.',
+    sections: [
+      {
+        heading: 'Strategy mistakes',
+        list: [
+          'Treating every question as equally hard. Fix: if a question takes about twice the average time, guess, use Mark for Review and move on.',
+          'Leaving questions blank. Fix: there is no penalty for wrong answers, so check the question navigator before time runs out and answer everything.',
+          'Taking practice tests without reviewing them. Fix: spend at least as long reviewing as testing, and keep an error log of why you missed each question.',
+          'Panicking in Module 2. Fix: harder second-module questions usually mean you did well on the first module. Stay with your process.',
+        ],
+      },
+      {
+        heading: 'Reading and Writing mistakes',
+        list: [
+          'Answering from memory or opinion. Fix: before you click, point to the exact words in the passage that prove your answer.',
+          'Choosing an answer that is true but does not answer the question. Fix: re-read the question stem right before choosing.',
+          'Guessing at grammar by ear. Fix: learn the core punctuation and agreement rules and name the rule each question tests.',
+          'Picking transitions that sound smart. Fix: decide first whether the second sentence continues, contrasts with or results from the first, then find the matching word.',
+        ],
+      },
+      {
+        heading: 'Math mistakes',
+        list: [
+          'Solving for the wrong thing, such as x instead of 2x. Fix: note exactly what the question asks for before solving, and re-read the last line after.',
+          'Doing everything by hand. Fix: practise using the built-in Desmos calculator for systems, quadratics and checking answers.',
+          'Entering typed answers incorrectly. Fix: mixed numbers such as 3 1/2 are not accepted; enter 7/2 or 3.5. Negative answers, fractions and decimals are fine.',
+          'Skipping the check. Fix: plug your answer back into the original equation or check it in Desmos when you have time.',
+        ],
+      },
+      {
+        heading: 'How to find your own most expensive mistakes',
+        paragraphs: [
+          'Take a full-length practice test in Bluebook. Label every missed question as a content gap, careless error, misread question or timing problem, then count the labels. The biggest category is where your next points are.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Is there a penalty for guessing on the SAT?',
+        a: 'No. Wrong answers are not subtracted, so you should answer every question, even if you have to guess.',
+      },
+      {
+        q: 'How do I stop making careless mistakes on the SAT?',
+        a: 'Build specific habits instead of relying on willpower: note what the question asks for, check answers by substituting them back, and track careless errors separately in an error log so you can see the pattern.',
+      },
+      {
+        q: 'What is the most common SAT Math mistake?',
+        a: 'Solving for the wrong quantity, such as finding x when the question asks for x + y or 2x, is one of the most common and most avoidable errors.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: The Digital SAT', url: 'https://satsuite.collegeboard.org/digital' },
+      { name: 'College Board: Official Practice Tests', url: 'https://satsuite.collegeboard.org/practice/practice-tests' },
+    ],
+  },
+  {
+    slug: 'sat-pacing-time-management',
+    title: 'SAT Pacing Guide: Time Management for Every Digital SAT Module',
+    metaTitle: 'SAT Pacing and Time Management Guide | ACT SAT GO',
+    description:
+      'How much time you get per question on the Digital SAT, which question types take longest, and pacing checkpoints for Reading and Writing and Math.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'SAT',
+    answer:
+      'On the Digital SAT you get about 71 seconds per Reading and Writing question and about 95 seconds per Math question. The best pacing strategy is a two-pass approach: answer what you can confidently, guess and flag anything taking too long, then return to flagged questions with the time left.',
+    sections: [
+      {
+        heading: 'How much time you have',
+        table: {
+          head: ['Section', 'Questions per module', 'Time per module', 'Average per question'],
+          rows: [
+            ['Reading and Writing', '27', '32 minutes', 'About 71 seconds'],
+            ['Math', '22', '35 minutes', 'About 95 seconds'],
+          ],
+        },
+        paragraphs: [
+          'You can move back and forth within a module, but once a module ends you cannot return to it. Each module has its own clock, so time saved in Module 1 does not carry over.',
+        ],
+      },
+      {
+        heading: 'Pacing Reading and Writing',
+        list: [
+          'Bank time on faster questions. Grammar, punctuation and transition questions can often be answered in 30 to 45 seconds once you know the rules.',
+          'Expect slower questions: words in context, inference, data from tables or graphs, and supporting-quotation questions.',
+          'Read the question before the passage, so you know what you are reading for.',
+          'If a question passes about two minutes, guess, use Mark for Review and move on.',
+        ],
+      },
+      {
+        heading: 'Pacing Math',
+        list: [
+          'Do not let one question take over the module. After about three minutes with no clear path, guess, flag and move on.',
+          'Use Desmos where it is faster: systems of equations, quadratics and checking answer choices.',
+          'Solve simple one-step questions by hand. Practise both ways so you know which is quicker for each type.',
+          'Allow a little extra time for typed-answer questions, since there are no choices to eliminate.',
+        ],
+      },
+      {
+        heading: 'Pacing checkpoints',
+        table: {
+          head: ['Module', 'Checkpoint 1', 'Checkpoint 2'],
+          rows: [
+            ['Reading and Writing (32 min)', 'Question 9: about 21 minutes left', 'Question 18: about 10 to 11 minutes left'],
+            ['Math (35 min)', 'Question 8: about 23 minutes left', 'Question 15: about 12 minutes left'],
+          ],
+        },
+        paragraphs: [
+          'These are guides, not rules. Early questions tend to be easier, so being a little ahead early is normal. Aim to finish the first pass with a few minutes left for flagged questions and a final check that nothing is blank.',
+        ],
+      },
+      {
+        heading: 'How to build better pacing',
+        list: [
+          'Practise timed. Untimed work builds understanding; only timed work builds pacing.',
+          'Time single question types, such as ten transition questions, to see where your time goes.',
+          'After each practice test, note which questions took longest and why.',
+          'Take full-length tests in Bluebook to build stamina, and decide in practice whether you prefer the timer shown or hidden.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'How much time do you get per question on the SAT?',
+        a: 'About 71 seconds per Reading and Writing question (27 questions in 32 minutes) and about 95 seconds per Math question (22 questions in 35 minutes).',
+      },
+      {
+        q: 'Can you go back to a previous module on the Digital SAT?',
+        a: 'No. You can move freely between questions inside a module, but once the module ends you cannot return to it.',
+      },
+      {
+        q: 'What should I do if I keep running out of time on the SAT?',
+        a: 'Use a two-pass approach, set a firm time limit for any single question, and practise timed sets of the question types that slow you down most. Students with a documented need may also be eligible for extended time through College Board accommodations.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: The Digital SAT', url: 'https://satsuite.collegeboard.org/digital' },
+      { name: 'College Board: Accommodations', url: 'https://accommodations.collegeboard.org/' },
+    ],
+  },
+  {
+    slug: 'how-to-review-sat-practice-test',
+    title: 'How to Review an SAT Practice Test (and Build an Error Log That Works)',
+    metaTitle: 'How to Review an SAT Practice Test: Error Log Guide | ACT SAT GO',
+    description:
+      'A step-by-step method for reviewing Digital SAT practice tests: which questions to review, how to diagnose each mistake, and an error log format that turns mistakes into points.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'SAT',
+    answer:
+      'Review every practice test within a day or two, and spend at least as long reviewing as you spent testing. Look at questions you got wrong, questions you guessed on, and questions that took too long. For each one, record why it went wrong in an error log, then look for patterns every two or three tests.',
+    sections: [
+      {
+        heading: 'Why review matters more than the test',
+        paragraphs: [
+          'A practice test only shows what you already know. The learning happens in the review. Students who review carefully often improve faster with fewer tests than students who simply keep testing.',
+          'Take the test under real conditions first: an official full-length practice test in Bluebook, in one sitting, with the 10-minute break and no phone.',
+        ],
+      },
+      {
+        heading: 'Review three groups of questions',
+        list: [
+          'Questions you got wrong.',
+          'Questions you got right but guessed on. Use Mark for Review during the test so you can find them later.',
+          'Questions you got right but that took too long, because slow correct answers cost time everywhere else.',
+        ],
+      },
+      {
+        heading: 'Diagnose why each question went wrong',
+        table: {
+          head: ['Error type', 'What it looks like', 'What to do'],
+          rows: [
+            ['Content gap', 'You did not know the rule, formula or concept', 'Learn it, then do 5 to 10 targeted questions'],
+            ['Careless error', 'Arithmetic slip, misclick or skipped step', 'Build a checking habit'],
+            ['Misread question', 'Solved for the wrong thing or missed NOT or least', 'Restate what is asked before solving'],
+            ['Trap answer', 'Chose a partly true or tempting option', 'Study why the trap was wrong'],
+            ['Timing', 'Rushed or ran out of time', 'Practise pacing and moving on'],
+          ],
+        },
+        paragraphs: [
+          'Before reading the explanation, try the question again without time pressure. If you solve it now, the problem was timing or carelessness. If you still cannot, it is a content gap. Then make sure you understand why each wrong answer is wrong, not just why the right one is right.',
+        ],
+      },
+      {
+        heading: 'What to put in your error log',
+        table: {
+          head: ['Column', 'Example'],
+          rows: [
+            ['Date and test', 'Oct 12, Practice Test 4, Math Module 2'],
+            ['Question and topic', 'Q14, systems of equations'],
+            ['Error type', 'Misread question'],
+            ['Why I missed it', 'Solved for x; the question asked for x + y'],
+            ['Takeaway rule', 'Re-read the last line before answering'],
+          ],
+        },
+        paragraphs: [
+          'The takeaway column matters most. Write it as a short rule you can reread before your next test.',
+        ],
+      },
+      {
+        heading: 'Find patterns and redo old mistakes',
+        list: [
+          'Every two or three tests, sort the log by topic and error type. Your next points usually sit in two or three categories.',
+          'A week or two later, redo questions from the log without notes. If you miss them again, the concept has not stuck yet.',
+          'For most students, one full-length test every one to two weeks, with careful review between tests, works better than testing every few days.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'How long should it take to review an SAT practice test?',
+        a: 'Plan to spend at least as long reviewing as you spent taking the test, about two hours or more. The review is where most of the improvement happens.',
+      },
+      {
+        q: 'What is an SAT error log?',
+        a: 'An error log is a document or spreadsheet where you record every missed or uncertain question, why it went wrong, and a short rule to avoid the same mistake next time.',
+      },
+      {
+        q: 'How often should I take full SAT practice tests?',
+        a: 'For most students, every one to two weeks is enough, with targeted practice on the weaknesses each test reveals in between.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: Official Practice Tests', url: 'https://satsuite.collegeboard.org/practice/practice-tests' },
+      { name: 'College Board: SAT Suite Question Bank', url: 'https://satsuiteeducatorquestionbank.collegeboard.org/' },
+    ],
+  },
+  {
+    slug: 'sat-grammar-rules',
+    title: 'SAT Grammar Rules: The Punctuation and Usage Rules You Need',
+    metaTitle: 'SAT Grammar Rules for the Digital SAT | ACT SAT GO',
+    description:
+      'The grammar rules tested in Standard English Conventions on the Digital SAT: joining clauses, semicolons, colons, dashes, apostrophes, agreement, verb tense and modifiers.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'SAT',
+    answer:
+      'SAT grammar questions fall under Standard English Conventions and test a small, predictable set of rules: how to join and separate clauses, when to use semicolons, colons and dashes, apostrophes, subject-verb and pronoun agreement, verb tense and modifier placement. Learning these rules is one of the fastest ways to gain Reading and Writing points.',
+    sections: [
+      {
+        heading: 'Start with independent clauses',
+        paragraphs: [
+          'An independent clause has a subject and a verb and can stand alone as a sentence: "The students finished the test." A dependent clause cannot: "Because the students finished the test." Most punctuation questions depend on whether the pieces on each side of the punctuation are independent clauses.',
+        ],
+      },
+      {
+        heading: 'Joining two independent clauses',
+        table: {
+          head: ['Method', 'Example', 'Correct?'],
+          rows: [
+            ['Period', 'The test ended. Everyone cheered.', 'Yes'],
+            ['Semicolon', 'The test ended; everyone cheered.', 'Yes'],
+            ['Comma + and, but, or, so, for, nor, yet', 'The test ended, and everyone cheered.', 'Yes'],
+            ['Colon, when the second part explains the first', 'The result was clear: everyone passed.', 'Yes'],
+            ['Comma alone (comma splice)', 'The test ended, everyone cheered.', 'No'],
+            ['Nothing (run-on)', 'The test ended everyone cheered.', 'No'],
+          ],
+        },
+        paragraphs: [
+          'A period and a semicolon do the same job between two independent clauses. If two answer choices differ only by period versus semicolon, neither is the answer.',
+        ],
+      },
+      {
+        heading: 'Semicolons, colons and dashes',
+        list: [
+          'Semicolons join two independent clauses or separate list items that already contain commas: Austin, Texas; Denver, Colorado; and Miami, Florida.',
+          'A colon must follow a complete sentence. "She brought three things: a calculator, a pencil and a snack" is correct; "She brought: a calculator" is not.',
+          'Extra information is set off by a matching pair of commas, dashes or parentheses. If it opens with a dash, it must close with a dash.',
+          'Test it: remove the extra information. The sentence should still be complete.',
+        ],
+      },
+      {
+        heading: 'Commas that do not belong',
+        list: [
+          'No comma between a subject and its verb: "The results of the study were surprising."',
+          'No comma between a verb and its object.',
+          'No commas around an essential name: "The novelist Toni Morrison won the Nobel Prize."',
+        ],
+      },
+      {
+        heading: 'Apostrophes',
+        list: [
+          'Singular possessive: the student’s book. Plural possessive: the students’ books.',
+          'Its is possessive; it’s means it is.',
+          'Their is possessive; they’re means they are; there is a place.',
+        ],
+      },
+      {
+        heading: 'Agreement, tense and modifiers',
+        list: [
+          'Subject-verb agreement: the verb agrees with its subject, not the nearest noun. "The list of required materials is posted online."',
+          'Pronoun agreement: "Each team submitted its project." A team is singular.',
+          'Verb tense: match the timeline of the surrounding sentences unless something signals a change in time.',
+          'Modifiers: an opening phrase must describe the noun right after the comma. "After studying for weeks, Maria found the test easy," not "the test seemed easy to Maria."',
+        ],
+      },
+      {
+        heading: 'A four-step process for every grammar question',
+        list: [
+          'Look at what changes across the answer choices.',
+          'Name the rule being tested.',
+          'Find the key words: the subject, the clauses on each side of the punctuation, or the noun a pronoun replaces.',
+          'Eliminate choices that break the rule and confirm the one that remains.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Is grammar tested on the Digital SAT?',
+        a: 'Yes. Grammar and punctuation are tested in the Standard English Conventions questions within the Reading and Writing section.',
+      },
+      {
+        q: 'What is the most tested SAT grammar rule?',
+        a: 'Punctuation between clauses, known as boundaries, appears often: knowing when to use a period, semicolon, comma with a conjunction, colon or dash covers a large share of grammar questions.',
+      },
+      {
+        q: 'Can I answer SAT grammar questions by ear?',
+        a: 'Not reliably. Many wrong answers sound natural in speech. Naming the rule being tested is more accurate and faster.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: Reading and Writing Section', url: 'https://satsuite.collegeboard.org/sat/whats-on-the-test/reading-writing' },
+    ],
+  },
+  {
+    slug: 'sat-math-formulas',
+    title: 'SAT Math Formulas You Need to Know (Beyond the Reference Sheet)',
+    metaTitle: 'SAT Math Formulas to Memorize | ACT SAT GO',
+    description:
+      'What the Digital SAT reference sheet includes, and the essential formulas it leaves out: slope, quadratics, exponents, percentages, statistics, circles and trigonometry.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'SAT',
+    answer:
+      'The Digital SAT reference sheet covers mostly geometry: areas, volumes, the Pythagorean theorem and special right triangles. You still need to memorize formulas for slope and lines, quadratics and the discriminant, exponent rules and exponential growth, percent change, mean and median, circle equations, and basic trigonometry.',
+    sections: [
+      {
+        heading: 'What the reference sheet includes',
+        list: [
+          'Circle: area A = πr², circumference C = 2πr.',
+          'Rectangle: A = lw. Triangle: A = ½bh.',
+          'Pythagorean theorem: a² + b² = c².',
+          'Special right triangles: 30-60-90 (x, x√3, 2x) and 45-45-90 (s, s, s√2).',
+          'Volumes: rectangular prism lwh, cylinder πr²h, sphere (4/3)πr³, cone (1/3)πr²h, pyramid (1/3)lwh.',
+          'A circle has 360° or 2π radians, and the angles in a triangle add up to 180°.',
+        ],
+        paragraphs: [
+          'Memorizing these still helps, because it saves opening the sheet on every question.',
+        ],
+      },
+      {
+        heading: 'Lines and systems of equations',
+        list: [
+          'Slope: m = (y₂ − y₁) / (x₂ − x₁).',
+          'Slope-intercept form: y = mx + b. Point-slope form: y − y₁ = m(x − x₁). Standard form Ax + By = C has slope −A/B.',
+          'Parallel lines have equal slopes; perpendicular slopes are negative reciprocals.',
+          'Systems: different slopes give one solution; same slope and different intercepts give no solution; the same line gives infinitely many solutions.',
+        ],
+      },
+      {
+        heading: 'Quadratics',
+        list: [
+          'Standard form y = ax² + bx + c; vertex form y = a(x − h)² + k; factored form y = a(x − r)(x − s).',
+          'Quadratic formula: x = [−b ± √(b² − 4ac)] / 2a.',
+          'Discriminant b² − 4ac: positive means two real solutions, zero means one, negative means none.',
+          'Vertex x-coordinate: x = −b / 2a. Sum of roots −b/a; product of roots c/a.',
+        ],
+      },
+      {
+        heading: 'Exponents, growth and percentages',
+        list: [
+          'xᵃ · xᵇ = xᵃ⁺ᵇ, xᵃ / xᵇ = xᵃ⁻ᵇ, (xᵃ)ᵇ = xᵃᵇ, x⁰ = 1, x⁻ᵃ = 1/xᵃ.',
+          'Exponential growth or decay: y = a(1 ± r)ᵗ, where a is the starting amount and r is the rate as a decimal.',
+          'Percent change = (new − original) / original × 100.',
+          'Increase by p%: multiply by (1 + p/100). Decrease by p%: multiply by (1 − p/100).',
+        ],
+      },
+      {
+        heading: 'Statistics and probability',
+        list: [
+          'Mean is the sum divided by the count; median is the middle value in order; range is maximum minus minimum.',
+          'Outliers pull the mean much more than the median.',
+          'Standard deviation measures spread: data close to the mean has a smaller standard deviation.',
+          'Probability = favorable outcomes ÷ total outcomes. In two-way tables, check which group the question describes.',
+        ],
+      },
+      {
+        heading: 'Circles, triangles and trigonometry',
+        list: [
+          'Circle equation: (x − h)² + (y − k)² = r², center (h, k). Completing the square often puts it in this form.',
+          'Arc length = (angle/360°) × 2πr. Sector area = (angle/360°) × πr². 180° = π radians.',
+          'SOHCAHTOA: sin = opposite/hypotenuse, cos = adjacent/hypotenuse, tan = opposite/adjacent; sin(x) = cos(90° − x).',
+          'Similar triangles have proportional sides and equal angles.',
+          'Distance: √[(x₂ − x₁)² + (y₂ − y₁)²]. Midpoint: ((x₁ + x₂)/2, (y₁ + y₂)/2).',
+        ],
+      },
+      {
+        heading: 'Know when to use each formula',
+        paragraphs: [
+          'The SAT tests whether you can recognize which formula a word problem calls for and explain what each part means, such as the starting value or rate. After each question, ask what in the wording pointed to the formula, and use Desmos to check formula-based answers.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Does the Digital SAT give you a formula sheet?',
+        a: 'Yes. Bluebook includes a reference sheet with common geometry formulas, but it does not include formulas such as slope, the quadratic formula, exponent rules or the circle equation.',
+      },
+      {
+        q: 'Which SAT math formulas should I memorize first?',
+        a: 'Start with slope and linear equation forms, the quadratic formula and discriminant, exponential growth and percent change, because algebra and advanced math make up most of the Math section.',
+      },
+      {
+        q: 'Is the quadratic formula on the SAT reference sheet?',
+        a: 'No. You need to know it, though Desmos can also find the solutions of a quadratic by graphing it.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: Math Section', url: 'https://satsuite.collegeboard.org/sat/whats-on-the-test/math' },
+      { name: 'College Board: Calculator Policy', url: 'https://satsuite.collegeboard.org/digital/what-to-bring-do/calculator-policy' },
+    ],
+  },
+  {
+    slug: 'sat-score-plateau',
+    title: 'Stuck on an SAT Score Plateau? 8 Ways to Break Through',
+    metaTitle: 'SAT Score Not Improving? 8 Ways to Break a Plateau | ACT SAT GO',
+    description:
+      'Why SAT scores stall after early gains and eight practical ways to break through, from targeted error analysis to practising at the level of the harder second module.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'SAT',
+    answer:
+      'SAT scores usually plateau because early gains come from learning the format, and the remaining points sit in specific content gaps, careless habits, harder Module 2 questions and stamina. To break through, pause full-length testing, find exactly which topics and error types cost the most points, and practise those at the difficulty you are aiming for.',
+    sections: [
+      {
+        heading: 'Why plateaus happen',
+        paragraphs: [
+          'Early improvements usually come from getting familiar with the test, learning the most common rules and fixing obvious timing problems. After that, points are harder to win because they sit in gaps you have not identified, habits that do not fix themselves, harder questions that only appear in the more difficult second module, and stamina late in each module. More of the same practice will not fix these.',
+        ],
+      },
+      {
+        heading: '8 ways to break through',
+        list: [
+          'Pause practice tests for one to two weeks. Another full test will likely give the same score; targeted skill work will not.',
+          'Get specific. "I miss most exponential and percent-change questions" is a plan; "get better at math" is not. Categorize every miss from your last two or three tests by topic and reason.',
+          'Practise at the level you want. Once medium questions are consistent, use the difficulty filter in College Board’s question bank to work on hard ones.',
+          'Fix careless errors with a system: note what the question asks, check answers by substitution or Desmos, and track careless errors separately.',
+          'Protect Module 1. Because Module 2 adapts to it, rushed mistakes on early easy questions can cap your score.',
+          'Change how you study: explain answers out loud, redo old mistakes without notes, and do short timed drills on one question type.',
+          'Check your stamina. If accuracy drops late in modules or in Math after Reading and Writing, build it with regular full-length practice and enough sleep.',
+          'Get an outside perspective. The thinking that caused a mistake often hides it during your own review.',
+        ],
+      },
+      {
+        heading: 'What realistic improvement looks like',
+        list: [
+          'Progress is rarely a straight line, and a lower practice score during improvement is normal.',
+          'Gains often come in jumps after a specific weakness is fixed.',
+          'A small gain can matter, for example moving into a college’s middle-50% range or past a scholarship cutoff.',
+          'Judge progress by the trend across several tests, not one score.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Why is my SAT score not improving?',
+        a: 'Usually because the remaining points sit in specific content gaps, careless habits, harder Module 2 questions or stamina, and repeating full practice tests does not target any of them. Analyse your errors and practise the specific weak areas.',
+      },
+      {
+        q: 'Should I keep taking practice tests if my score is stuck?',
+        a: 'Take a short break from full tests and spend one to two weeks on targeted practice based on your error log, then test again to measure the change.',
+      },
+      {
+        q: 'Does the first module affect my SAT score?',
+        a: 'Yes. Your performance on the first module of each section decides whether you get the easier or harder second module, which affects the score range you can reach.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: SAT Suite Question Bank', url: 'https://satsuiteeducatorquestionbank.collegeboard.org/' },
+      { name: 'College Board: Understanding Scores', url: 'https://satsuite.collegeboard.org/scores/understanding-scores' },
+    ],
+  },
+  {
+    slug: 'sat-test-anxiety',
+    title: 'SAT Test Anxiety: How to Stay Calm and Perform Your Best',
+    metaTitle: 'SAT Test Anxiety: How to Stay Calm on Test Day | ACT SAT GO',
+    description:
+      'Why test anxiety affects SAT performance and practical ways to manage it before and during the Digital SAT, plus how parents can help.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'SAT',
+    answer:
+      'The best way to manage SAT test anxiety is to make the test feel familiar: take full-length practice tests in Bluebook, expect harder questions in Module 2, and decide in advance what you will do when you get stuck. On test day, slow breathing, focusing on one question at a time and using the break to reset all help keep nerves at a useful level.',
+    sections: [
+      {
+        heading: 'Why anxiety costs points',
+        paragraphs: [
+          'Stress triggers a fight-or-flight response that can make it harder to use working memory, the mental space you use to hold information while solving a problem. That is why anxious students say their mind went blank on material they know. The goal is not to remove nerves completely but to keep them at a level where you can think clearly.',
+        ],
+      },
+      {
+        heading: 'Before test day',
+        list: [
+          'Make the test familiar. Take full-length practice tests in Bluebook and practise with the timer, Mark for Review, answer eliminator and Desmos.',
+          'Expect hard questions. Harder questions in the second module are often a sign you did well on the first.',
+          'Have a move-on plan: guess, flag and keep going when a question stalls you.',
+          'Keep perspective. Most students can retake the SAT, and many colleges superscore.',
+          'Keep your routine, prepare your bag and Bluebook setup early, avoid late-night cramming and protect your sleep.',
+        ],
+      },
+      {
+        heading: 'During the test',
+        list: [
+          'Box breathing: breathe in for 4 seconds, hold for 4, breathe out for 4, hold for 4. Repeat three or four times.',
+          'Reframe the feeling. Anxiety and excitement feel similar in the body; telling yourself you are ready for something important can help.',
+          'Ground yourself if your mind goes blank: look away and notice three things you can see and two things you can feel.',
+          'Focus only on the question in front of you, not your score or the last question.',
+          'Use the 10-minute break to stand, stretch, eat and drink. Do not replay Reading and Writing; Math is a fresh start.',
+        ],
+      },
+      {
+        heading: 'How parents can help',
+        list: [
+          'Praise preparation and effort rather than scores.',
+          'Watch your own stress, because teens notice it.',
+          'Keep test morning calm: breakfast and an on-time departure matter more than last-minute advice.',
+          'Remind your child that a retake is normal and often helpful.',
+        ],
+      },
+      {
+        heading: 'When anxiety is more than nerves',
+        paragraphs: [
+          'If anxiety is severe or affects your child in many areas of life, talk with a school counselor, doctor or mental health professional. Students with documented conditions may be eligible for College Board testing accommodations, which must be approved in advance.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Is it normal to be nervous about the SAT?',
+        a: 'Yes. Many students feel nervous, and some nerves can sharpen focus. Anxiety becomes a problem when it makes it hard to think clearly, which practice and simple calming techniques can help with.',
+      },
+      {
+        q: 'How do I calm down during the SAT?',
+        a: 'Try box breathing for under a minute, ground yourself by noticing your surroundings, and bring your attention back to just the current question. Use the break to reset.',
+      },
+      {
+        q: 'Can students with anxiety get SAT accommodations?',
+        a: 'Students with a documented condition may qualify for accommodations through College Board. Requests must be submitted and approved before test day, so start early.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: Accommodations', url: 'https://accommodations.collegeboard.org/' },
+      { name: 'College Board: Official Practice Tests', url: 'https://satsuite.collegeboard.org/practice/practice-tests' },
+    ],
+  },
+  {
+    slug: 'parents-guide-sat-prep',
+    title: 'A Parent’s Guide to Supporting Your Teen’s SAT Prep',
+    metaTitle: 'How Parents Can Help With SAT Prep | ACT SAT GO',
+    description:
+      'How the SAT has changed since parents took it, and practical, low-stress ways to help your teen prepare: planning, goals, study environment, outside help and score day.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'SAT',
+    answer:
+      'Parents help most by turning SAT prep into a concrete plan their teen owns: a target test date, a realistic score goal based on their college list, a steady weekly schedule and a calm study environment. Ask about the process rather than the score, and consider outside help if scores stall or prep causes conflict at home.',
+    sections: [
+      {
+        heading: 'The SAT is not what you remember',
+        list: [
+          'It is digital, taken in College Board’s Bluebook app at a school or test center.',
+          'It is shorter: about 2 hours 14 minutes of testing plus a 10-minute break.',
+          'It is adaptive: the second module of each section depends on performance in the first.',
+          'Reading and Writing uses short passages, each with one question.',
+          'A calculator is allowed on all of Math, including a built-in Desmos graphing calculator.',
+          'There is no essay and no penalty for guessing. Scores are still 400 to 1600.',
+        ],
+      },
+      {
+        heading: 'Start with a plan, not pressure',
+        list: [
+          'Pick a target test date around sports, AP exams and other commitments. Many students take their first SAT in the spring of junior year.',
+          'Work backward to set a start date for prep.',
+          'Agree on a weekly schedule together, such as a few focused sessions a week plus a practice test every week or two.',
+          'Let your teen own the plan; people stick with goals they helped set.',
+        ],
+      },
+      {
+        heading: 'Set a realistic goal together',
+        paragraphs: [
+          'Look up the middle-50% SAT ranges for colleges on your teen’s list, often on each college’s admissions or Common Data Set pages. Then have your teen take a full official practice test in Bluebook to set a baseline, so you both know the gap to close.',
+        ],
+      },
+      {
+        heading: 'Support the environment and ask better questions',
+        list: [
+          'Provide a quiet, consistent study space and a working device with Bluebook installed.',
+          'Protect weekend mornings for full-length practice tests.',
+          'Support sleep, regular meals and limits on late-night screens.',
+          'Swap "What did you get?" for "What is feeling easier now?" or "What has been trickiest this week?"',
+        ],
+      },
+      {
+        heading: 'When outside help makes sense',
+        list: [
+          'Scores have stalled across several practice tests.',
+          'Your teen struggles to stay consistent with self-study.',
+          'There are specific gaps, often in math, that need explaining rather than more practice.',
+          'The target score is far from the baseline, or the test date is close.',
+          'Prep is causing conflict at home and a neutral third party would help.',
+        ],
+        paragraphs: [
+          'When comparing options, ask how plans are personalized, whether practice tests use the real digital format, how progress is shared with parents and how sessions fit your teen’s schedule.',
+        ],
+      },
+      {
+        heading: 'Handling score day',
+        paragraphs: [
+          'Celebrate effort and progress first. If the score is below the goal, treat it as information: many students improve on a second attempt with a targeted plan. Decide next steps together, whether that is a retake, a new study plan or sending the score.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'How can I help my child prepare for the SAT?',
+        a: 'Help them set a test date, a realistic goal and a weekly schedule, provide a quiet place and time to study, and ask about their progress rather than their scores.',
+      },
+      {
+        q: 'When should my child start SAT prep?',
+        a: 'Many students start a few months before a spring junior-year test date. The right start depends on the gap between their baseline practice score and their goal.',
+      },
+      {
+        q: 'How do I know if my teen needs an SAT tutor?',
+        a: 'Common signs are stalled scores, trouble staying consistent, specific gaps that need explanation, a large gap to the goal or a near test date, and prep causing stress at home.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: The Digital SAT', url: 'https://satsuite.collegeboard.org/digital' },
+      { name: 'College Board: SAT Dates and Deadlines', url: 'https://satsuite.collegeboard.org/sat/dates-deadlines' },
+    ],
+  },
+  {
+    slug: 'sat-scores-merit-scholarships',
+    title: 'SAT Scores and Merit Scholarships: How a Higher Score Can Lower College Costs',
+    metaTitle: 'SAT Scores and Merit Scholarships | ACT SAT GO',
+    description:
+      'How colleges, state programs and national programs use SAT scores for merit aid, why a few points can matter, and how families can research scholarship criteria.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'College Admissions',
+    answer:
+      'Yes, a higher SAT score can help a student earn merit scholarships. Many colleges use test scores alongside GPA to award academic scholarships, some state programs set score requirements, and the PSAT/NMSQT is the entry point to National Merit. Criteria vary by school and change over time, so check each college’s scholarship page directly.',
+    sections: [
+      {
+        heading: 'Need-based aid vs merit aid',
+        paragraphs: [
+          'Need-based aid depends on a family’s finances, usually through the FAFSA and at some colleges the CSS Profile. Merit aid is awarded for achievement, such as grades, test scores or talents, regardless of need. Families who expect little need-based aid often find their real savings in merit aid.',
+        ],
+      },
+      {
+        heading: 'Where SAT scores can unlock scholarships',
+        list: [
+          'Colleges’ own scholarships: many public universities and private colleges award merit aid using GPA and test scores, sometimes in a published grid where a higher score at the same GPA earns a larger award.',
+          'Test-optional schools: submitting a strong score may still help with scholarship consideration even when it is optional for admission.',
+          'State programs: some states use test scores for scholarships for residents attending in-state colleges. Florida’s Bright Futures program, for example, has used minimum SAT or ACT scores.',
+          'National Merit: this starts with the PSAT/NMSQT in junior year, and some colleges offer significant awards to National Merit Finalists.',
+          'Private scholarships: some community and corporate scholarships consider scores alongside essays, grades and service.',
+        ],
+      },
+      {
+        heading: 'Why a few points can matter',
+        paragraphs: [
+          'Admission is usually holistic, but some scholarships use specific score cutoffs. A student just below a cutoff may gain a meaningful award over four years with a modest improvement. Know the cutoffs at the schools on your list, retake strategically if close, and ask whether the scholarship office superscores, because it does not always follow the admissions policy.',
+        ],
+      },
+      {
+        heading: 'How to research merit aid',
+        list: [
+          'List the colleges your student is considering.',
+          'Visit each school’s financial aid or scholarship page and look for merit or academic scholarships.',
+          'Note the GPA and test score criteria, deadlines and whether a separate application is required.',
+          'Use each college’s net price calculator to estimate the real cost.',
+          'Watch early scholarship deadlines, which may require scores by the fall of senior year.',
+          'Check your state’s higher education agency for state programs.',
+        ],
+      },
+      {
+        heading: 'Plan the testing timeline',
+        paragraphs: [
+          'If scores may affect scholarships, leave room for a retake before deadlines. A common approach is a first SAT in the spring of junior year, with summer and early fall available for a retake. Confirm test dates and score release timing on College Board’s website.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Can you get scholarships for a high SAT score?',
+        a: 'Yes. Many colleges award merit scholarships partly based on SAT or ACT scores, and some state programs use test scores for eligibility. Criteria vary, so check each college and state program.',
+      },
+      {
+        q: 'Should I submit SAT scores to test-optional colleges for scholarships?',
+        a: 'Often it can help, because some colleges consider scores for merit aid even when they are optional for admission. Check each college’s scholarship policy.',
+      },
+      {
+        q: 'Do scholarship offices superscore the SAT?',
+        a: 'Some do and some do not, and the policy may differ from the admissions office. Ask the financial aid or scholarship office at each college.',
+      },
+    ],
+    sources: [
+      { name: 'Federal Student Aid: Scholarships', url: 'https://studentaid.gov/understand-aid/types/scholarships' },
+      { name: 'National Merit Scholarship Corporation', url: 'https://www.nationalmerit.org/' },
+      { name: 'College Board: SAT Dates and Deadlines', url: 'https://satsuite.collegeboard.org/sat/dates-deadlines' },
+    ],
+  },
+  {
     slug: 'good-ap-score-college-credit',
     title: 'What Is a Good AP Score, and Will It Earn College Credit?',
     metaTitle: 'What Is a Good AP Score? AP Credit Explained | ACT SAT GO',
