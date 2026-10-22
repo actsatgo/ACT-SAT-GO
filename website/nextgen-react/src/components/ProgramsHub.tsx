@@ -85,7 +85,6 @@ export function ProgramsHub() {
         <div className="hub-header">
           <div>
             <h2>
-              Our Programs,<br />
               Your Path to <span>Success</span>
             </h2>
             <p className="hub-subtitle">
