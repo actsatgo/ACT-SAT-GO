@@ -6,6 +6,7 @@ import { fetchBlogs, type BlogPost } from '../admin/api';
 import { AP_GUIDES, apGuidePdf, type ApGuide, type ApGuideCategory } from '../data/apGuides';
 import { TEST_GUIDES, TEST_GUIDES_UPDATED, testGuideCover, testGuidePdf } from '../data/testGuides';
 import { ARTICLES, articlePath } from '../data/articles';
+import { AP_SUBJECT_BY_GUIDE, apSubjectPath } from '../data/apSubjects';
 import { QUERY_API_BASE } from '../config';
 import { CONSULT_PATH, PRIMARY_CTA } from '../site';
 import { trackDownload } from '../lib/analytics';
@@ -388,7 +389,17 @@ export function ResourcesPage() {
                     <div key={group.id} id={group.id} className="lib-ap-group">
                       <h3>{group.label}</h3>
                       <ul>
-                        {group.guides.map((g) => (
+                        {group.guides.map((g) => {
+                          const page = AP_SUBJECT_BY_GUIDE[g.slug];
+                          return page ? (
+                          <li key={g.slug}>
+                            <Link to={apSubjectPath(page.slug)} title={g.summary}>
+                              <span>{g.title}</span>
+                              <em className="lib-ap-page">Full guide</em>
+                              <IconChevron />
+                            </Link>
+                          </li>
+                          ) : (
                           <li key={g.slug}>
                             <a
                               href={apGuidePdf(g)}
@@ -401,7 +412,8 @@ export function ResourcesPage() {
                               <IconChevron />
                             </a>
                           </li>
-                        ))}
+                          );
+                        })}
                       </ul>
                     </div>
                   ))}

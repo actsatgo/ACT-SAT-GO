@@ -3,6 +3,7 @@ import { HOME_FAQ, type FaqItem } from './data/faq';
 import { SAT_PAGE, ACT_PAGE, AP_PAGE, type ProgramPageData } from './data/programs';
 import { PAGES } from './seo';
 import { ARTICLE_BY_SLUG } from './data/articles';
+import { AP_SUBJECT_BY_SLUG, apSubjectFaq } from './data/apSubjects';
 
 // Schema.org structured data (JSON-LD) for every page in the sitemap, per the
 // "Schema Markup (JSON-LD) Implementation Guide". One @graph per page, written
@@ -247,6 +248,34 @@ function graphFor(path: string): Json[] | null {
             ],
           },
           faqPageFor(path, article.faq),
+        ];
+      }
+      const apSubject = path.startsWith('/ap/') ? AP_SUBJECT_BY_SLUG[path.slice('/ap/'.length)] : undefined;
+      if (apSubject) {
+        return [
+          webPage('WebPage', path, apSubject.metaTitle, apSubject.description),
+          {
+            '@type': 'Article',
+            '@id': `${url(path)}#article`,
+            headline: `${apSubject.name} Exam Guide`,
+            description: apSubject.description,
+            dateModified: apSubject.updated,
+            author: { '@id': ORG_ID },
+            publisher: { '@id': ORG_ID },
+            mainEntityOfPage: { '@id': `${url(path)}#webpage` },
+            image: `${SITE.url}/og-image.jpg`,
+            inLanguage: 'en-US',
+            about: { '@type': 'Course', name: apSubject.name, provider: { '@type': 'Organization', name: 'College Board' } },
+          },
+          {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: url('/') },
+              { '@type': 'ListItem', position: 2, name: 'Resources', item: url('/resources') },
+              { '@type': 'ListItem', position: 3, name: `${apSubject.name} Exam Guide`, item: url(path) },
+            ],
+          },
+          faqPageFor(path, apSubjectFaq(apSubject)),
         ];
       }
       const simple = SIMPLE[path];

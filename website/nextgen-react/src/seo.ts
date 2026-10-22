@@ -1,5 +1,6 @@
 import { SITE } from './site';
 import { ARTICLES, articlePath } from './data/articles';
+import { AP_SUBJECTS, apSubjectPath } from './data/apSubjects';
 
 // Per-route <title>, meta description and canonical URL. Structured data
 // (JSON-LD) lives in schema.ts, which only the prerenderer loads.
@@ -102,6 +103,7 @@ export const PAGES: PageMeta[] = [
     description: 'How ACT SAT GO keeps online tutoring sessions safe for students, and how parents stay involved.',
   },
   ...ARTICLES.map((a) => ({ path: articlePath(a.slug), title: a.metaTitle, description: a.description })),
+  ...AP_SUBJECTS.map((s) => ({ path: apSubjectPath(s.slug), title: s.metaTitle, description: s.description })),
   {
     path: '/404',
     title: 'Page not found | ACT SAT GO',
