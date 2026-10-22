@@ -8,7 +8,7 @@ import { Footer } from '../components/Footer';
 import { FaqSection } from '../components/FaqSection';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import type { ProgramPageData } from '../data/programs';
-import apHeroImg from '../assets/img/ap-hero.webp';
+import apHeroImg from '../assets/img/ap-hero-photo.webp';
 import satHeroImg from '../assets/img/sat-hero.webp';
 import highlightsImg from '../assets/img/highlights-girl-cutout.webp';
 
@@ -351,7 +351,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
 
       <main>
         {/* Hero */}
-        <section className={`prog-hero section-dark${(isSat || isAct) ? ' sat-page' : ''}`}>
+        <section className={`prog-hero section-dark${(isSat || isAct) ? ' sat-page' : ''}${isAp ? ' ap-page' : ''}`}>
           <span className="orb orb-gold" aria-hidden="true" />
           <span className="orb orb-ring" aria-hidden="true" />
           <div className="shell prog-hero-grid">
@@ -385,46 +385,15 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
             </div>
 
             {isAp ? (
-              <div className="prog-hero-art ap-hero-art" aria-hidden="true">
-                <div
-                  className="ap-hero-illustration"
-                  style={{ backgroundImage: `url(${apHeroImg})` }}
+              <div className="prog-hero-art ap-hero-art ap-hero-photo-wrap">
+                <img
+                  className="ap-hero-photo"
+                  src={apHeroImg}
+                  width={1400}
+                  height={787}
+                  alt="Student studying for AP Calculus, Biology, Physics and English"
+                  fetchPriority="high"
                 />
-
-                <div className="orbit-card badge-ap-strategy">
-                  <div className="badge-icon-bg">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <circle cx="12" cy="12" r="6"></circle>
-                      <circle cx="12" cy="12" r="2"></circle>
-                    </svg>
-                  </div>
-                  <span>Smart Strategy</span>
-                </div>
-
-                <div className="orbit-card badge-ap-concepts">
-                  <div className="badge-icon-bg">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .4 2.5 1.5 3.5.7.8 1.3 1.5 1.5 2.5"></path>
-                      <line x1="9" y1="18" x2="15" y2="18"></line>
-                      <line x1="10" y1="22" x2="14" y2="22"></line>
-                    </svg>
-                  </div>
-                  <span>Deep Concepts</span>
-                </div>
-
-                <div className="orbit-card badge-ap-scores">
-                  <div className="badge-icon-bg">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                      <path d="M4 22h16"></path>
-                      <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path>
-                      <path d="M12 2a6 6 0 0 1 6 6v3.5c0 3.3-2.7 6-6 6s-6-2.7-6-6V8a6 6 0 0 1 6-6z"></path>
-                    </svg>
-                  </div>
-                  <span>Top Scores & Credit</span>
-                </div>
               </div>
             ) : (isSat || isAct) ? (
               <div className="hero-art" aria-hidden="true">
