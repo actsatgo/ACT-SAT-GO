@@ -1306,3 +1306,114 @@
 .careers-form-card .careers-application-form input {
   min-width: 0;
 }
+
+/* Tutor form, "soft and friendly": pale blue card with a gold 3D edge,
+   white softly shadowed fields, custom gold checkboxes */
+.careers-form-card {
+  background: #f3f7fd;
+  box-shadow: 0 6px 0 #fc9b0a, 0 30px 60px -28px rgba(0, 0, 0, 0.65);
+}
+
+.careers-form-badge {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #b77900;
+  font-size: 12.5px;
+  font-weight: 900;
+  box-shadow: 0 2px 8px -4px rgba(15, 23, 42, 0.25);
+}
+
+.careers-form-badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold-2);
+}
+
+.careers-form-card .form-legend {
+  border-bottom: 0;
+  padding-bottom: 0;
+  font-size: 23px;
+}
+
+.careers-form-card .careers-application-form input[type="text"],
+.careers-form-card .careers-application-form input[type="email"],
+.careers-form-card .careers-application-form input[type="tel"],
+.careers-form-card .careers-application-form input[type="url"],
+.careers-form-card .careers-application-form select,
+.careers-form-card .careers-application-form textarea,
+.careers-form-card .test-prep-checklist {
+  background: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 4px 14px -6px rgba(15, 23, 42, 0.14);
+}
+
+.careers-form-card .careers-application-form input:focus,
+.careers-form-card .careers-application-form select:focus,
+.careers-form-card .careers-application-form textarea:focus {
+  border-color: var(--gold-2);
+  box-shadow: 0 0 0 4px rgba(245, 168, 0, 0.2);
+}
+
+.careers-form-card .phone-code-select {
+  font-weight: 800;
+}
+
+.careers-form-card .checklist-item input {
+  appearance: none;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border: 2px solid #c3cedb;
+  border-radius: 6px;
+  background: #ffffff;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.careers-form-card .checklist-item input::after {
+  content: '';
+  width: 5px;
+  height: 10px;
+  border: solid var(--navy);
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+  opacity: 0;
+}
+
+.careers-form-card .checklist-item input:checked {
+  background: var(--gold-2);
+  border-color: var(--gold-2);
+}
+
+.careers-form-card .checklist-item input:checked::after {
+  opacity: 1;
+}
+
+.careers-form-card .checklist-item input:focus-visible {
+  box-shadow: 0 0 0 3px rgba(245, 168, 0, 0.35);
+}
+
+.careers-form-card .checklist-label {
+  font-size: 15px;
+}
+
+.careers-form-card .file-uploader-box {
+  background: #ffffff;
+  border-color: #c9d6e6;
+}
+
+.careers-form-card .file-uploader-box:hover,
+.careers-form-card .file-uploader-box.is-dragover {
+  background: #fffaf0;
+  border-color: var(--gold-2);
+}

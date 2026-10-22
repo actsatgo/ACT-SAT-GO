@@ -662,8 +662,9 @@ export function CareersPage() {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="careers-application-form">
+                    <span className="careers-form-badge">Remote · Flexible hours</span>
                     <h3 className="form-legend">
-                      Apply for a Tutoring Position
+                      Apply to teach with us
                       <small>Fields marked * are required.</small>
                     </h3>
                     
