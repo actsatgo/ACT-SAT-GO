@@ -192,6 +192,13 @@
   background-position: center 30%;
 }
 
+/* The videos are vertical Shorts: YouTube's 4:3 thumbnail pads them with
+   black side bars. Zoom so the middle (the actual video) fills the card. */
+.testimonial-slider article.video-card .video-thumb {
+  background-size: 245% auto;
+  background-position: 50% 40%;
+}
+
 @media (max-width: 1040px) {
   .testimonial-slider article.video-card {
     flex-basis: calc((100% - 2 * 18px) / 3);
