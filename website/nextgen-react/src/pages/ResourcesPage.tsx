@@ -8,7 +8,8 @@ import { AP_GUIDES } from '../data/apGuides';
 import { TestGuidesSection, testGuideMatches } from '../components/TestGuides';
 import { TEST_GUIDES } from '../data/testGuides';
 import { QUERY_API_BASE } from '../config';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { ResourcesPreview, type PreviewVariant } from './ResourcesPreview';
 import { ARTICLES, articlePath, formatArticleDate } from '../data/articles';
 
 // Image assets
@@ -120,6 +121,13 @@ function IconShield() {
 }
 
 export function ResourcesPage() {
+  const [params] = useSearchParams();
+  const v = params.get('v');
+  if (v === 'a' || v === 'b' || v === 'c') return <ResourcesPreview variant={v as PreviewVariant} />;
+  return <ResourcesPageCurrent />;
+}
+
+function ResourcesPageCurrent() {
   useScrollReveal();
 
   const [searchQuery, setSearchQuery] = useState('');
