@@ -645,3 +645,27 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Hero photo is cropped tight (no baked-in badge), so it is sized directly:
+   larger than before but clear of the copy column */
+.k12-hero-art {
+  margin-left: 0;
+  justify-items: end;
+}
+
+.k12-hero-photo {
+  max-width: 880px;
+  margin-top: 28px;
+  transform: none;
+}
+
+@media (max-width: 1040px) {
+  .k12-hero-art {
+    justify-items: center;
+  }
+
+  .k12-hero-photo {
+    max-width: 640px;
+    margin-top: 16px;
+  }
+}
