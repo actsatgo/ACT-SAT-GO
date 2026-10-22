@@ -238,3 +238,37 @@
 .stat-rating:hover strong {
   color: #b77900;
 }
+
+/* ── Testimonials: shorter video cards, four across on wide screens ── */
+.testimonial-slider article.video-card {
+  flex-basis: calc((100% - 3 * 18px) / 4);
+  min-height: 0;
+  padding: 14px 14px 16px;
+}
+
+.testimonial-slider article.video-card .video-wrapper {
+  padding-bottom: 120%;
+  margin-bottom: 12px;
+}
+
+.testimonial-slider article.video-card .video-thumb {
+  background-position: center 30%;
+}
+
+@media (max-width: 1040px) {
+  .testimonial-slider article.video-card {
+    flex-basis: calc((100% - 2 * 18px) / 3);
+  }
+}
+
+@media (max-width: 760px) {
+  .testimonial-slider article.video-card {
+    flex-basis: calc((100% - 18px) / 2);
+  }
+}
+
+@media (max-width: 480px) {
+  .testimonial-slider article.video-card {
+    flex-basis: 78%;
+  }
+}
