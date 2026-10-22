@@ -4331,29 +4331,20 @@ html, body {
   transform: rotate(45deg) translate(-2px, -2px);
 }
 
-/* AP hero: full photo card (replaces the cut-out figure and badges) */
+/* AP hero: cut-out scene on transparent background so it sits straight on the navy hero */
 .ap-hero-art.ap-hero-photo-wrap {
-  max-width: 620px;
+  max-width: 640px;
   min-height: 0;
-}
-
-.ap-hero-art.ap-hero-photo-wrap::before {
-  inset: -8% -8% -6%;
-  background: radial-gradient(circle at 50% 50%, rgba(245, 176, 52, 0.22) 0%, transparent 62%);
 }
 
 .ap-hero-photo {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 34px 70px -28px rgba(0, 0, 0, 0.75);
+  -webkit-mask-image: linear-gradient(180deg, #000 88%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 88%, transparent 100%);
+  filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.45));
   animation: satHeroFloat 6.5s ease-in-out infinite;
-}
-
-@media (max-width: 768px) {
-  .ap-hero-photo { border-radius: 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

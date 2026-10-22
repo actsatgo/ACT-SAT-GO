@@ -389,8 +389,8 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
                 <img
                   className="ap-hero-photo"
                   src={apHeroImg}
-                  width={1400}
-                  height={787}
+                  width={1300}
+                  height={685}
                   alt="Student studying for AP Calculus, Biology, Physics and English"
                   fetchPriority="high"
                 />
