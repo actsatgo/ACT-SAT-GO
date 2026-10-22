@@ -377,7 +377,6 @@ export function CareersPage() {
     if (!el) return;
     jobsDragRef.current = { dragging: true, moved: false, startX: e.clientX, startScroll: el.scrollLeft };
     jobsPausedRef.current = true;
-    el.setPointerCapture(e.pointerId);
   };
 
   const handleJobsPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -386,7 +385,12 @@ export function CareersPage() {
     const el = jobsMarqueeRef.current;
     if (!el) return;
     const dx = e.clientX - drag.startX;
-    if (Math.abs(dx) > 3) drag.moved = true;
+    // Capture the pointer only once it is a real drag; capturing on press would
+    // retarget the click to the carousel and the Apply Now buttons would never fire.
+    if (!drag.moved && Math.abs(dx) > 3) {
+      drag.moved = true;
+      el.setPointerCapture(e.pointerId);
+    }
     el.scrollLeft = drag.startScroll - dx;
   };
 
@@ -395,7 +399,8 @@ export function CareersPage() {
     if (!drag.dragging) return;
     drag.dragging = false;
     jobsPausedRef.current = false;
-    jobsMarqueeRef.current?.releasePointerCapture(e.pointerId);
+    const el = jobsMarqueeRef.current;
+    if (el?.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
   };
 
   const handleJobsClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
