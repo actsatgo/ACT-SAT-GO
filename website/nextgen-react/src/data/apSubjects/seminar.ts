@@ -1,0 +1,126 @@
+import type { ApSubject } from './types';
+
+export const SEMINAR: ApSubject = {
+  slug: 'seminar',
+  guideSlug: 'ap-seminar-exam-guide-act-sat-go',
+  name: 'AP Seminar',
+  metaTitle: 'AP Seminar Guide 2027: Performance Tasks, Exam & QUEST | ACT SAT GO',
+  description:
+    'AP Seminar explained: the team project (20%), the individual research-based essay and presentation (35%), the 2-hour end-of-course exam (45%), the QUEST framework, common traps and a plan to May 2027.',
+  updated: '2026-10-22',
+  intro:
+    'AP Seminar is the first course in the AP Capstone program. Your score (1–5) combines a team project and presentation (20%), an individual research-based essay and presentation (35%), and a 2-hour end-of-course exam (45%) with 3 short-answer questions on one source and an essay synthesizing four sources. Written work for both performance tasks is due in the AP Digital Portfolio by April 30, 2027, 11:59 p.m. ET. Seminar rewards thinking, not memorized content. About 83–88% of students score 3 or higher.',
+  examDate: 'Monday, May 10, 2027 (afternoon session)',
+  dateLabel: 'End-of-course exam',
+  length: 'a 2-hour end-of-course exam, plus two performance tasks during the year',
+  glance: [
+    { value: '55%', label: 'two performance tasks during the year' },
+    { value: '45%', label: '2-hour end-of-course exam' },
+    { value: 'Apr 30', label: 'performance tasks due, 11:59 p.m. ET' },
+    { value: '83–88%', label: 'scored 3 or higher in recent years' },
+  ],
+  structure: [
+    { section: 'PT 1 · Team project & presentation', weight: '20%', timing: '1,200 words + 8–10 min', what: 'Individual research report (1,200 words, scored by College Board) and a team multimedia presentation and defense (8–10 minutes, scored by your teacher).' },
+    { section: 'PT 2 · Individual research-based essay & presentation', weight: '35%', timing: '2,000 words + 6–8 min', what: 'Written argument (2,000 words, scored by College Board) based on stimulus texts, a presentation (6–8 minutes) and an oral defense (2 questions), both scored by your teacher.' },
+    { section: 'End-of-course exam', weight: '45%', timing: '2 hr · 4 questions', what: '3 short-answer questions analyzing an argument in one source, and 1 essay synthesizing four sources into your own argument.' },
+  ],
+  formatNotes: [
+    { title: 'Tasks go to the AP Digital Portfolio', text: 'Your written work for both performance tasks is submitted in the AP Digital Portfolio by April 30, 2027, 11:59 p.m. ET. The end-of-course exam is taken in Bluebook.' },
+    { title: 'Your work must be your own', text: "College Board checks for plagiarism and requires proper citation. Teachers and tutors can teach skills, but they can't give feedback on the specific work you submit." },
+  ],
+  mcq: {
+    kicker: 'Exam · 45%',
+    title: 'The end-of-course exam',
+    intro: 'A 2-hour digital exam in May with no multiple choice. Part A: 3 short answers that identify an author\'s argument, explain the line of reasoning and evaluate the evidence. Part B: an essay that builds your own argument using at least two of four sources, with perspectives that connect to a common theme.',
+    tips: [
+      'Find the claim first: what does the author want readers to believe?',
+      'Trace the line of reasoning: how does each step support the claim?',
+      'Evaluate evidence: is it relevant, credible and sufficient?',
+      "In the essay, argue: don't summarize sources; use them to support your own position.",
+      'Connect perspectives: show how sources agree, disagree or add nuance.',
+      'Budget time: about 30 minutes for Part A and 90 for Part B.',
+    ],
+  },
+  unitLabel: 'Big idea',
+  unitsTitle: 'The QUEST framework',
+  units: [
+    { name: 'Question & Explore', weight: '', about: 'Start with a real problem.', skills: 'Identify a problem or issue, develop a focused research question, and find relevant, credible sources.' },
+    { name: 'Understand & Analyze', weight: '', about: 'Read critically.', skills: "Read for purpose; identify claims, reasoning and evidence; evaluate an argument's strength." },
+    { name: 'Evaluate Multiple Perspectives', weight: '', about: 'See the issue from several sides.', skills: 'Compare perspectives on an issue; explain their assumptions and implications; evaluate competing arguments.' },
+    { name: 'Synthesize Ideas', weight: '', about: 'Build your own argument.', skills: 'Combine evidence from multiple sources into your own argument; reach a reasoned conclusion and propose solutions.' },
+    { name: 'Team, Transform & Transmit', weight: '', about: 'Collaborate and communicate.', skills: 'Work in a team; adapt your message for an audience; present and defend your work orally and in writing.' },
+  ],
+  unitsNote: 'Seminar has no fixed content. You apply these five big ideas to any topic, so practice asking "what is the argument, and how strong is the evidence?" about everything you read.',
+  frq: {
+    kicker: 'Performance tasks · 55%',
+    title: 'The performance tasks',
+    intro: 'Two research projects completed in class during the year make up 55% of your score: Performance Task 1 (20%) and Performance Task 2 (35%).',
+    types: [
+      { label: 'IRR', title: 'Individual Research Report', text: "PT 1 · 1,200 words. Research one lens or perspective on your team's problem, evaluate your sources, and explain how your research contributes to the team's understanding.", tip: 'Explain why each source is credible, not just what it says.' },
+      { label: 'TMP', title: 'Team Multimedia Presentation', text: "PT 1 · 8–10 min + defense. Your team proposes a solution that brings together members' perspectives, presents it, and answers questions.", tip: "Show how each member's lens shaped the solution." },
+      { label: 'IWA', title: 'Individual Written Argument', text: 'PT 2 · 2,000 words. Using stimulus materials provided by College Board, write your own research question and an evidence-based argument.', tip: 'Use at least one stimulus text; add strong outside research.' },
+      { label: 'IMP', title: 'Presentation & oral defense', text: 'PT 2 · 6–8 min + 2 questions. Present your argument and answer two questions from your teacher about your research process and conclusions.', tip: 'Practice explaining your research choices, not just your findings.' },
+    ],
+    timePlan: 'For the IWA, about 1 week to explore the stimulus, 2 weeks to research, 2 weeks to draft and 1 week to revise and cite. Your teacher sets the actual schedule.',
+  },
+  habits: [
+    'Write a focused, debatable research question.',
+    "Evaluate each source's credibility and bias.",
+    'Use sources as evidence, not as the argument.',
+    'Acknowledge limitations and counterarguments.',
+    'Cite every source accurately and consistently.',
+  ],
+  traps: [
+    { title: 'Summary instead of analysis', text: "Explaining what a source says isn't enough. Evaluate its reasoning and evidence." },
+    { title: 'Too broad a question', text: '"How can we fix climate change?" is too big. Narrow to a place, group or solution.' },
+    { title: 'Weak sources', text: 'Rely on credible, peer-reviewed or expert sources and explain why they are credible.' },
+    { title: 'One perspective only', text: 'Strong arguments consider multiple perspectives and respond to counterarguments.' },
+    { title: 'Missing citations', text: 'Uncited ideas count as plagiarism, which can score 0 on a task.' },
+    { title: 'Over the word limit', text: 'Respect limits: 1,200 words for the IRR and 2,000 for the IWA.' },
+    { title: 'Ignoring the stimulus', text: 'The IWA must connect to at least one stimulus text provided by College Board.' },
+    { title: 'Solutions without evidence', text: 'Proposed solutions need support and should address limitations.' },
+    { title: 'Reading the presentation', text: 'Speak to the audience; slides should support, not replace, your talk.' },
+    { title: 'Unprepared oral defense', text: 'Expect questions on your research process, not just conclusions.' },
+  ],
+  roadmap: [
+    { when: 'Sep – Oct', focus: 'QUEST skills', text: 'Practice argument analysis, source evaluation and short presentations on low-stakes topics.' },
+    { when: 'Nov – Jan', focus: 'Performance Task 1: team project', text: 'Research your lens, write the IRR (1,200 words), and build the team presentation.' },
+    { when: 'Feb – Apr', focus: 'Performance Task 2: individual research', text: 'Explore the stimulus texts, research, write the IWA (2,000 words), and prepare the presentation and defense.' },
+    { when: 'April 30', focus: 'Final submission', text: 'Submit all written components in the AP Digital Portfolio by 11:59 p.m. ET.' },
+    { when: 'Early May', focus: 'Timed Part A and Part B', text: 'Practice short-answer analysis and four-source essays under timing.' },
+  ],
+  scores: { threePlus: '83–88%', fives: '9–10%' },
+  practice: [
+    {
+      topic: 'Argument · Evaluation',
+      question: 'A source cites a study of twelve European cities where car bans raised weekday foot traffic by 18%, then concludes that "pedestrian-first design is good for business everywhere." The biggest weakness in this reasoning is that:',
+      choices: ['it generalizes to "everywhere" from a sample of European cities only', 'it uses numbers', 'it mentions critics', 'it studies weekday visitors'],
+      answer: 'A',
+      why: 'Evidence from twelve European cities doesn\'t justify "everywhere": the generalization exceeds the evidence.',
+    },
+    {
+      topic: 'Research question',
+      question: 'Which is the most effective research question for an IWA?',
+      choices: ["To what extent do school phone bans improve students' in-class attention in U.S. high schools?", 'What is social media?', 'Is social media good or bad?', 'Why do people like phones?'],
+      answer: 'A',
+      why: 'It is focused (place, group, measurable outcome) and debatable, using "to what extent".',
+    },
+    {
+      topic: 'Reasoning',
+      question: '"Students who eat breakfast earn higher grades, so breakfast causes higher grades." This reasoning confuses:',
+      choices: ['a definition with an example', 'a claim with a counterclaim', 'correlation with causation', 'qualitative with quantitative data'],
+      answer: 'C',
+      why: "An association between breakfast and grades doesn't prove breakfast causes them; other factors may explain both.",
+    },
+  ],
+  lengthFaq: {
+    q: 'How is AP Seminar scored?',
+    a: 'Three parts: Performance Task 1, the team project and presentation (20%); Performance Task 2, the individual research-based essay and presentation (35%); and the 2-hour end-of-course exam (45%). The written parts of both tasks are due by April 30, 2027.',
+  },
+  faq: [
+    {
+      q: 'What is the AP Capstone Diploma?',
+      a: 'Students who earn a 3 or higher in AP Seminar, AP Research and four other AP exams of their choice receive the AP Capstone Diploma. A 3 or higher in Seminar and Research alone earns the AP Seminar and Research Certificate.',
+    },
+  ],
+};

@@ -1,6 +1,6 @@
 import type { ApSubject } from './types';
 
-// AP US History and AP World History: Modern share the same exam structure,
+// AP US History, AP World History: Modern and AP European History share the same exam structure,
 // rubrics and question types, so their common content lives here.
 
 export const HISTORY_FORMAT_NOTES: ApSubject['formatNotes'] = [

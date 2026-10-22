@@ -30,19 +30,22 @@ function IconCalendar() {
   );
 }
 
-const LETTERS = ['A', 'B', 'C', 'D'];
+const LETTERS = ['A', 'B', 'C', 'D', 'E'];
 
 const NAV = [
   { id: 'format', label: 'Exam format' },
   { id: 'section-1', label: 'Section I' },
   { id: 'units', label: 'What it covers' },
   { id: 'section-2', label: 'Section II' },
-  { id: 'traps', label: '10 common traps' },
+  { id: 'traps', label: 'Common traps' },
   { id: 'study-plan', label: 'Study plan' },
   { id: 'practice', label: 'Practice questions' },
   { id: 'scores', label: 'Scores' },
   { id: 'faq', label: 'FAQs' },
 ];
+
+/** How many related guides to list at the bottom of the page. */
+const MORE_COUNT = 8;
 
 /** AP subject guide at /ap/:subject, fully server-rendered for search and AI engines. */
 export function ApSubjectPage() {
@@ -53,7 +56,19 @@ export function ApSubjectPage() {
   const guide = AP_GUIDES.find((g) => g.slug === s.guideSlug)!;
   const pdf = apGuidePdf(guide);
   const label = s.unitLabel ?? 'Unit';
-  const others = AP_SUBJECTS.filter((x) => x.slug !== s.slug);
+  // Section links follow the section kickers ("Section II · 60%" -> "Section II"), so they match the page.
+  const navLabel = (id: string) =>
+    id === 'section-1' ? s.mcq.kicker?.split(' · ')[0] : id === 'section-2' ? s.frq.kicker?.split(' · ')[0] : undefined;
+  const end = s.roadmapEnd ?? {
+    when: 'May 2027',
+    focus: 'Exam day',
+    text: `${s.examDate}. Sleep well and confirm your start time with your AP coordinator.`,
+  };
+  // Same subject area first, then the rest, so the list stays short and relevant.
+  const categoryOf = (x: { guideSlug: string }) => AP_GUIDES.find((g) => g.slug === x.guideSlug)?.category;
+  const others = AP_SUBJECTS.filter((x) => x.slug !== s.slug)
+    .sort((a, b) => Number(categoryOf(b) === guide.category) - Number(categoryOf(a) === guide.category))
+    .slice(0, MORE_COUNT);
 
   return (
     <>
@@ -77,7 +92,7 @@ export function ApSubjectPage() {
                 </h1>
                 <p className="aps-intro">{s.intro}</p>
                 <p className="aps-date">
-                  <IconCalendar /> 2027 exam: <strong>{s.examDate}</strong>
+                  <IconCalendar /> {s.dateLabel ?? '2027 exam'}: <strong>{s.examDate}</strong>
                 </p>
                 <div className="aps-hero-actions">
                   <a className="lib-btn-gold" href={pdf} download onClick={() => trackDownload(guide.title, 'download')}>
@@ -119,7 +134,7 @@ export function ApSubjectPage() {
             <p className="lib-side-title">On this page</p>
             {NAV.map((n) => (
               <a key={n.id} href={`#${n.id}`}>
-                {n.label}
+                {navLabel(n.id) ?? n.label}
               </a>
             ))}
             <div className="lib-side-cta">
@@ -169,7 +184,7 @@ export function ApSubjectPage() {
 
             {/* Section I */}
             <section id="section-1" className="aps-section">
-              <span className="aps-kicker">Section I</span>
+              <span className="aps-kicker">{s.mcq.kicker ?? 'Section I'}</span>
               <h2>{s.mcq.title ?? 'The multiple-choice section'}</h2>
               <p>{s.mcq.intro}</p>
               <h3 className="aps-subhead">Strategies that work</h3>
@@ -189,7 +204,7 @@ export function ApSubjectPage() {
                   <div key={u.name} className={`aps-unit${u.weight === 'Not tested' ? ' muted' : ''}`}>
                     <div className="aps-unit-head">
                       <span className="aps-unit-num">
-                        {label} {i + 1}
+                        {label} {i + (s.unitStart ?? 1)}
                       </span>
                       {u.weight && <span className="aps-unit-weight">{u.weight}</span>}
                     </div>
@@ -207,7 +222,7 @@ export function ApSubjectPage() {
 
             {/* Section II */}
             <section id="section-2" className="aps-section">
-              <span className="aps-kicker">Section II</span>
+              <span className="aps-kicker">{s.frq.kicker ?? 'Section II'}</span>
               <h2>{s.frq.title ?? 'The free-response section'}</h2>
               <p>{s.frq.intro}</p>
               <div className="aps-frq">
@@ -235,7 +250,7 @@ export function ApSubjectPage() {
             {/* Traps */}
             <section id="traps" className="aps-section">
               <span className="aps-kicker">Learn from others</span>
-              <h2>10 traps that cost points</h2>
+              <h2>{s.traps.length} traps that cost points</h2>
               <ol className="aps-traps">
                 {s.traps.map((t) => (
                   <li key={t.title}>
@@ -262,10 +277,10 @@ export function ApSubjectPage() {
                   </li>
                 ))}
                 <li className="aps-roadmap-end">
-                  <span className="aps-when">May 2027</span>
+                  <span className="aps-when">{end.when}</span>
                   <div>
-                    <h3>Exam day</h3>
-                    <p>{s.examDate}. Sleep well and confirm your start time with your AP coordinator.</p>
+                    <h3>{end.focus}</h3>
+                    <p>{end.text}</p>
                   </div>
                 </li>
               </ol>
@@ -307,14 +322,29 @@ export function ApSubjectPage() {
               <span className="aps-kicker">Know the target</span>
               <h2>How students score</h2>
               <div className="aps-score-stats">
-                <div>
-                  <strong>{s.scores.threePlus}</strong>
-                  <span>earned a 3 or higher in recent years</span>
-                </div>
-                <div>
-                  <strong>{s.scores.fives}</strong>
-                  <span>earned the top score of 5</span>
-                </div>
+                {s.scores ? (
+                  <>
+                    <div>
+                      <strong>{s.scores.threePlus}</strong>
+                      <span>earned a 3 or higher in recent years</span>
+                    </div>
+                    <div>
+                      <strong>{s.scores.fives}</strong>
+                      <span>earned the top score of 5</span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div>
+                      <strong>New</strong>
+                      <span>course, so national score history is still building</span>
+                    </div>
+                    <div>
+                      <strong>1–5</strong>
+                      <span>the same scale as every AP exam</span>
+                    </div>
+                  </>
+                )}
                 <div>
                   <strong>3+</strong>
                   <span>is the score many colleges accept for credit or placement</span>
