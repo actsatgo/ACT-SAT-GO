@@ -1,0 +1,130 @@
+import type { ApSubject } from './types';
+
+export const RESEARCH: ApSubject = {
+  slug: 'research',
+  guideSlug: 'ap-research-exam-guide-act-sat-go',
+  name: 'AP Research',
+  metaTitle: 'AP Research Guide 2027: Academic Paper, Presentation & Defense | ACT SAT GO',
+  description:
+    'AP Research explained: the 4,000–5,000-word academic paper (75%), the presentation and oral defense (25%), the research process, IRB review, common traps and a plan to the April 30, 2027 deadline.',
+  updated: '2026-10-22',
+  intro:
+    'AP Research is the second course in the AP Capstone program, and it has no written exam. Your score (1–5) comes from an academic paper of 4,000–5,000 words (75%) and a 15–20 minute presentation with an oral defense (25%), built from a year of your own research. The paper is due in the AP Digital Portfolio by April 30, 2027, 11:59 p.m. ET. A narrow, answerable question beats an ambitious one you can\'t finish. About 86–90% of students score 3 or higher.',
+  examDate: 'Friday, April 30, 2027, 11:59 p.m. ET',
+  dateLabel: 'Paper deadline',
+  length: 'no written exam: a paper and a 15–20 minute presentation and defense',
+  glance: [
+    { value: '75%', label: 'academic paper, 4,000–5,000 words' },
+    { value: '25%', label: 'presentation and oral defense' },
+    { value: 'Apr 30', label: 'paper deadline, 11:59 p.m. ET' },
+    { value: '86–90%', label: 'scored 3 or higher in recent years' },
+  ],
+  structure: [
+    { section: 'Academic paper', weight: '75%', timing: '4,000–5,000 words', what: 'A research paper that sets out your question, reviews the literature, explains your method, presents findings and discusses their implications. Scored by College Board.' },
+    { section: 'Presentation & oral defense', weight: '25%', timing: '15–20 minutes', what: 'Present your research question, method and findings, then answer 3–4 questions from a panel of evaluators including your teacher. Scored with an AP rubric.' },
+  ],
+  formatNotes: [
+    { title: 'Your paper is submitted digitally', text: 'The final paper is uploaded to the AP Digital Portfolio by April 30, 2027. Your teacher also tracks your process through a research log or process and reflection portfolio.' },
+    { title: 'Usually taken after AP Seminar', text: 'Most students take AP Research after AP Seminar. Earning 3 or higher in both, plus four other AP exams, leads to the AP Capstone Diploma.' },
+  ],
+  mcq: {
+    kicker: 'Paper · 75%',
+    title: 'The academic paper',
+    intro: 'Your paper follows the structure of real academic research: introduction (about 10% of your words), literature review (25%), method (20%), results (20%) and discussion (25%). What scores highest is a clear gap in existing research, a method that fits your question, results actually supported by your data, and an honest discussion of limitations.',
+    tips: [
+      'Find the gap: your literature review should show what is unknown and why your question matters.',
+      'Match method to question: surveys, experiments, interviews, content analysis or case studies each answer different questions.',
+      "Get approval early: research with human participants needs review by your school's IRB.",
+      'Report what you found, not what you hoped to find.',
+      'Discuss limitations openly; it strengthens, not weakens, your paper.',
+      'Cite consistently in one style, such as APA or MLA.',
+    ],
+  },
+  unitLabel: 'Step',
+  unitsTitle: 'The research process',
+  units: [
+    { name: 'Question & Explore', weight: '', about: 'Find your question.', skills: 'Choose a topic, read widely, and narrow it to a focused research question that addresses a gap.' },
+    { name: 'Understand & Analyze', weight: '', about: 'Review the literature.', skills: 'Build a literature review that synthesizes and evaluates previous research.' },
+    { name: 'Evaluate Multiple Perspectives', weight: '', about: 'Weigh competing views.', skills: 'Consider competing findings and viewpoints in your field.' },
+    { name: 'Synthesize Ideas', weight: '', about: 'Do the research.', skills: 'Design and carry out a method, collect and analyze data, and draw conclusions.' },
+    { name: 'Team, Transform & Transmit', weight: '', about: 'Share and defend it.', skills: 'Write the paper, present your work, and defend your choices in an oral defense.' },
+  ],
+  unitsNote: 'AP Research builds on the QUEST framework from AP Seminar. A small study done carefully earns more than a huge one done carelessly.',
+  frq: {
+    kicker: 'Presentation · 25%',
+    title: 'Presentation & oral defense',
+    intro: 'A 15–20 minute session near the end of the course: you present your research, then answer 3–4 questions from a panel.',
+    types: [
+      { label: 'Pres', title: 'Tell the story of your research', text: 'Explain your question and why it matters, the gap you addressed, your method, your findings, and what they mean.', tip: 'Speak to a non-expert audience; avoid reading your slides.' },
+      { label: 'Def', title: 'The oral defense', text: 'Questions ask you to reflect on your research process, justify choices, and explain limitations or next steps.', tip: "It's fine to say what you'd do differently; that shows reflection." },
+      { label: 'Vis', title: 'Visuals that support', text: 'Use simple charts for your results and a clear diagram of your method.', tip: 'One idea per slide, with readable labels.' },
+      { label: 'Prep', title: 'Rehearse out loud', text: 'Run the presentation at least three times with a timer, and practice answering likely defense questions.', tip: 'Ask a friend to play the panel.' },
+    ],
+    timePlan: 'About 3 minutes on your question and gap, 3 on method, 4 on findings, 3 on what they mean, and 4–5 for the defense. In the defense, show reflection: why you chose your method and what its limits were.',
+  },
+  habits: [
+    'Keep a research log every week.',
+    'Write the gap in one sentence before designing a method.',
+    'Get IRB approval before collecting data.',
+    'Report limitations honestly.',
+    'Cite every source in one consistent style.',
+  ],
+  traps: [
+    { title: 'Too broad a question', text: "A question you can't answer in a school year leads to shallow results. Narrow the scope." },
+    { title: 'No clear gap', text: 'The literature review must show what is missing and how your study addresses it.' },
+    { title: 'Literature summary', text: "Synthesize and evaluate sources; don't describe them one by one." },
+    { title: "Method doesn't fit", text: "A survey can't prove causation; an interview can't give national statistics. Match method to question." },
+    { title: 'Skipping ethics review', text: 'Research with people needs IRB approval and informed consent before data collection.' },
+    { title: 'Overclaiming', text: "Twelve interviews can't prove a national trend. Keep conclusions within your data." },
+    { title: 'Hiding limitations', text: 'Discussing limitations shows understanding and is part of the rubric.' },
+    { title: 'Wrong length', text: 'The paper should be 4,000–5,000 words. Too short often means missing sections.' },
+    { title: 'Citation errors', text: 'Inconsistent or missing citations can be treated as plagiarism.' },
+    { title: 'Unprepared defense', text: 'Practice explaining your choices; the panel will ask "why".' },
+  ],
+  roadmap: [
+    { when: 'Sep – Oct', focus: 'Topic and literature', text: 'Read widely, narrow your topic, and start an annotated bibliography.' },
+    { when: 'Nov – Dec', focus: 'Question, gap and method', text: 'Write your research question and proposal. Submit for IRB review if your study involves people.' },
+    { when: 'Jan – Feb', focus: 'Carry out your method', text: 'Collect and organize data. Keep a detailed research log of every decision.' },
+    { when: 'Mar – Apr', focus: 'Draft, revise, submit', text: 'Analyze results, write and revise the paper, then submit it in the AP Digital Portfolio by April 30.' },
+    { when: 'Spring', focus: 'Presentation & defense', text: 'Rehearse your 15–20 minute presentation and practice answering defense questions.' },
+  ],
+  roadmapEnd: { when: 'Summer 2027', focus: 'Scores released', text: 'There is no May exam for AP Research. Your score comes from the paper and the presentation.' },
+  scores: { threePlus: '86–90%', fives: '13–17%' },
+  practice: [
+    {
+      topic: 'Method',
+      question: 'To test whether a new study method causes higher quiz scores, which method is most appropriate?',
+      choices: ["A survey of students' opinions", 'A case study of one student', 'An experiment with random assignment to the new method or a control', 'A literature review'],
+      answer: 'C',
+      why: 'Only an experiment with random assignment and a control group can support a cause-and-effect conclusion.',
+    },
+    {
+      topic: 'Sampling',
+      question: "A student surveys only members of the school's robotics club about screen time. The main problem is:",
+      choices: ['the sample is too large', 'the sample may not represent the whole student body', "surveys can't measure opinions", 'the results will be too precise'],
+      answer: 'B',
+      why: 'A single club is a convenience sample that may differ from the whole student body: sampling bias.',
+    },
+    {
+      topic: 'Conclusions',
+      question: 'A study of 15 students finds a link between music and focus. The most appropriate conclusion is:',
+      choices: ['Among these participants, music was associated with reported focus; larger studies are needed', 'Music improves focus for all students', 'Music causes focus', 'The study proves nothing'],
+      answer: 'A',
+      why: 'Conclusions should stay within the data: a small sample shows an association, not a universal cause.',
+    },
+  ],
+  dateFaq: {
+    q: 'When is the AP Research paper due in 2027?',
+    a: 'The final academic paper is due in the AP Digital Portfolio by Friday, April 30, 2027, 11:59 p.m. ET, and your teacher schedules the presentation and oral defense in the spring. There is no May exam.',
+  },
+  lengthFaq: {
+    q: 'Is there an exam for AP Research?',
+    a: 'No. Your score comes from the academic paper (4,000–5,000 words, 75%) and a 15–20 minute presentation and oral defense (25%).',
+  },
+  faq: [
+    {
+      q: 'Do I need to take AP Seminar before AP Research?',
+      a: 'Most students do, and AP Research builds directly on the QUEST skills from Seminar. Earning 3 or higher in both, plus four other AP exams, leads to the AP Capstone Diploma.',
+    },
+  ],
+};

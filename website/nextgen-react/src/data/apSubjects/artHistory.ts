@@ -1,0 +1,122 @@
+import type { ApSubject } from './types';
+
+export const ART_HISTORY: ApSubject = {
+  slug: 'art-history',
+  guideSlug: 'ap-art-history-exam-guide-act-sat-go',
+  name: 'AP Art History',
+  metaTitle: 'AP Art History Exam Guide 2027: Format, 250 Works & Essays | ACT SAT GO',
+  description:
+    'The AP Art History exam explained: 80 multiple-choice questions and 6 essays, the 250-work image set, all 10 content areas and their weights, essay types, common traps and a study plan to May 2027.',
+  updated: '2026-10-22',
+  intro:
+    'The AP Art History exam is 3 hours: 80 multiple-choice questions in 60 minutes and 6 essays in 2 hours, each worth half your score. The course centers on 250 required works across 10 content areas, from prehistoric caves to contemporary installations, and you need to know each work\'s title, artist or culture, date, materials, function and context. Europe and the Americas (Areas 3–4) are about 42%, but every area appears on the exam. About 66–67% of students score 3 or higher.',
+  examDate: 'Wednesday, May 12, 2027 (afternoon session)',
+  length: '3 hours',
+  glance: [
+    { value: '3 hrs', label: '1 hr multiple choice + 2 hr free response' },
+    { value: '80 + 6', label: 'multiple-choice questions + essays' },
+    { value: '250 works', label: 'in the required image set' },
+    { value: '66–67%', label: 'scored 3 or higher in recent years' },
+  ],
+  structure: [
+    { section: 'I · Multiple choice', weight: '50%', timing: '1 hr · 80 questions', what: "Sets of 2–3 questions on images of artworks, plus individual questions. Analyze visual and contextual elements, compare works, and attribute works you haven't studied." },
+    { section: 'II · Free response', weight: '50%', timing: '2 hr · 6 questions', what: '2 long essays (Comparison; Visual/Contextual Analysis) and 4 short essays (Visual Analysis; Contextual Analysis; Attribution; Continuity and Change).' },
+  ],
+  formatNotes: [
+    { title: 'Everything happens in Bluebook', text: "You answer every question, including the essays, in College Board's Bluebook app, with color images of the artworks. Practice typing timed essays before May." },
+    { title: 'The image set: 250 required works', text: "For every work, build an index card: title, artist or culture, date, materials, form, function, content and context. That card answers almost any question." },
+  ],
+  mcq: {
+    intro: '80 questions in 60 minutes is only 45 seconds each. Instant recognition of the 250 works is what makes this pace possible. Wrong answers lose no points.',
+    tips: [
+      'Identify the work first: title, culture and date often unlock the answer.',
+      'For unfamiliar works, use style clues: materials, composition, figure style and subject.',
+      'Know the vocabulary: contrapposto, chiaroscuro, iconography, hierarchical scale, registers.',
+      'Think about function: who used the work, where, and why?',
+      'Move fast. At 45 seconds per question, flag anything that needs more time.',
+      'Never leave a blank. There is no penalty for guessing.',
+    ],
+  },
+  unitLabel: 'Area',
+  unitsTitle: 'The 10 content areas',
+  units: [
+    { name: 'Global Prehistory', weight: '~4%', about: '30,000–500 BCE.', skills: 'Cave paintings, megaliths and early sculpture; how art reflects survival, ritual and early societies.' },
+    { name: 'Ancient Mediterranean', weight: '~15%', about: '3500 BCE–300 CE.', skills: 'Near Eastern, Egyptian, Greek, Etruscan and Roman art; idealism vs naturalism; architecture and political power.' },
+    { name: 'Early Europe & Colonial Americas', weight: '~21%', about: '200–1750 CE.', skills: 'Byzantine, Islamic Spain, Romanesque and Gothic art; the Renaissance; Baroque; colonial art in the Americas.' },
+    { name: 'Later Europe & Americas', weight: '~21%', about: '1750–1980 CE.', skills: 'Neoclassicism, Romanticism, Realism, Impressionism, modernism and abstraction; photography; art and industrialization.' },
+    { name: 'Indigenous Americas', weight: '~6%', about: '1000 BCE–1980 CE.', skills: 'Mesoamerican, Andean and North American works; art tied to ritual, power and place.' },
+    { name: 'Africa', weight: '~6%', about: '1100–1980 CE.', skills: 'Masks, sculpture and architecture; art in performance and community; royal and spiritual power.' },
+    { name: 'West & Central Asia', weight: '~4%', about: '500 BCE–1980 CE.', skills: 'Buddhist and Islamic art and architecture; calligraphy and pattern; the Kaaba and mosques.' },
+    { name: 'South, East & Southeast Asia', weight: '~8%', about: '300 BCE–1980 CE.', skills: 'Buddhist and Hindu sculpture and temples; Chinese painting and ceramics; Japanese prints and gardens.' },
+    { name: 'The Pacific', weight: '~4%', about: '700–1980 CE.', skills: 'Navigation, ancestry and social status expressed through objects, textiles and architecture.' },
+    { name: 'Global Contemporary', weight: '~11%', about: '1980 CE–present.', skills: 'Installation, performance and digital art; identity, globalization and challenges to art traditions.' },
+  ],
+  unitsNote: 'European and American art (Areas 3–4) together are about 42% of the course, but more than half covers the rest of the world, and every area appears on the exam. Know at least a few works from each.',
+  frq: {
+    title: 'The 6 essays',
+    intro: '2 hours for 2 long essays and 4 short essays. Long essays are worth more points than short ones.',
+    types: [
+      { label: 'Q1', title: 'Long essay: Comparison', text: 'Compare a given work from the image set with another work you choose, analyzing similarities and differences in form, function or context.', tip: 'Choose a second work you know in detail, from a different culture if possible.' },
+      { label: 'Q2', title: 'Long essay: Visual/Contextual Analysis', text: 'Choose a work that fits a theme and analyze how its visual elements and context convey meaning.', tip: 'Identify the work fully: title, artist or culture, date, materials.' },
+      { label: 'Q3–4', title: 'Visual and Contextual Analysis', text: "Analyze a given work's form and techniques (visual) or its function, audience and setting (contextual).", tip: 'Use specific visual evidence, such as composition, color and scale.' },
+      { label: 'Q5–6', title: 'Attribution and Continuity & Change', text: 'Attribute an unfamiliar work to an artist, culture or style using evidence; explain how a work relates to earlier artistic traditions.', tip: 'For attribution, compare it to a work you know from the image set.' },
+    ],
+    timePlan: 'About 35 minutes for Q1, 25 for Q2 and 15 for each short essay. Identify every work you write about with at least two details: title, artist or culture, date and materials.',
+  },
+  habits: [
+    'Identify each work with at least two details.',
+    'Use art vocabulary precisely.',
+    'Back every claim with a visual or contextual detail.',
+    'Answer every lettered part of the prompt.',
+    'Stuck on attribution? Reason from a work you know.',
+  ],
+  traps: [
+    { title: 'Describing without analyzing', text: '"The painting is blue" isn\'t analysis. Explain what the color does and why.' },
+    { title: 'Weak identification', text: 'Identify works with title, artist or culture, date and materials. Vague IDs can lose points.' },
+    { title: 'Ignoring function', text: 'Many works were made for ritual, power or memory, not display. Function is often the key.' },
+    { title: 'Eurocentrism', text: "Don't judge non-Western works by European standards. Explain them in their own context." },
+    { title: 'Mixing up periods', text: 'Archaic (stiff, kouros) vs Classical (contrapposto) vs Hellenistic (dramatic emotion).' },
+    { title: 'Choosing a weak comparison work', text: 'Pick a second work you know well and that truly connects to the prompt.' },
+    { title: 'Attribution without evidence', text: 'Attribution needs specific visual features that link to a known style.' },
+    { title: 'Running out of time', text: 'Six essays in two hours. Keep short essays to about 15 minutes.' },
+    { title: 'Skipping content areas', text: 'Every content area appears. Know at least a few works from each.' },
+    { title: 'Forgetting context', text: 'Patrons, audiences, politics and religion shape meaning. Include them.' },
+  ],
+  roadmap: [
+    { when: 'Sep – Oct', focus: 'Areas 1–2: ancient worlds', text: 'Prehistory and the ancient Mediterranean. Start your flashcards for the image set.' },
+    { when: 'Nov – Jan', focus: 'Areas 3–4: Europe and the Americas', text: 'Medieval to modern Europe and the Americas, the biggest areas. Practice visual and contextual short essays.' },
+    { when: 'Feb – Mar', focus: 'Areas 5–9: the wider world', text: 'Indigenous Americas, Africa, Asia and the Pacific. Practice attribution questions.' },
+    { when: 'April', focus: 'Area 10 + timed practice', text: 'Global contemporary art. Write timed long essays and comparison questions.' },
+    { when: 'Early May', focus: 'Full image-set review', text: 'Flashcards for all 250 works and full timed sections.' },
+  ],
+  scores: { threePlus: '66–67%', fives: '15–16%' },
+  practice: [
+    {
+      topic: 'Area 2 · Greece',
+      question: 'Which feature distinguishes Classical Greek sculpture from Archaic sculpture such as the kouros?',
+      choices: ['Rigid, frontal poses', 'The use of bright paint for the first time', 'Hierarchical scale', 'Contrapposto and more naturalistic anatomy'],
+      answer: 'D',
+      why: 'Classical sculptors introduced contrapposto and naturalistic anatomy, replacing the stiff, frontal Archaic kouros pose.',
+    },
+    {
+      topic: 'Area 3 · Gothic',
+      question: 'Gothic cathedrals use flying buttresses mainly so that:',
+      choices: ['the building can be built faster', 'the roof can be made of wood', 'walls can be thinner and filled with large stained-glass windows', 'the interior can be darker'],
+      answer: 'C',
+      why: "Flying buttresses carry the vaults' outward thrust, so walls can be thinner and opened up with stained glass.",
+    },
+    {
+      topic: 'Attribution',
+      question: 'An unfamiliar painting shows dramatic contrasts of light and dark, a moment of intense action, and figures pushed close to the viewer. It is most likely from which period?',
+      choices: ['Gothic', 'Impressionist', 'Byzantine', 'Baroque'],
+      answer: 'D · Baroque',
+      why: 'Strong chiaroscuro, dramatic action and figures close to the viewer are hallmarks of Baroque painting (for example, Caravaggio).',
+    },
+  ],
+  faq: [
+    {
+      q: 'Do I need to memorize all 250 works for AP Art History?',
+      a: "You need to recognize them and know each one's title, artist or culture, date, materials, function and context. Review about 10 works a day with flashcards through the year, and the multiple-choice pace of 45 seconds per question becomes manageable.",
+    },
+  ],
+};

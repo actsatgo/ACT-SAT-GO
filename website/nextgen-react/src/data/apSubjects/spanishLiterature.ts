@@ -1,0 +1,125 @@
+import type { ApSubject } from './types';
+
+export const SPANISH_LITERATURE: ApSubject = {
+  slug: 'spanish-literature',
+  guideSlug: 'ap-spanish-literature-and-culture-exam-guide-act-sat-go',
+  name: 'AP Spanish Literature and Culture',
+  metaTitle: 'AP Spanish Literature Exam Guide 2027: Format, Works & Essays | ACT SAT GO',
+  description:
+    'The AP Spanish Literature and Culture exam explained: listening, reading and 4 free-response questions in Spanish, the 8 units from medieval to contemporary, the required reading list, common traps and a study plan to May 2027.',
+  updated: '2026-10-22',
+  intro:
+    'The AP Spanish Literature and Culture exam is 3 hours, all in Spanish: 65 listening and reading questions in 80 minutes (50% of your score) and 4 free-response questions in 1 hour 40 minutes (50%). The course centers on a required reading list of works from Spain, Latin America and the United States, and the free-response questions name works from that list, so you need to know each author, period, movement and theme. About 70–71% of students score 3 or higher.',
+  examDate: 'Friday, May 14, 2027 (morning session)',
+  length: '3 hours',
+  glance: [
+    { value: '3 hrs', label: '80 min multiple choice + 100 min free response' },
+    { value: '65 + 4', label: 'multiple-choice + free-response questions' },
+    { value: '8 units', label: 'medieval to contemporary literature' },
+    { value: '70–71%', label: 'scored 3 or higher in recent years' },
+  ],
+  structure: [
+    { section: 'IA · Listening', weight: '10%', timing: '20 min · 15 questions', what: 'Authentic audio such as an author interview, a recited poem or a literary presentation.' },
+    { section: 'IB · Reading', weight: '40%', timing: '1 hr · 50 questions', what: '6 sets of 7–10 questions on texts from different genres and periods, including one set pairing a required text with a non-required one.' },
+    { section: 'II · Free response', weight: '50%', timing: '1 hr 40 min · 4 questions', what: '2 short answers (about 30 min): text explanation and text and art comparison. 2 essays (about 70 min): analysis of a single text and a text comparison on a theme.' },
+  ],
+  formatNotes: [
+    { title: 'Everything happens in Bluebook', text: "You answer every question, including the written responses, in College Board's Bluebook app. Practice typing timed answers in Spanish, with accents, before May." },
+    { title: 'Know every required work deeply', text: 'Free-response questions name works from the required list. For each one, know the author, period, movement, themes and key literary techniques.' },
+  ],
+  mcq: {
+    kicker: 'Section I',
+    title: 'Listening and reading',
+    intro: '65 questions in 80 minutes. Reading is four times the weight of listening, and questions ask about meaning, literary devices, historical context and connections between texts. Wrong answers lose no points.',
+    tips: [
+      'Identify genre and period first: they guide your interpretation.',
+      'Know literary terms in Spanish: metáfora, hipérbaton, encabalgamiento, apóstrofe, ironía, narrador omnisciente.',
+      'Connect texts to movements: Barroco, Romanticismo, Modernismo, Generación del 98, Boom.',
+      'For paired texts, look for a shared theme and how each author treats it differently.',
+      "Use context clues for unfamiliar words; don't stop reading.",
+      'Never leave a blank. There is no penalty for guessing.',
+    ],
+  },
+  units: [
+    { name: 'La época medieval', weight: '', about: 'The roots of Spanish literature.', skills: 'Medieval Spanish literature and its religious and cultural values.' },
+    { name: 'El siglo XVI', weight: '', about: 'The early Golden Age.', skills: 'The picaresque novel, Renaissance poetry and the encounter with the Americas.' },
+    { name: 'El siglo XVII', weight: '', about: 'The Baroque.', skills: 'Cervantes, Sor Juana and the height of the Golden Age.' },
+    { name: 'Romanticismo, realismo y naturalismo', weight: '', about: 'The 19th century.', skills: 'Emotion, social realism and determinism.' },
+    { name: 'La Generación del 98 y el Modernismo', weight: '', about: 'Crisis and renewal.', skills: 'A crisis of identity in Spain and the renewal of poetic language in Latin America.' },
+    { name: 'Teatro y poesía del siglo XX', weight: '', about: 'Vanguard poetry and modern theater.', skills: 'Including Lorca and Neruda.' },
+    { name: 'El Boom latinoamericano', weight: '', about: 'The 1960s–70s.', skills: 'Magical realism and narrative experimentation.' },
+    { name: 'Escritores contemporáneos', weight: '', about: 'Recent writers.', skills: 'Writers from the United States and Spain: identity, migration and memory.' },
+  ],
+  unitsNote: 'The course moves through periods and movements, and each unit pairs required works with their historical and cultural context. Make a ficha (author, century, movement, themes, techniques) for every required work as you read it.',
+  frq: {
+    title: 'The 4 free-response questions',
+    intro: '100 minutes for 2 short answers and 2 essays, all written in Spanish. Essays need literary analysis, not plot summary: explain how techniques create meaning.',
+    types: [
+      { label: 'Q1', title: 'Text explanation', text: 'Identify the author and period of an excerpt from a required work, and explain how it develops a theme.', tip: 'Name the author, the work and the movement in your first sentence.' },
+      { label: 'Q2', title: 'Text and art comparison', text: 'Compare how a required text and a work of art (painting, photo or sculpture) treat a shared theme.', tip: 'Describe one specific detail from the artwork.' },
+      { label: 'Q3', title: 'Analysis of a single text', text: 'Analyze how an author uses literary techniques to explore a theme in an excerpt from a required work.', tip: 'Thesis + techniques + textual examples + effect on meaning.' },
+      { label: 'Q4', title: 'Text comparison', text: 'Compare two excerpts on a shared theme, one from a required work and one not on the list, analyzing techniques.', tip: 'Give both excerpts equal attention and evidence.' },
+    ],
+    timePlan: 'About 15 minutes each for Q1 and Q2, and 35 minutes each for the two essays. Start with the question type you are strongest at, and never leave a question blank.',
+  },
+  habits: [
+    'Underline every task verb in the prompt.',
+    'Write a defensible thesis in your first paragraph.',
+    'Back every claim with specific evidence.',
+    'Keep 2 minutes to reread and fix sentences.',
+    'Stuck? Answer each part separately, in order.',
+  ],
+  traps: [
+    { title: 'Plot summary', text: "Retelling the story isn't analysis. Explain how techniques create meaning." },
+    { title: 'Terms in English', text: 'Use literary terms in Spanish: metáfora, símil, hipérbole, anáfora.' },
+    { title: 'Wrong period or movement', text: "Know each required work's century and movement precisely." },
+    { title: 'Neglecting one text', text: 'In Q4, analyze both excerpts with specific details, not just the familiar one.' },
+    { title: 'Ignoring the artwork', text: 'In Q2, describe concrete details of the image, not just its theme.' },
+    { title: 'Confusing author and narrator', text: 'The narrator or poetic voice is not automatically the author.' },
+    { title: 'No thesis', text: 'Each essay needs a clear thesis about how the theme is developed.' },
+    { title: 'Grammar errors that block meaning', text: 'Accurate Spanish matters; review accents and verb agreement.' },
+    { title: 'Ignoring context', text: "Historical and cultural context helps explain a work's themes." },
+    { title: 'Running out of time', text: 'Keep short answers short so the essays get enough time.' },
+  ],
+  roadmap: [
+    { when: 'Sep – Oct', focus: 'Units 1–3: medieval + Golden Age', text: 'Medieval works, the picaresque, Cervantes and Sor Juana. Build literary vocabulary in Spanish.' },
+    { when: 'Nov – Dec', focus: 'Units 4–5: 19th century', text: "Romanticism, Realism, the Generation of '98 and Modernismo. Write short text explanations." },
+    { when: 'Jan – Feb', focus: 'Unit 6: 20th century', text: 'Lorca, Neruda and the vanguard. Practice text-and-art comparisons.' },
+    { when: 'Mar – Apr', focus: 'Units 7–8: Boom + contemporary', text: 'Magical realism and contemporary writers. Write timed comparison essays.' },
+    { when: 'Early May', focus: 'Full timed sections', text: 'Listening, reading and all four free-response questions under timing. Review your fichas.' },
+  ],
+  scores: { threePlus: '70–71%', fives: '9–20%' },
+  practice: [
+    {
+      topic: 'Poesía · Recursos',
+      question: 'En la Rima XXI de Bécquer ("¿Qué es poesía?, dices mientras clavas / en mi pupila tu pupila azul…"), el último verso, "Poesía… eres tú", es principalmente un ejemplo de:',
+      choices: ['metáfora', 'hipérbaton', 'onomatopeya', 'aliteración'],
+      answer: 'A · metáfora',
+      why: '"Poesía… eres tú" directly identifies poetry with the beloved: a metaphor.',
+    },
+    {
+      topic: 'Siglo XVII · Sor Juana',
+      question: 'En "Hombres necios que acusáis", Sor Juana Inés de la Cruz critica principalmente:',
+      choices: ['la injusticia de la sociedad virreinal hacia los indígenas', 'la Iglesia católica', 'la doble moral de los hombres que culpan a las mujeres', 'la guerra de independencia'],
+      answer: 'C',
+      why: "Sor Juana's redondillas expose the double standard of men who blame women for behavior they themselves encourage.",
+    },
+    {
+      topic: 'Análisis · Técnica',
+      question: '¿Cuál de estas oraciones sobre "La siesta del martes" es análisis literario, no resumen?',
+      choices: ['La madre llega al pueblo con su hija.', 'La historia ocurre un martes.', 'El narrador describe el calor sofocante, lo que intensifica la hostilidad del pueblo hacia la madre.', 'El cura abre la puerta.'],
+      answer: 'C',
+      why: 'Analysis explains how a technique (the description of heat) creates an effect (intensified hostility).',
+    },
+  ],
+  faq: [
+    {
+      q: 'What is the difference between AP Spanish Language and AP Spanish Literature?',
+      a: 'AP Spanish Language builds communication skills through a research project, conversations and essays on everyday themes. AP Spanish Literature is a literature course: you read and analyze required works from medieval Spain to today and write literary essays, all in Spanish.',
+    },
+    {
+      q: 'Do I need to read every work on the required list?',
+      a: 'Yes. The free-response questions name works from the list, and the reading section pairs required texts with unseen ones. For each work, know the author, century, movement, themes and key techniques.',
+    },
+  ],
+};
