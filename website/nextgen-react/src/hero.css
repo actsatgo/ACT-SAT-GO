@@ -32,11 +32,11 @@
 /* Result card (overlaps the photo's left edge) */
 .card-result {
   position: absolute;
-  left: -94px;
-  top: calc(58% + 10px);
+  left: -240px;
+  top: -38px;
   z-index: 3;
   width: 226px;
-  padding: 16px 18px;
+  padding: 13px 16px 12px;
   animation: floatY-soft 7.5s ease-in-out infinite 0.5s;
 }
 
@@ -81,8 +81,8 @@
 .card-result svg {
   display: block;
   width: 100%;
-  height: 40px;
-  margin-top: 8px;
+  height: 30px;
+  margin-top: 6px;
 }
 
 .card-result p {
@@ -371,4 +371,149 @@
   display: block;
   width: 100%;
   height: 100%;
+}
+
+/* Stats band: bigger icons, tighter bar */
+@media (min-width: 681px) {
+  #home ~ .stats-band,
+  .stats-band {
+    padding: 10px 24px;
+  }
+
+  .stats-band div {
+    min-height: 0;
+  }
+
+  .stats-band .stat-text {
+    gap: 0;
+  }
+
+  .stats-band .stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .stats-band > div,
+  .stats-band .stat-rating {
+    gap: 14px;
+  }
+}
+
+.stats-band-reach .stat-text span {
+  white-space: nowrap;
+}
+
+/* Stacked hero (tablets): the card sits on the photo's empty top-left */
+@media (min-width: 681px) and (max-width: 1040px) {
+  .card-result {
+    left: 0;
+    top: 6%;
+  }
+}
+
+/* The photo is cropped on the left and bottom (through the books and mug):
+   fade those edges into the navy so it doesn't look cut off */
+#home .hero-art img {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 9%), linear-gradient(to top, transparent 0, #000 10%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0, #000 9%), linear-gradient(to top, transparent 0, #000 10%);
+  mask-composite: intersect;
+}
+
+/* ── Full study-desk photo ────────────────────────────────────────────
+   The whole scene is shown (no crop) and its edges fade into the navy
+   hero so it reads as part of the background. The floating cards sit on
+   the empty areas of the photo. */
+#home .hero-art img {
+  min-height: 0;
+  height: auto;
+  object-fit: fill;
+  border-radius: 0;
+  filter: none;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 90%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 10%, #000 86%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0, #000 12%, #000 90%, transparent 100%), linear-gradient(to bottom, transparent 0, #000 10%, #000 86%, transparent 100%);
+  mask-composite: intersect;
+}
+
+#home .card-result {
+  left: 2%;
+  top: 7%;
+  width: 210px;
+}
+
+/* Two columns: the card sits on the empty wall left of her face */
+@media (min-width: 1041px) {
+  #home .card-result {
+    left: -128px;
+    top: 8%;
+  }
+}
+
+#home .card-exams-new {
+  right: 3%;
+  top: 16%;
+}
+
+#home .card-plan-glass {
+  right: 3%;
+  top: 49%;
+}
+
+@media (max-width: 680px) {
+  #home .card-result {
+    width: 100%;
+  }
+
+  #home .card-plan-glass {
+    top: calc((100vw - 24px) * 0.37);
+  }
+}
+
+/* Two-column hero: the faded photo reaches a little into the gap so the
+   scene stays large; on smaller laptops the cards scale down with it */
+@media (min-width: 1041px) {
+  #home.hero {
+    padding-top: 24px;
+    padding-bottom: 40px;
+  }
+
+  #home .hero-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  #home .hero-copy {
+    position: relative;
+    z-index: 4;
+  }
+
+  /* Bigger photo: it reaches into the gap on the left and its faded
+     top and bottom edges bleed past the section padding */
+  #home .hero-art img {
+    top: 0;
+    width: calc(100% + 120px);
+    max-width: none;
+    margin: -36px 0 -64px -120px;
+  }
+}
+
+@media (min-width: 1041px) and (max-width: 1240px) {
+  #home :is(.card-result, .card-exams-new, .card-plan-glass) {
+    zoom: 0.82;
+  }
+}
+
+@media (min-width: 1041px) and (max-width: 1240px) {
+  #home .hero-art img {
+    width: calc(100% + 40px);
+    margin-left: -40px;
+  }
+
+  #home .card-result {
+    left: -60px;
+  }
+
+  #home .card-plan-glass {
+    top: 56%;
+  }
 }

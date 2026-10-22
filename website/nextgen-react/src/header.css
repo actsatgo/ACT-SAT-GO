@@ -403,3 +403,14 @@ body.nav-locked .whatsapp-fab {
   padding-top: 0;
   padding-bottom: 0;
 }
+
+/* Book button shrinks with the sticky bar. Scaling (not resizing) keeps
+   the round arrow badge in shape during the transition. */
+:root .site-header .btn.btn-primary:is(.nav-btn-book, .nav-book-mobile) {
+  transform-origin: right center;
+  transition: scale 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.25s ease;
+}
+
+:root .site-header.is-compact .btn.btn-primary:is(.nav-btn-book, .nav-book-mobile) {
+  scale: 0.84;
+}

@@ -114,7 +114,7 @@ export default function App() {
                 </svg>
               </div>
 
-              <img src={heroImg} alt="Student in a live 1-on-1 online tutoring session" width="1200" height="952" {...{ fetchpriority: 'high' }} />
+              <img src={heroImg} alt="Student in a live 1-on-1 online tutoring session" width="1200" height="911" {...{ fetchpriority: 'high' }} />
 
               {/* Personalized plan: floats on its own, separate from the photo */}
               <div className="floating-card card-plan-glass">
