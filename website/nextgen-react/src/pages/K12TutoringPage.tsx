@@ -187,8 +187,8 @@ const GRADE_LEVELS = [
 
 const JOURNEY_STEPS = [
   { n: '1', title: 'Assess', text: "We understand your child's strengths, challenges, and goals.", icon: <IconClipboard />, accent: '#f59b00' },
-  { n: '2', title: 'Plan', text: 'We create a personalized learning plan tailored to their needs.', icon: <IconTarget />, accent: '#1c5fa5' },
-  { n: '3', title: 'Learn', text: 'Engaging sessions with expert tutors and proven teaching methods.', icon: <IconBookSquare />, accent: '#6d28d9' },
+  { n: '2', title: 'Plan', text: 'We create a personalized learning plan tailored to their needs.', icon: <IconTarget />, accent: '#f59b00' },
+  { n: '3', title: 'Learn', text: 'Engaging sessions with expert tutors and proven teaching methods.', icon: <IconBookSquare />, accent: '#f59b00' },
   { n: '4', title: 'Grow', text: 'Track progress, build confidence, and achieve measurable results.', icon: <IconChart />, accent: '#f59b00' },
 ];
 
@@ -329,7 +329,7 @@ export function K12TutoringPage() {
             <div className="k12-journey-steps">
               {JOURNEY_STEPS.map((s, i) => (
                 <div key={s.n} className="k12-journey-step" style={{ ['--accent' as string]: s.accent }}>
-                  {i > 0 && <span className="k12-journey-line" aria-hidden="true" />}
+                  {i < JOURNEY_STEPS.length - 1 && <span className="k12-journey-line" aria-hidden="true" />}
                   <span className="k12-journey-icon" aria-hidden="true">{s.icon}</span>
                   <strong>{s.n}. {s.title}</strong>
                   <p>{s.text}</p>

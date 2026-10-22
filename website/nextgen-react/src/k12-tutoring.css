@@ -723,3 +723,25 @@
     margin-top: -24px;
   }
 }
+
+/* Learning journey: steps top-aligned, one gold accent, one continuous line
+   running from each icon to the next behind the icons */
+.k12-journey-step {
+  align-content: start;
+  gap: 8px;
+}
+
+.k12-journey-line {
+  top: 23px;
+  left: 50%;
+  right: auto;
+  width: calc(100% + 8px);
+  z-index: 0;
+  border-top: 2px dashed rgba(253, 185, 19, 0.35);
+}
+
+.k12-journey-icon {
+  margin-bottom: 4px;
+  background: #0b1f38;
+  box-shadow: 0 0 0 6px rgba(253, 185, 19, 0.08);
+}
