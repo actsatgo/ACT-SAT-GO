@@ -4063,7 +4063,7 @@ html, body {
   line-height: 1.3;
 }
 .ss-uni small { display: block; margin-bottom: 6px; color: var(--muted); font-size: 10.5px; font-weight: 800; letter-spacing: 0.1em; text-align: center; text-transform: uppercase; }
-.ss-uni-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.ss-uni-row { display: flex; align-items: center; justify-content: center; gap: 10px; min-width: 0; }
 .ss-uni-row svg { flex: none; }
 .ss-uni-name { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ss-cta { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px 22px; margin-top: 32px; }
