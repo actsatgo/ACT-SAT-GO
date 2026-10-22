@@ -1290,3 +1290,19 @@
 .dream-score-sections.is-3 {
   grid-template-columns: repeat(3, 1fr);
 }
+
+@media (max-width: 600px) {
+  .dream-score-sections.is-3 {
+    gap: 6px;
+  }
+
+  .dream-score-sections.is-3 div {
+    min-width: 0;
+    padding: 8px;
+  }
+
+  .dream-score-sections.is-3 em {
+    font-size: 9.5px;
+    letter-spacing: 0.02em;
+  }
+}

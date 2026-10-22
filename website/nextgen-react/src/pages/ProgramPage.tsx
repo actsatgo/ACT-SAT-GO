@@ -250,6 +250,7 @@ const CTA_BENEFITS = [
 const DREAM_SCORES: Record<string, { label: string; total: string; sections: [string, string][] }> = {
   SAT: { label: 'SCORE', total: '1600', sections: [['Reading & Writing', '800'], ['Math', '800']] },
   ACT: { label: 'COMPOSITE', total: '36', sections: [['English', '36'], ['Math', '36'], ['Reading', '36']] },
+  AP: { label: 'SCORE', total: '5', sections: [['Calculus BC', '5'], ['Biology', '5'], ['Physics 1', '5']] },
 };
 
 export function ProgramPage({ data }: { data: ProgramPageData }) {
@@ -645,7 +646,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
           </div>
         </section>
 
-        {/* Dream score banner (SAT and ACT) */}
+        {/* Dream score banner (SAT, ACT and AP) */}
         {DREAM_SCORES[data.exam] && (
           <section className="dream-score shell" aria-labelledby="dream-score-title">
             <div className="dream-score-card">
