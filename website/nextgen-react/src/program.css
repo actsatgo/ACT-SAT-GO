@@ -894,7 +894,7 @@
 
 .prog-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 18px;
   margin-top: 36px;
 }
@@ -917,6 +917,29 @@
   font-weight: 700;
 }
 
+/* "Students Across" is words, not a number: same line height, smaller type */
+.prog-stats .prog-stat-text strong {
+  display: flex;
+  align-items: center;
+  min-height: 41px;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.prog-stat-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 4px;
+  color: var(--gold);
+}
+
+.prog-stat-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
 /* ── Responsive ──────────────────────────────────────────────────── */
 @media (max-width: 1040px) {
   .prog-hero-grid {
@@ -932,6 +955,10 @@
   .highlight-grid,
   .prog-stats {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .prog-stats .prog-stat-text {
+    grid-column: 1 / -1;
   }
 
   .step-flow,
@@ -1024,3 +1051,24 @@
 }
 
 
+
+/* Gold line icons over the stats (the Google "G" keeps its colours) */
+.prog-stats .prog-stat-icon {
+  color: var(--gold);
+}
+
+/* Phones: two stats per row, "Students Across" on its own row */
+@media (max-width: 680px) {
+  .prog-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 22px;
+  }
+
+  .prog-stats .prog-stat-text {
+    grid-column: 1 / -1;
+  }
+
+  .prog-stats strong {
+    font-size: 28px;
+  }
+}

@@ -3,7 +3,7 @@
 // these objects, so all three stay visually and structurally consistent.
 
 import type { FaqItem } from './faq';
-import { STATS } from '../site';
+import { STATS, STUDENT_COUNTRIES } from '../site';
 
 export interface ProgramTier {
   name: string;
@@ -49,6 +49,8 @@ export interface ChooseItem {
 export interface Stat {
   value: string;
   label: string;
+  /** Text headline rather than a number (shown smaller). */
+  text?: boolean;
 }
 
 export interface ProgramPageData {
@@ -83,11 +85,13 @@ export interface ProgramPageData {
   faq?: FaqItem[];
 }
 
+// Same five figures as the stats bar under the homepage hero.
 const SHARED_STATS: Stat[] = [
-  { value: '90+', label: 'Top Scores Achieved' },
-  { value: STATS.students, label: 'Students Trained' },
-  { value: STATS.rating, label: 'Google Rating' },
+  { value: 'Students Across', label: STUDENT_COUNTRIES.join(' · '), text: true },
+  { value: STATS.students, label: 'Students Mentored' },
+  { value: STATS.tutors, label: 'Expert Tutors' },
   { value: STATS.satisfaction, label: 'Parent Satisfaction' },
+  { value: STATS.rating, label: 'Google Rating' },
 ];
 
 export const ACT_PAGE: ProgramPageData = {
