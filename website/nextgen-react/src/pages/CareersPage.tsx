@@ -13,42 +13,42 @@ const DEFAULT_JOBS = [
   {
     id: 'job_1',
     dept: 'Academics',
-    title: 'SAT / ACT Tutor (Math)',
+    title: 'SAT & ACT Math Tutor',
     location: 'Remote (Global)',
-    type: 'Freelancer',
-    desc: 'Guide students to master math concepts, ace standardized tests and achieve their dream scores.',
+    type: 'Freelance',
+    desc: 'Teach algebra, problem solving and advanced math one student at a time, turning each diagnostic into a clear plan for their target score.',
   },
   {
     id: 'job_2',
     dept: 'Academics',
-    title: 'SAT/ACT Tutor (Verbal)',
+    title: 'SAT & ACT Reading and Writing Tutor',
     location: 'Remote (Global)',
-    type: 'Freelancer',
-    desc: 'Help students excel in Reading & Writing sections of SAT and ACT with proven strategies.',
+    type: 'Freelance',
+    desc: 'Coach reading comprehension, grammar and pacing for the Digital SAT and the ACT English and Reading sections.',
   },
   {
     id: 'job_3',
     dept: 'Academics',
-    title: 'AP Calculus',
+    title: 'AP Calculus Tutor',
     location: 'Remote (Global)',
-    type: 'Freelancer',
-    desc: 'Teach AP Calculus AB/BC, preparing high school students for top AP scores.',
+    type: 'Freelance',
+    desc: 'Prepare high schoolers for AP Calculus AB and BC, with timed practice on the exam\'s multiple-choice and free-response questions.',
   },
   {
     id: 'job_4',
     dept: 'Academics',
-    title: 'AP Biology',
+    title: 'AP Biology Tutor',
     location: 'Remote (Global)',
-    type: 'Freelancer',
-    desc: 'Deliver comprehensive coaching in AP Biology concepts and experimental design.',
+    type: 'Freelance',
+    desc: 'Make AP Biology click, from core concepts to lab-based and experimental design questions, with exam-style practice.',
   },
   {
     id: 'job_5',
     dept: 'Academics',
-    title: 'AP Computer Science',
+    title: 'AP Computer Science Tutor',
     location: 'Remote (Global)',
-    type: 'Freelancer',
-    desc: 'Help students master coding, algorithms, and AP Computer Science exam topics.',
+    type: 'Freelance',
+    desc: 'Help students write clean code, reason through algorithms and get comfortable with the AP Computer Science free-response questions.',
   },
   {
     id: 'job_6',
@@ -56,7 +56,7 @@ const DEFAULT_JOBS = [
     title: 'Operations Manager',
     location: 'Remote (Global)',
     type: 'Full-time',
-    desc: 'Oversee daily operations, optimize scheduling, and manage coordinator teams.',
+    desc: 'Keep lessons running on time: own tutor scheduling, session quality and the coordinator team, so every family gets a smooth experience.',
   },
   {
     id: 'job_7',
@@ -64,7 +64,7 @@ const DEFAULT_JOBS = [
     title: 'Student Success Specialist',
     location: 'Remote (Global)',
     type: 'Full-time',
-    desc: 'Support student academic journeys, coordinate between parents and mentors.',
+    desc: 'Be the family\'s go-to person: check in on progress, share reports with parents, and keep student and tutor working toward the same goal.',
   },
   {
     id: 'job_8',
@@ -72,17 +72,46 @@ const DEFAULT_JOBS = [
     title: 'Student Success Executive',
     location: 'Remote (Global)',
     type: 'Full-time',
-    desc: 'Manage onboarding, build parent relationships, and ensure high student satisfaction.',
+    desc: 'Welcome new families after their free diagnostic lesson, guide them through onboarding, and build relationships that last.',
   },
   {
     id: 'job_9',
     dept: 'Operations',
-    title: 'Assessment and Testing Coordinator',
+    title: 'Assessment & Testing Coordinator',
     location: 'Remote (Global)',
     type: 'Full-time',
-    desc: 'Schedule and coordinate practice tests, analyze student performance metrics.',
+    desc: 'Run full-length mock tests, read the score reports and show tutors exactly where each student needs more practice.',
   },
 ];
+
+/* Icon in the navy card header, picked from the job's department */
+function jobIcon(dept: string) {
+  const d = dept.toLowerCase();
+  if (d.includes('academ')) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 10 12 5 2 10l10 5 10-5z" />
+        <path d="M6 12v5c3 2 9 2 12 0v-5" />
+      </svg>
+    );
+  }
+  if (d.includes('success')) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+    </svg>
+  );
+}
+
+/* Older job records say "Freelancer"; show the job type, not the person */
+const jobType = (type: string) => (type === 'Freelancer' ? 'Freelance' : type);
 
 const CULTURE = [
   {
@@ -481,8 +510,12 @@ export function CareersPage() {
           <div className="shell">
             <p className="careers-section-eyebrow">OPEN POSITIONS</p>
             <h2 className="careers-jobs-title">
-              Find your opportunity<br />to make an impact.
+              Help the next 1,000 students <span>reach their target score.</span>
             </h2>
+            <p className="careers-jobs-lead">
+              Every role is fully remote. Tutors choose their own hours and teach 1-on-1; team members work
+              directly with families in the USA, UK, India, Singapore and UAE.
+            </p>
 
             {/* Job cards */}
             <div
@@ -499,11 +532,20 @@ export function CareersPage() {
               <div className="careers-jobs-track">
                 {[...jobs, ...jobs].map((job, i) => (
                   <article key={`${job.id || job.title}-${i}`} className="careers-job-card">
-                    <h3 className="careers-job-title" style={{ marginTop: 0 }}>{job.title}</h3>
-                    <p className="careers-job-location">{job.location}</p>
-                    <p className="careers-job-desc">{job.desc}</p>
+                    <header className="careers-job-head">
+                      <span className="careers-job-avatar" aria-hidden="true">{jobIcon(job.dept || '')}</span>
+                      <div>
+                        <h3 className="careers-job-title">{job.title}</h3>
+                        <span className="careers-job-sub">
+                          {job.dept ? `${job.dept} · ` : ''}{jobType(job.type)}
+                        </span>
+                      </div>
+                    </header>
+                    <div className="careers-job-body">
+                      <p className="careers-job-desc">{job.desc}</p>
+                      <span className="careers-job-location">{job.location}</span>
+                    </div>
                     <div className="careers-job-footer">
-                      <span className="careers-job-badge">{job.type}</span>
                       <button
                         type="button"
                         onClick={() => handleApplyClick(job.title)}
@@ -515,6 +557,22 @@ export function CareersPage() {
                   </article>
                 ))}
               </div>
+            </div>
+
+            <div className="careers-jobs-more">
+              <div>
+                <strong>Don't see your role?</strong>
+                <span>We're always glad to hear from great educators. Send us your details and CV.</span>
+              </div>
+              <a
+                href="#apply-form"
+                onClick={(e) => {
+                  e.preventDefault();
+                  document.getElementById('apply-form')?.scrollIntoView({ behavior: 'smooth' });
+                }}
+              >
+                Apply anyway →
+              </a>
             </div>
           </div>
         </section>
