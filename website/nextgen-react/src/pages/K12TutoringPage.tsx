@@ -4,7 +4,7 @@ import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import { STATS } from '../site';
-import { IconGlobe, IconGraduationCap, IconUser, IconChart } from '../components/Icons';
+import { IconGraduationCap, IconUser, IconChart } from '../components/Icons';
 import programsImg from '../assets/img/programs.webp';
 import k12HeroImg from '../assets/img/k12-hero.webp';
 import k12ElementaryImg from '../assets/img/k12-elementary.webp';
@@ -205,7 +205,7 @@ const BOTTOM_STATS = [
   { icon: <IconGraduationCap />, value: STATS.students, label: 'Students Mentored' },
   { icon: <IconUser />, value: STATS.tutors, label: 'Expert Tutors' },
   { icon: <IconStar />, value: '95%', label: 'Improvement Rate' },
-  { icon: <IconGlobe />, value: STATS.countries, label: 'Countries Served' },
+  { icon: <IconStar />, value: STATS.rating, label: 'Google Rating' },
 ];
 
 export function K12TutoringPage() {

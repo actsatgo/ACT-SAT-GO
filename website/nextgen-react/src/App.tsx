@@ -11,7 +11,7 @@ import { ACT_PAGE } from './data/programs';
 import heroImg from './assets/img/hero-y1.webp';
 import { QUERY_API_BASE } from './config';
 import { trackLead, leadSource, trackContactClick } from './lib/analytics';
-import { SITE, STATS, PRIMARY_CTA, SECONDARY_CTA } from './site';
+import { SITE, STATS, STUDENT_COUNTRIES, PRIMARY_CTA, SECONDARY_CTA } from './site';
 import { PainPoints } from './components/PainPoints';
 import { HowItWorks } from './components/HowItWorks';
 import { FaqSection } from './components/FaqSection';
@@ -22,6 +22,12 @@ import { HOME_FAQ } from './data/faq';
 
 import { IconGlobe, IconUser, IconUsers, IconHeartCheck, IconGraduationCap, IconChart, IconDocument, IconClipboardCheck, IconLink, IconRoute, IconMonitor, IconFlag, IconNetwork, IconTrophy } from './components/Icons';
 
+
+const HERO_CHECKS = [
+  'Free diagnostic before the first lesson',
+  'Homework and practice tests after every session',
+  'Weekly progress report for parents',
+];
 
 export default function App() {
   useScrollReveal();
@@ -85,8 +91,17 @@ export default function App() {
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell hero-grid">
             <div className="hero-copy">
-              <h1>1-on-1 Digital SAT &amp; ACT tutoring that raises scores — <span>with a plan you can see every week.</span></h1>
-              <p className="hero-text">Expert tutors, a diagnostic before the first lesson, homework after every session and a weekly progress report for parents. Live online, scheduled around your family&rsquo;s time zone.</p>
+              <p className="hero-eyebrow"><b>New</b> Digital SAT prep for the 2026–27 test dates</p>
+              <h1>Raise your teen&rsquo;s SAT score with <span>1&#8209;on&#8209;1 expert tutoring</span></h1>
+              <p className="hero-text">A personal plan built from a free diagnostic, live lessons with a specialist tutor, and a progress report in your inbox every week.</p>
+              <ul className="hero-checks">
+                {HERO_CHECKS.map((c) => (
+                  <li key={c}>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" strokeOpacity="0.35" /><path d="m7.5 12.5 3 3 6-6.5" /></svg>
+                    {c}
+                  </li>
+                ))}
+              </ul>
 
               <div className="hero-actions-new">
                 <a className="btn btn-primary" href="/consultation" onClick={(e) => { e.preventDefault(); openConsultationModal('General'); }}>
@@ -95,6 +110,13 @@ export default function App() {
                 <Link className="btn btn-secondary" to="/free-test" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
                   {SECONDARY_CTA}
                 </Link>
+              </div>
+              <p className="hero-micro">Free and no obligation. Live online, scheduled around your time zone.</p>
+
+              <div className="hero-proof">
+                <a href={SITE.googleReviewUrl} target="_blank" rel="noopener noreferrer"><span className="stars" aria-hidden="true">★★★★★</span><b>{STATS.rating}</b> Google rating</a>
+                <div><b>{STATS.students}</b> students</div>
+                <div>Students from <b>{STUDENT_COUNTRIES.join(', ')}</b></div>
               </div>
             </div>
 
@@ -117,46 +139,37 @@ export default function App() {
 
               <img src={heroImg} alt="Student in a live 1-on-1 online tutoring session" width="1200" height="952" {...{ fetchpriority: 'high' }} />
 
-              {/* Concepts Made Simple check badge */}
-              <div className="floating-card card-concepts-new">
-                <span className="concepts-check-new" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
+              {/* Next session: shows the weekly rhythm */}
+              <div className="floating-card card-next">
+                <span className="card-next-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></svg>
                 </span>
                 <div>
-                  <span className="concept-title">Concepts</span>
-                  <span className="concept-sub">Made Simple</span>
+                  <strong>Next session: Tue 6 pm</strong>
+                  <span>Reading &amp; Writing, Module 2</span>
                 </div>
               </div>
 
-              {/* Score Improvement chart card */}
-              <div className="floating-card card-score-new">
-                <span className="score-title">Weekly Progress Report</span>
-                <span className="score-value">For Parents</span>
-                <svg className="score-chart" viewBox="0 0 160 50">
-                  <path
-                    d="M10,40 Q35,28 60,32 T110,22 L150,8"
-                    fill="none"
-                    stroke="var(--gold)"
-                    strokeWidth="2.5"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="10" cy="40" r="3.5" fill="var(--gold)" />
-                  <circle cx="35" cy="28" r="3.5" fill="var(--gold)" />
-                  <circle cx="60" cy="32" r="3.5" fill="var(--gold)" />
-                  <circle cx="85" cy="25" r="3.5" fill="var(--gold)" />
-                  <circle cx="110" cy="22" r="3.5" fill="var(--gold)" />
-                  <circle cx="150" cy="8" r="4.5" fill="var(--gold)" />
+              {/* A real result from Success Stories */}
+              <div className="floating-card card-result">
+                <small>Ananya&rsquo;s SAT score</small>
+                <div className="card-result-row">
+                  <s>1310</s><b>1540</b><span>+230</span>
+                </div>
+                <svg viewBox="0 0 200 42" aria-hidden="true">
+                  <defs><linearGradient id="heroResultLine" x1="0" x2="1"><stop offset="0" stopColor="#fdb913" stopOpacity="0.4" /><stop offset="1" stopColor="#f97c0a" /></linearGradient></defs>
+                  <path d="M4 36 C 40 34, 60 26, 90 24 S 150 14, 196 5" fill="none" stroke="url(#heroResultLine)" strokeWidth="3" strokeLinecap="round" />
+                  <circle cx="196" cy="5" r="4.5" fill="#fdb913" />
                 </svg>
+                <p>Admitted to University of Michigan</p>
               </div>
 
-              {/* Exam tag stack */}
-              <div className="floating-card card-exams-new">
-                <span className="exam-tag active">SAT</span>
-                <span className="exam-tag active">ACT</span>
-                <span className="exam-tag active">AP</span>
-              </div>
+              {/* Programs: each tag opens its page */}
+              <nav className="floating-card card-exams-new" aria-label="Programs">
+                <Link className="exam-tag" to="/sat">SAT <span aria-hidden="true">→</span></Link>
+                <Link className="exam-tag" to="/act">ACT <span aria-hidden="true">→</span></Link>
+                <Link className="exam-tag" to="/ap">AP <span aria-hidden="true">→</span></Link>
+              </nav>
             </div>
           </div>
         </section>
@@ -167,7 +180,7 @@ export default function App() {
             <span className="stat-icon" aria-hidden="true"><IconGlobe /></span>
             <div className="stat-text">
               <strong>Students Across</strong>
-              <span>USA · Canada · India · UAE · Singapore · UK</span>
+              <span>{STUDENT_COUNTRIES.join(' · ')}</span>
             </div>
           </div>
           <div>
@@ -181,10 +194,6 @@ export default function App() {
           <div>
             <span className="stat-icon" aria-hidden="true"><IconHeartCheck /></span>
             <div className="stat-text"><CountUp value={STATS.satisfaction} /><span>Parent Satisfaction</span></div>
-          </div>
-          <div>
-            <span className="stat-icon" aria-hidden="true"><IconGlobe /></span>
-            <div className="stat-text"><CountUp value={STATS.countries} /><span>Countries Reached</span></div>
           </div>
         </section>
 

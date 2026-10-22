@@ -1,0 +1,296 @@
+/* ── Homepage hero ───────────────────────────────────────────────────
+   Shorter headline, ticks, reassurance line and a proof strip on the left;
+   a real result card, a "next session" card and program links on the photo.
+   Loaded last so it overrides the older hero rules in styles.css. */
+#home h1 {
+  margin: 16px 0 18px;
+  font-size: clamp(34px, 4.1vw, 56px);
+  line-height: 1.08;
+  font-weight: 900;
+  text-wrap: balance;
+}
+
+#home h1 span {
+  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.hero-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 14px 6px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13.5px;
+  font-weight: 800;
+}
+
+.hero-eyebrow b {
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
+  color: var(--navy);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+#home .hero-text {
+  max-width: 520px;
+  margin-bottom: 0;
+  line-height: 1.6;
+}
+
+.hero-checks {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.hero-checks li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.hero-checks svg {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  color: var(--gold);
+}
+
+#home .hero-actions-new {
+  flex-wrap: wrap;
+  gap: 14px 26px;
+}
+
+.hero-micro {
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13.5px;
+}
+
+.hero-proof {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 24px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-proof > * {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 14px;
+}
+
+.hero-proof b {
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.hero-proof div:last-child b {
+  font-size: 14px;
+}
+
+.hero-proof a:hover b {
+  color: var(--gold);
+}
+
+/* Next session card (top left of the photo) */
+.card-next {
+  position: absolute;
+  left: 16px;
+  top: 8%;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px 12px 12px;
+  animation: floatY-soft 6.5s ease-in-out infinite;
+}
+
+.card-next-icon {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
+  color: var(--navy);
+}
+
+.card-next-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.card-next strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.card-next div span {
+  display: block;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12.5px;
+}
+
+/* Result card (overlaps the photo's left edge) */
+.card-result {
+  position: absolute;
+  left: -94px;
+  top: calc(58% + 10px);
+  z-index: 3;
+  width: 226px;
+  padding: 16px 18px;
+  animation: floatY-soft 7.5s ease-in-out infinite 0.5s;
+}
+
+.card-result small {
+  display: block;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.card-result-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.card-result-row s {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.card-result-row b {
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.card-result-row span {
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(22, 163, 74, 0.18);
+  color: #4ade80;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.card-result svg {
+  display: block;
+  width: 100%;
+  height: 40px;
+  margin-top: 8px;
+}
+
+.card-result p {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12.5px;
+}
+
+/* Program tags are links now */
+#home .exam-tag {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-width: 96px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
+  color: var(--navy);
+  font-size: 14px;
+  text-decoration: none;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+#home .exam-tag span {
+  transition: transform 0.2s ease;
+}
+
+#home .exam-tag:hover {
+  background: var(--soft-white, #f4f6fa);
+  transform: translateX(-4px);
+}
+
+#home .exam-tag:hover span {
+  transform: translateX(3px);
+}
+
+@media (max-width: 900px) {
+  .card-next {
+    left: 0;
+    top: 10%;
+  }
+
+  .card-result {
+    left: 0;
+    top: 38%;
+  }
+}
+
+/* Phones: the cards drop into normal flow under the photo */
+@media (max-width: 680px) {
+  .hero-checks li {
+    font-size: 15px;
+  }
+
+  .hero-proof {
+    gap: 8px 18px;
+  }
+
+  .card-next,
+  .card-result {
+    position: static;
+    animation: none;
+  }
+
+  .card-result {
+    width: 100%;
+  }
+
+  .card-next {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-next,
+  .card-result {
+    animation: none;
+  }
+}
+
+/* Room for the proof strip above the overlapping stats band */
+#home.hero {
+  padding-bottom: 64px;
+}
