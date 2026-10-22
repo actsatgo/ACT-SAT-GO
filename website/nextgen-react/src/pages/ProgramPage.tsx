@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { HowItWorks } from '../components/HowItWorks';
@@ -252,6 +252,85 @@ const DREAM_SCORES: Record<string, { label: string; total: string; sections: [st
   ACT: { label: 'COMPOSITE', total: '36', sections: [['English', '36'], ['Math', '36'], ['Reading', '36']] },
   AP: { label: 'SCORE', total: '5', sections: [['Calculus BC', '5'], ['Biology', '5'], ['Physics 1', '5']] },
 };
+
+function countUp(el: HTMLElement, to: number, from: number, ms: number, delay: number) {
+  let start = 0;
+  let raf = 0;
+  const step = (now: number) => {
+    if (!start) start = now;
+    const t = Math.min(1, (now - start) / ms);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = String(Math.round(from + (to - from) * eased));
+    if (t < 1) raf = requestAnimationFrame(step);
+  };
+  const timer = window.setTimeout(() => { raf = requestAnimationFrame(step); }, delay);
+  return () => { window.clearTimeout(timer); cancelAnimationFrame(raf); };
+}
+
+function DreamScoreArt({ exam }: { exam: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const info = DREAM_SCORES[exam];
+
+  useEffect(() => {
+    const art = ref.current;
+    if (!art || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const nums = Array.from(art.querySelectorAll<HTMLElement>('[data-count]'));
+    let stops: Array<() => void> = [];
+
+    const play = () => {
+      stops.forEach((s) => s());
+      art.classList.remove('is-live');
+      nums.forEach((n) => { n.textContent = n.dataset.from ?? '0'; });
+      void art.offsetWidth;
+      art.classList.add('is-live');
+      stops = nums.map((n, i) => countUp(n, Number(n.dataset.count), Number(n.dataset.from), 1400, i === 0 ? 350 : 650 + i * 120));
+    };
+
+    art.classList.add('is-armed');
+    nums.forEach((n) => { n.textContent = n.dataset.from ?? '0'; });
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { play(); io.disconnect(); }
+    }, { threshold: 0.4 });
+    io.observe(art);
+
+    // Replay when the visitor comes back to the card, at most every few seconds
+    const card = art.closest('.dream-score-card');
+    let last = Date.now();
+    const onEnter = () => {
+      if (Date.now() - last > 4000 && art.classList.contains('is-live')) { last = Date.now(); play(); }
+    };
+    card?.addEventListener('mouseenter', onEnter);
+    return () => { io.disconnect(); stops.forEach((s) => s()); card?.removeEventListener('mouseenter', onEnter); };
+  }, [exam]);
+
+  const startFrom = (score: string) => String(Math.max(1, Math.round(Number(score) * (Number(score) > 10 ? 0.6 : 0.4))));
+
+  return (
+    <div className="dream-score-art" aria-hidden="true" ref={ref}>
+      <span className="ds-spark ds-spark-1">✦</span>
+      <span className="ds-spark ds-spark-2">✦</span>
+      <span className="ds-spark ds-spark-3">✦</span>
+      <div className="dream-score-sheet dream-score-sheet-back" />
+      <div className="dream-score-sheet dream-score-sheet-front">
+        <small>{exam} {info.label}</small>
+        <strong data-count={info.total} data-from={startFrom(info.total)}>{info.total}</strong>
+        <div className={`dream-score-sections is-${info.sections.length}`}>
+          {info.sections.map(([name, score]) => (
+            <div key={name}><em>{name}</em><b data-count={score} data-from={startFrom(score)}>{score}</b></div>
+          ))}
+        </div>
+        <i className="ds-line ds-w80" />
+        <i className="ds-line ds-w60" />
+        <div className="dream-score-bars">
+          {[46, 62, 74, 88, 100].map((h) => <span key={h} style={{ height: `${h}%` }} />)}
+        </div>
+        <i className="ds-line ds-w90" />
+        <i className="ds-line ds-w70" />
+        <span className="dream-score-check">✓</span>
+      </div>
+    </div>
+  );
+}
 
 export function ProgramPage({ data }: { data: ProgramPageData }) {
   useScrollReveal();
@@ -654,30 +733,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
                 <h2 id="dream-score-title">Ready to achieve your <span>dream score?</span></h2>
                 <Link className="btn btn-primary dream-score-btn" to={consultHref}>Secure Your Spot Now</Link>
               </div>
-              <div className="dream-score-art" aria-hidden="true">
-                <div className="dream-score-sheet dream-score-sheet-back" />
-                <div className="dream-score-sheet">
-                  <small>{data.exam} {DREAM_SCORES[data.exam].label}</small>
-                  <strong>{DREAM_SCORES[data.exam].total}</strong>
-                  <div className={`dream-score-sections is-${DREAM_SCORES[data.exam].sections.length}`}>
-                    {DREAM_SCORES[data.exam].sections.map(([name, score]) => (
-                      <div key={name}><em>{name}</em><b>{score}</b></div>
-                    ))}
-                  </div>
-                  <i className="ds-line ds-w80" />
-                  <i className="ds-line ds-w60" />
-                  <div className="dream-score-bars">
-                    <span style={{ height: '46%' }} />
-                    <span style={{ height: '62%' }} />
-                    <span style={{ height: '74%' }} />
-                    <span style={{ height: '88%' }} />
-                    <span style={{ height: '100%' }} />
-                  </div>
-                  <i className="ds-line ds-w90" />
-                  <i className="ds-line ds-w70" />
-                  <span className="dream-score-check">✓</span>
-                </div>
-              </div>
+              <DreamScoreArt exam={data.exam} />
             </div>
           </section>
         )}
