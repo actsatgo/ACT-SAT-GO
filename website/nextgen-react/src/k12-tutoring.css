@@ -669,3 +669,57 @@
     margin-top: 16px;
   }
 }
+
+/* Hero photo: full-height on the right, its left edge fading into the navy */
+.k12-hero {
+  min-height: clamp(560px, 46vw, 700px);
+  display: flex;
+  align-items: center;
+}
+
+.k12-hero > .shell.k12-hero-grid {
+  flex: none;
+  grid-template-columns: minmax(0, 0.48fr) 1fr;
+  padding-block: 56px;
+}
+
+.k12-hero-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  width: 66%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 70% 30%;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.55) 12%, #000 26%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.55) 12%, #000 26%);
+  pointer-events: none;
+}
+
+.k12-hero .orb {
+  display: none;
+}
+
+@media (max-width: 1040px) {
+  .k12-hero {
+    display: block;
+    min-height: 0;
+  }
+
+  .k12-hero-bg {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1550 / 1015;
+    -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
+  }
+
+  .k12-hero > .shell.k12-hero-grid {
+    grid-template-columns: 1fr;
+    padding-block: 0 48px;
+    margin-top: -24px;
+  }
+}

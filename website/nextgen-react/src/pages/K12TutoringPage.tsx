@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
@@ -210,7 +210,6 @@ const BOTTOM_STATS = [
 
 export function K12TutoringPage() {
   useScrollReveal();
-  const heroArtRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -228,33 +227,6 @@ export function K12TutoringPage() {
     }
   }, [location.hash]);
 
-  useEffect(() => {
-  }, []);
-
-  useEffect(() => {
-    const el = heroArtRef.current;
-    if (!el) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    const handleMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      el.style.setProperty('--tilt-x', `${(-y * 6).toFixed(2)}deg`);
-      el.style.setProperty('--tilt-y', `${(x * 6).toFixed(2)}deg`);
-    };
-    const handleLeave = () => {
-      el.style.setProperty('--tilt-x', '0deg');
-      el.style.setProperty('--tilt-y', '0deg');
-    };
-
-    el.addEventListener('mousemove', handleMove);
-    el.addEventListener('mouseleave', handleLeave);
-    return () => {
-      el.removeEventListener('mousemove', handleMove);
-      el.removeEventListener('mouseleave', handleLeave);
-    };
-  }, []);
 
   return (
     <>
@@ -263,6 +235,13 @@ export function K12TutoringPage() {
       <main>
         {/* Hero */}
         <section className="k12-hero section-dark">
+          <img
+            className="k12-hero-bg"
+            src={k12HeroImg}
+            alt="Three smiling students supported by ACT SAT GO tutoring"
+            width={1550}
+            height={1015}
+          />
           <span className="k12-hero-texture" aria-hidden="true" />
           <span className="orb orb-gold" aria-hidden="true" />
           <span className="orb orb-ring" aria-hidden="true" />
@@ -294,12 +273,6 @@ export function K12TutoringPage() {
               </div>
             </div>
 
-            <div className="k12-hero-art" ref={heroArtRef} aria-hidden="true">
-              <span className="k12-blob k12-blob-gold"></span>
-              <span className="k12-blob k12-blob-blue"></span>
-              <span className="k12-ring-glow"></span>
-              <img className="k12-hero-photo" src={k12HeroImg} alt="Three students supported by ACT SAT GO tutoring" />
-            </div>
           </div>
         </section>
 
