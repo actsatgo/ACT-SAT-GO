@@ -132,9 +132,9 @@ export default function App() {
 
               {/* Programs: each tag opens its page */}
               <nav className="floating-card card-exams-new" aria-label="Programs">
-                <Link className="exam-tag" to="/sat">SAT <span aria-hidden="true">→</span></Link>
-                <Link className="exam-tag" to="/act">ACT <span aria-hidden="true">→</span></Link>
-                <Link className="exam-tag" to="/ap">AP <span aria-hidden="true">→</span></Link>
+                <Link className="exam-tag" to="/sat">SAT</Link>
+                <Link className="exam-tag" to="/act">ACT</Link>
+                <Link className="exam-tag" to="/ap">AP</Link>
               </nav>
             </div>
           </div>
