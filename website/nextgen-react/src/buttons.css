@@ -60,7 +60,7 @@
 /* Navy sections: soft white pill that turns to the logo gradient */
 :root :is(
   .hero, .prog-hero, .k12-hero, .process-cta, .k12-cta-card, .prog-cta,
-  .footer, .c-modal, .ft-form-card, .careers-form-section, .careers-cta-section,
+  .footer, .c-modal, .ft-form-card, .careers-cta-section,
   .ap-guides-cta, .newsletter-box
 ) :is(
   .btn-primary:not(.contact-dropdown > .btn-primary),

@@ -1078,3 +1078,231 @@
     object-position: 92% 50%;
   }
 }
+
+/* Tutor application: white form card on the navy section, perk tiles under
+   the requirements, drag-and-drop CV box, "what happens next" note */
+.careers-form-perks {
+  list-style: none;
+  margin: 28px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.careers-form-perks li {
+  display: grid;
+  gap: 2px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--gold-2);
+}
+
+.careers-form-perks strong {
+  font-size: 15px;
+  color: #ffffff;
+}
+
+.careers-form-perks span {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.careers-form-card {
+  background: #ffffff;
+  border: 0;
+  border-radius: 22px;
+  backdrop-filter: none;
+  box-shadow: 0 5px 0 #fc9b0a, 0 30px 60px -28px rgba(0, 0, 0, 0.6);
+  color: var(--navy);
+}
+
+.careers-form-card .form-legend {
+  display: grid;
+  gap: 4px;
+  color: var(--navy);
+  font-weight: 900;
+  border-bottom-color: #e6ebf2;
+}
+
+.careers-form-card .form-legend small {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.careers-form-card .careers-application-form label {
+  color: #24364b;
+  font-weight: 800;
+}
+
+.careers-form-card .careers-application-form label small {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.careers-form-card .careers-application-form input[type="text"],
+.careers-form-card .careers-application-form input[type="email"],
+.careers-form-card .careers-application-form input[type="tel"],
+.careers-form-card .careers-application-form input[type="url"],
+.careers-form-card .careers-application-form select,
+.careers-form-card .careers-application-form textarea {
+  background: #f5f8fc;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  color: var(--navy);
+}
+
+.careers-form-card .careers-application-form ::placeholder {
+  color: #94a3b8;
+}
+
+.careers-form-card .careers-application-form input:focus,
+.careers-form-card .careers-application-form select:focus,
+.careers-form-card .careers-application-form textarea:focus {
+  background: #ffffff;
+  border-color: var(--gold-2);
+  box-shadow: 0 0 0 3px rgba(245, 168, 0, 0.18);
+}
+
+.careers-form-card .phone-code-select {
+  width: 120px;
+  padding: 0 8px;
+  font-size: 14.5px;
+}
+
+.careers-form-card .field-hint {
+  color: var(--muted);
+}
+
+.careers-form-card .test-prep-checklist {
+  background: #f5f8fc;
+  border-color: #dbe3ee;
+}
+
+.careers-form-card .checklist-label {
+  color: var(--navy);
+  font-weight: 700;
+}
+
+.careers-form-card .file-uploader-box {
+  gap: 14px;
+  padding: 16px;
+  border: 1.5px dashed rgba(245, 168, 0, 0.6);
+  border-radius: 14px;
+  background: #fffaf0;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.careers-form-card .file-uploader-box:hover,
+.careers-form-card .file-uploader-box.is-dragover {
+  background: #fff3d6;
+  border-color: var(--gold-2);
+}
+
+.careers-form-card .file-uploader-box:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.file-drop-icon {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(245, 168, 0, 0.16);
+  color: #b77900;
+}
+
+.file-drop-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.file-drop-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.file-drop-text strong {
+  font-size: 14.5px;
+  color: var(--navy);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-drop-text u {
+  color: #b77900;
+}
+
+.careers-form-card .file-name-display {
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.careers-form-card .careers-form-error-banner {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.form-next-step {
+  margin: 14px 0 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.form-next-step strong {
+  color: var(--navy);
+}
+
+.careers-form-card .careers-form-success h3 {
+  color: var(--navy);
+}
+
+.careers-form-card .careers-form-success p {
+  color: var(--muted);
+}
+
+.careers-form-card .btn-reset-form {
+  color: var(--navy);
+  border-color: #dbe3ee;
+}
+
+.careers-form-card .btn-reset-form:hover {
+  background: #f5f8fc;
+  border-color: var(--navy);
+}
+
+@media (max-width: 600px) {
+  .careers-form-perks {
+    grid-template-columns: 1fr;
+  }
+}
+
+.careers-form-card .careers-application-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.careers-form-card .careers-application-form .form-submit-btn {
+  align-self: center;
+}
+
+.careers-form-grid > *,
+.careers-application-form .form-row > *,
+.careers-application-form .form-group {
+  min-width: 0;
+}
+
+.careers-form-card .careers-application-form input {
+  min-width: 0;
+}

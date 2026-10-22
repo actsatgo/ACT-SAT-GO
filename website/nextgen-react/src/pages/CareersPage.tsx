@@ -178,6 +178,7 @@ const PARTNER_PERKS = [
 
 export function CareersPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [cvDragOver, setCvDragOver] = useState(false);
   const jobsMarqueeRef = useRef<HTMLDivElement>(null);
   const jobsPausedRef = useRef(false);
   const jobsDragRef = useRef({ dragging: false, moved: false, startX: 0, startScroll: 0 });
@@ -333,7 +334,10 @@ export function CareersPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    if (file) readCvFile(file);
+  };
+
+  const readCvFile = (file: File) => {
 
     if (file.size > 5 * 1024 * 1024) {
       setErrorMsg('CV file size must be under 5MB.');
@@ -630,6 +634,13 @@ export function CareersPage() {
                     </li>
                   </ul>
                 </div>
+
+                <ul className="careers-form-perks">
+                  <li><strong>Fully remote</strong><span>Teach from anywhere</span></li>
+                  <li><strong>Your hours</strong><span>Pick the slots that suit you</span></li>
+                  <li><strong>Global students</strong><span>USA, UK, India, Singapore, UAE</span></li>
+                  <li><strong>1-on-1 only</strong><span>No crowded group classes</span></li>
+                </ul>
               </div>
 
               {/* Form Card */}
@@ -651,7 +662,10 @@ export function CareersPage() {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="careers-application-form">
-                    <h3 className="form-legend">Apply for Tutoring Position</h3>
+                    <h3 className="form-legend">
+                      Apply for a Tutoring Position
+                      <small>Fields marked * are required.</small>
+                    </h3>
                     
                     {errorMsg && (
                       <div className="careers-form-error-banner animate-fade-in" role="alert">
@@ -689,32 +703,22 @@ export function CareersPage() {
                         <label htmlFor="phone">Contact Number (WhatsApp) *</label>
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <select
-                            style={{
-                              width: '120px',
-                              padding: '0 8px',
-                              backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                              border: '1px solid rgba(255, 255, 255, 0.1)',
-                              borderRadius: '8px',
-                              color: 'white',
-                              outline: 'none',
-                              fontFamily: 'inherit',
-                              fontSize: '14.5px',
-                            }}
+                            className="phone-code-select"
                             value={phoneCountryCode}
                             onChange={(e) => setPhoneCountryCode(e.target.value)}
                           >
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+1">+1 (US)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+91">+91 (IN)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+44">+44 (UK)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+971">+971 (AE)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+65">+65 (SG)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+61">+61 (AU)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+966">+966 (SA)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+974">+974 (QA)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+968">+968 (OM)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+965">+965 (KW)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+973">+973 (BH)</option>
-                            <option style={{ backgroundColor: '#111827', color: 'white' }} value="+852">+852 (HK)</option>
+                            <option value="+1">+1 (US)</option>
+                            <option value="+91">+91 (IN)</option>
+                            <option value="+44">+44 (UK)</option>
+                            <option value="+971">+971 (AE)</option>
+                            <option value="+65">+65 (SG)</option>
+                            <option value="+61">+61 (AU)</option>
+                            <option value="+966">+966 (SA)</option>
+                            <option value="+974">+974 (QA)</option>
+                            <option value="+968">+968 (OM)</option>
+                            <option value="+965">+965 (KW)</option>
+                            <option value="+973">+973 (BH)</option>
+                            <option value="+852">+852 (HK)</option>
                           </select>
                           <input
                             type="tel"
@@ -753,12 +757,11 @@ export function CareersPage() {
                         />
                       </div>
                       <div className="form-group">
-                        <label htmlFor="hourlyRate">Expected Hourly Rate (USD) *</label>
+                        <label htmlFor="hourlyRate">Expected Hourly Rate (USD) <small>optional</small></label>
                         <input
                           type="text"
                           id="hourlyRate"
                           placeholder="e.g. $35/hr"
-                          required
                           value={form.hourlyRate}
                           onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}
                         />
@@ -797,7 +800,30 @@ export function CareersPage() {
                       <label htmlFor="cv-upload" className="cv-upload-label">
                         Upload CV (PDF, DOC, DOCX - Max 5MB) *
                       </label>
-                      <div className="file-uploader-box">
+                      <div
+                        className={`file-uploader-box${cvDragOver ? ' is-dragover' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-label="Upload CV"
+                        onClick={() => fileInputRef.current?.click()}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            fileInputRef.current?.click();
+                          }
+                        }}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          setCvDragOver(true);
+                        }}
+                        onDragLeave={() => setCvDragOver(false)}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          setCvDragOver(false);
+                          const file = e.dataTransfer.files?.[0];
+                          if (file) readCvFile(file);
+                        }}
+                      >
                         <input
                           type="file"
                           ref={fileInputRef}
@@ -806,15 +832,24 @@ export function CareersPage() {
                           onChange={handleFileChange}
                           style={{ display: 'none' }}
                         />
-                        <button
-                          type="button"
-                          className="file-select-btn"
-                          onClick={() => fileInputRef.current?.click()}
-                        >
-                          Select CV File
-                        </button>
-                        <span className="file-name-display">
-                          {cvFile ? cvFile.name : 'No file chosen'}
+                        <span className="file-drop-icon" aria-hidden="true">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                          </svg>
+                        </span>
+                        <span className="file-drop-text">
+                          {cvFile ? (
+                            <strong>{cvFile.name}</strong>
+                          ) : (
+                            <strong>
+                              Drop your CV here or <u>browse</u>
+                            </strong>
+                          )}
+                          <span className="file-name-display">
+                            {cvFile ? 'Click to choose a different file' : 'PDF, DOC or DOCX, up to 5MB'}
+                          </span>
                         </span>
                       </div>
                     </div>
@@ -850,6 +885,9 @@ export function CareersPage() {
                     >
                       {submitStatus === 'submitting' ? 'Submitting...' : 'Submit Application'}
                     </button>
+                    <p className="form-next-step">
+                      <strong>What happens next:</strong> we review every application and reply by email or WhatsApp.
+                    </p>
                   </form>
                 )}
               </div>
