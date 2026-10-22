@@ -246,6 +246,12 @@ const CTA_BENEFITS = [
   { title: 'Ongoing Support', text: 'Till You Achieve', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0Z" /><path d="M7 5H4.5A1.5 1.5 0 0 0 3 6.5c0 1.8 1.4 3.3 3.2 3.5" /><path d="M17 5h2.5A1.5 1.5 0 0 1 21 6.5c0 1.8-1.4 3.3-3.2 3.5" /><path d="M12 13v3M9 20h6M10 16h4l.6 4H9.4Z" /></svg> },
 ];
 
+// Perfect-score report shown in the "dream score" banner at the bottom of the page
+const DREAM_SCORES: Record<string, { label: string; total: string; sections: [string, string][] }> = {
+  SAT: { label: 'SCORE', total: '1600', sections: [['Reading & Writing', '800'], ['Math', '800']] },
+  ACT: { label: 'COMPOSITE', total: '36', sections: [['English', '36'], ['Math', '36'], ['Reading', '36']] },
+};
+
 export function ProgramPage({ data }: { data: ProgramPageData }) {
   useScrollReveal();
 
@@ -639,8 +645,8 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
           </div>
         </section>
 
-        {/* Dream score banner (SAT) */}
-        {data.exam === 'SAT' && (
+        {/* Dream score banner (SAT and ACT) */}
+        {DREAM_SCORES[data.exam] && (
           <section className="dream-score shell" aria-labelledby="dream-score-title">
             <div className="dream-score-card">
               <div className="dream-score-copy">
@@ -650,11 +656,12 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
               <div className="dream-score-art" aria-hidden="true">
                 <div className="dream-score-sheet dream-score-sheet-back" />
                 <div className="dream-score-sheet">
-                  <small>SAT SCORE</small>
-                  <strong>1600</strong>
-                  <div className="dream-score-sections">
-                    <div><em>Reading &amp; Writing</em><b>800</b></div>
-                    <div><em>Math</em><b>800</b></div>
+                  <small>{data.exam} {DREAM_SCORES[data.exam].label}</small>
+                  <strong>{DREAM_SCORES[data.exam].total}</strong>
+                  <div className={`dream-score-sections is-${DREAM_SCORES[data.exam].sections.length}`}>
+                    {DREAM_SCORES[data.exam].sections.map(([name, score]) => (
+                      <div key={name}><em>{name}</em><b>{score}</b></div>
+                    ))}
                   </div>
                   <i className="ds-line ds-w80" />
                   <i className="ds-line ds-w60" />
