@@ -5,7 +5,6 @@ import { HowItWorks } from '../components/HowItWorks';
 import { TutorCards } from '../components/TutorCards';
 import { PRIMARY_CTA, SECONDARY_CTA, CONSULT_PATH } from '../site';
 import { Footer } from '../components/Footer';
-import { CountUp } from '../components/CountUp';
 import { FaqSection } from '../components/FaqSection';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import type { ProgramPageData } from '../data/programs';
@@ -605,7 +604,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
 
         {data.faq && <FaqSection items={data.faq} title={`${data.exam} questions students and parents ask`} />}
 
-        {/* CTA + stats */}
+        {/* CTA */}
         <section className="prog-cta section-dark" id="consultation">
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell">
@@ -634,14 +633,6 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
                     <strong>{b.title}</strong>
                     <span>{b.text}</span>
                   </div>
-                </div>
-              ))}
-            </div>
-            <div className="prog-stats">
-              {data.stats.map((s) => (
-                <div key={s.label} className={s.text ? 'prog-stat-text' : undefined}>
-                  {s.text ? <strong>{s.value}</strong> : <CountUp value={s.value} />}
-                  <span>{s.label}</span>
                 </div>
               ))}
             </div>
