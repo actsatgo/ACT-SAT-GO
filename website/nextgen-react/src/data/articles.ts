@@ -2380,6 +2380,288 @@ export const ARTICLES: Article[] = [
       { name: 'College Board: AP Credit Policy Search', url: 'https://apstudents.collegeboard.org/getting-credit-placement/search-policies' },
     ],
   },
+  {
+    slug: 'digital-ap-exams-2027',
+    title: 'AP Exams Go Digital in May 2027: What’s Changing and the Nov 13 Deadline',
+    metaTitle: 'Digital AP Exams 2027: What Changes + Nov 13 Deadline | ACT SAT GO',
+    description:
+      'Every 2027 AP Exam uses College Board’s Bluebook app. See which exams are fully digital, which are hybrid, the November 13 ordering deadline, fees and how to prepare.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'AP',
+    answer:
+      'In May 2027, AP Exams are given in College Board’s Bluebook app. Most exams, including English, history, psychology, statistics and world languages, are fully digital. Math and science exams such as Calculus, Biology, Chemistry and Physics are hybrid: multiple choice is on screen and free-response answers are handwritten in paper booklets. Schools must order exams by November 13, 2026, or pay a $40 late fee per exam.',
+    sections: [
+      {
+        heading: 'Key 2026–27 AP dates',
+        table: {
+          head: ['Date', 'What happens'],
+          rows: [
+            ['November 13, 2026', 'Final deadline for schools to order exams for full-year and fall courses'],
+            ['January 22, 2027', 'Deadline to request testing accommodations'],
+            ['March 12, 2027', 'Deadline for spring course orders and changes to fall orders'],
+            ['May 3–7 and May 10–14, 2027', 'AP Exams'],
+            ['May 17–21, 2027', 'Late testing'],
+          ],
+        },
+        paragraphs: [
+          'Many schools set their own earlier sign-up deadline so the AP coordinator can place the order on time. Check with your school this week rather than waiting for November 13.',
+        ],
+      },
+      {
+        heading: 'What the November 13 deadline means for fees',
+        table: {
+          head: ['Fee', 'Amount (US)'],
+          rows: [
+            ['Standard exam fee', '$99 per exam'],
+            ['Late order fee (ordered November 14 to March 12)', '$40 per exam, on top of the exam fee'],
+            ['Unused or canceled exam after November 13', '$40 per exam'],
+            ['College Board fee reduction for students with financial need', '$37 off per exam'],
+          ],
+        },
+        paragraphs: [
+          'Students pay through their school, and some schools add a small amount for administration. Some states offer extra funding, so ask your AP coordinator.',
+        ],
+      },
+      {
+        heading: 'Fully digital AP Exams',
+        paragraphs: [
+          'In these exams, both multiple choice and free response are completed in Bluebook, and answers submit automatically at the end:',
+        ],
+        list: [
+          'English Language and Composition; English Literature and Composition',
+          'US History; European History; World History: Modern; African American Studies; Art History',
+          'US Government and Politics; Comparative Government and Politics; Human Geography; Psychology',
+          'Statistics (new to fully digital in 2027); Environmental Science',
+          'Computer Science A; Computer Science Principles; Cybersecurity; Business with Personal Finance',
+          'Chinese, French, German, Italian, Japanese and Spanish Language and Culture; Spanish Literature and Culture; Latin',
+          'Seminar',
+        ],
+      },
+      {
+        heading: 'Hybrid digital AP Exams',
+        paragraphs: [
+          'In these exams, students answer multiple choice and view free-response questions in Bluebook, but write their free-response answers by hand in paper booklets:',
+        ],
+        list: [
+          'Calculus AB; Calculus BC; Precalculus',
+          'Biology; Chemistry',
+          'Physics 1; Physics 2; Physics C: Mechanics; Physics C: Electricity and Magnetism',
+          'Macroeconomics; Microeconomics',
+          'Music Theory (new to hybrid in 2027)',
+        ],
+      },
+      {
+        heading: 'Portfolio-only courses',
+        paragraphs: [
+          'AP Art and Design is submitted entirely through the AP Digital Portfolio. AP Research has no written exam; students submit an academic paper and complete a presentation and oral defense.',
+        ],
+      },
+      {
+        heading: 'How to prepare for a digital AP Exam',
+        list: [
+          'Install Bluebook on the device you will use and try the free AP test preview for each of your subjects.',
+          'Practise typing timed essays if your exam is fully digital. Typing under time pressure is a different skill from handwriting.',
+          'For hybrid exams, practise reading the question on screen and writing the answer on paper, so switching between the two feels normal.',
+          'World language students will listen and record in Bluebook, so ask your coordinator what equipment, such as a headset with a microphone, you need.',
+          'Use updated practice: College Board says AP Classroom practice tests are being updated to match Bluebook.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'Are all AP Exams digital in 2027?',
+        a: 'Almost all are given in the Bluebook app. Most are fully digital, while math and science exams such as Calculus, Biology, Chemistry and Physics are hybrid, with handwritten free-response answers. AP Art and Design and AP Research are completed through the AP Digital Portfolio.',
+      },
+      {
+        q: 'What is the deadline to sign up for AP Exams?',
+        a: 'Schools must order exams for full-year and fall courses by November 13, 2026. After that, a $40 late fee per exam applies. Many schools set an earlier internal deadline, so check with your AP coordinator.',
+      },
+      {
+        q: 'How much does an AP Exam cost in 2026–27?',
+        a: 'The standard fee is $99 per exam in the US. Students with significant financial need can receive a $37 College Board fee reduction, and some states provide additional help.',
+      },
+      {
+        q: 'When are the 2027 AP Exams?',
+        a: 'AP Exams run May 3–7 and May 10–14, 2027, with late testing May 17–21.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: How AP Exams Are Administered', url: 'https://apstudents.collegeboard.org/ap-exams-what-to-know/digital-testing-exam-modes' },
+      { name: 'College Board: AP Exam Fees', url: 'https://apstudents.collegeboard.org/exam-policies-guidelines/exam-fees' },
+      { name: 'College Board: Important Updates for AP Coordinators', url: 'https://apcentral.collegeboard.org/about-ap/ap-coordinators/important-updates' },
+      { name: 'College Board: 2027 AP Exam Calendar', url: 'https://apstudents.collegeboard.org/ap-exams-overview/exam-calendar' },
+    ],
+  },
+  {
+    slug: 'ap-statistics-changes-2027',
+    title: 'The New AP Statistics: What Changed for the May 2027 Exam',
+    metaTitle: 'AP Statistics Changes for 2027: New Course and Exam | ACT SAT GO',
+    description:
+      'AP Statistics was revised for 2026–27: five units instead of nine, no Algebra 2 prerequisite, a new exam format with 42 multiple-choice questions and four 10-point free-response questions, fully digital.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'AP',
+    answer:
+      'AP Statistics was revised starting in the 2026–27 school year. The course now has five units instead of nine, the second-year algebra prerequisite is gone, and several topics were removed. The May 11, 2027 exam is fully digital, with 42 multiple-choice questions that have four answer choices and four free-response questions worth 10 points each. Prep books written for the old course no longer match the exam.',
+    sections: [
+      {
+        heading: 'Old exam vs new exam',
+        table: {
+          head: ['', 'Before 2027', 'From May 2027'],
+          rows: [
+            ['Format', 'Hybrid: paper free response', 'Fully digital in Bluebook'],
+            ['Multiple choice', '40 questions, 5 answer choices', '42 questions, 4 answer choices'],
+            ['Free response', '6 questions worth 4 points each', '4 questions worth 10 points each'],
+            ['Course structure', '9 units', '5 units'],
+            ['Prerequisite', 'Second-year algebra', 'None'],
+          ],
+        },
+      },
+      {
+        heading: 'Topics removed from the course',
+        paragraphs: [
+          'According to College Board, these topics are no longer part of AP Statistics:',
+        ],
+        list: [
+          'Analyzing departures from linearity',
+          'Combining random variables',
+          'The geometric distribution',
+          'Chi-square goodness of fit tests',
+          'Inference for slopes',
+        ],
+      },
+      {
+        heading: 'What was added',
+        paragraphs: [
+          'The revised course adds topics on investigative questions: framing a statistical question, deciding how to collect data to answer it, and reasoning about what the results do and do not show. This fits the exam’s focus on explaining statistical thinking in context, not just calculating.',
+        ],
+      },
+      {
+        heading: 'What the new free response means for students',
+        paragraphs: [
+          'Free response moves from six shorter questions to four longer ones, each worth 10 points. Each question carries more weight, so a single misunderstood question costs more. Students need to plan multi-part answers, keep their reasoning tied to the context of the problem, and manage time across longer tasks.',
+          'Because the exam is now fully digital, students also type their free-response answers in Bluebook instead of writing them on paper.',
+        ],
+      },
+      {
+        heading: 'How to prepare for the new AP Statistics exam',
+        list: [
+          'Use materials built for the revised course. Older review books and past free-response questions still help with core skills but include removed topics and the old format.',
+          'Try College Board’s AP Statistics test preview in Bluebook to get used to the on-screen tools.',
+          'Practise writing complete statistical explanations in context: state the method, check conditions, interpret results in plain language.',
+          'Do timed sets of the longer free-response questions to build pacing.',
+          'Review the course framework unit by unit and track which units feel weakest.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'When does the new AP Statistics course start?',
+        a: 'The revised course began in the 2026–27 school year, and the first revised exam is on Tuesday, May 11, 2027.',
+      },
+      {
+        q: 'Do you need Algebra 2 for AP Statistics now?',
+        a: 'No. College Board removed the second-year algebra prerequisite as part of the revision.',
+      },
+      {
+        q: 'Is the AP Statistics exam digital?',
+        a: 'Yes. From May 2027, AP Statistics is fully digital in the Bluebook app, including the free-response section.',
+      },
+      {
+        q: 'Can I still use old AP Statistics review books?',
+        a: 'They can help with core skills, but they include topics that were removed and the old exam format, so pair them with materials made for the revised course.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: AP Statistics Revisions', url: 'https://apcentral.collegeboard.org/courses/ap-statistics/future-revisions' },
+      { name: 'College Board: 2027 AP Exam Calendar', url: 'https://apstudents.collegeboard.org/ap-exams-overview/exam-calendar' },
+    ],
+  },
+  {
+    slug: 'new-ap-courses-2026-27',
+    title: 'New AP Courses for 2026–27: AP Cybersecurity and AP Business with Personal Finance',
+    metaTitle: 'New AP Courses 2026–27: Cybersecurity and Business | ACT SAT GO',
+    description:
+      'What AP Cybersecurity and AP Business with Personal Finance cover, how the May 2027 exams work, whether colleges give credit, and who should take them.',
+    published: '2026-10-22',
+    updated: '2026-10-22',
+    tag: 'AP',
+    answer:
+      'College Board launched two new AP courses in 2026–27: AP Cybersecurity and AP Business with Personal Finance. Both are part of the AP Career Kickstart program, both exams are fully digital in Bluebook, and both are first given in May 2027. Colleges are still setting credit policies, and College Board expects to announce the first colleges granting credit in spring 2027.',
+    sections: [
+      {
+        heading: 'The two courses at a glance',
+        table: {
+          head: ['', 'AP Business with Personal Finance', 'AP Cybersecurity'],
+          rows: [
+            ['First exam', 'Tuesday, May 4, 2027 (morning)', 'Wednesday, May 5, 2027 (morning)'],
+            ['Format', 'Fully digital in Bluebook', 'Fully digital in Bluebook'],
+            ['Multiple choice', '60 questions, 70 minutes, 60% of score', '60 questions, 80 minutes, 70% of score'],
+            ['Free response', '4 questions, 90 minutes, 40% of score', '1 question, 50 minutes, 30% of score'],
+          ],
+        },
+      },
+      {
+        heading: 'AP Business with Personal Finance: what it covers',
+        list: [
+          'Unit 1: Businesses, Competition, and New Ideas',
+          'Unit 2: Marketing',
+          'Unit 3: Personal Saving and Borrowing, and Business Finance and Accounting',
+          'Unit 4: Management and Strategy',
+          'Unit 5: Personal Goals, Budgeting, and Investing (can be taught after the exam)',
+        ],
+        paragraphs: [
+          'Students build a Business Canvas Project around their own product idea and, on exam day, answer a free-response question that asks them to pitch it and explain how they tested their assumptions. The other free-response questions ask students to interpret a household’s finances, use business data for planning, and recommend between two business decisions. About 20 to 25% of multiple-choice questions cover personal finance.',
+        ],
+      },
+      {
+        heading: 'AP Cybersecurity: what it covers',
+        paragraphs: [
+          'AP Cybersecurity is a yearlong course aligned with first-year college cybersecurity courses and the NICE Workforce Framework. It covers defending physical spaces, networks, devices, applications and data, and it builds three core skills: analyzing risk, mitigating risk and detecting attacks. A fourth skill area covers collaboration, including working with AI.',
+          'The free-response question gives students sources from one device, such as firewall rules, system logs, file permissions and a device policy. Students find signs of attacks, configure permissions and firewall rules, and recommend ways to harden the device.',
+        ],
+      },
+      {
+        heading: 'Will colleges give credit?',
+        paragraphs: [
+          'Not yet confirmed. College Board says the content matches what colleges typically expect for credit or placement, but colleges are still developing policies. The first institutions granting credit are expected to be announced in spring 2027. Use College Board’s AP credit policy search for updates.',
+        ],
+      },
+      {
+        heading: 'Who should consider these courses',
+        list: [
+          'AP Business with Personal Finance suits students curious about entrepreneurship, marketing or economics, and anyone who wants practical money skills such as budgeting, saving and investing.',
+          'AP Cybersecurity suits students interested in computer science, IT, engineering or security careers, and those who like hands-on problem solving.',
+          'Both can add a career-focused AP to a transcript without replacing core academic APs. Check with your school counselor on how they fit your schedule.',
+        ],
+      },
+    ],
+    faq: [
+      {
+        q: 'What new AP courses were added for 2026–27?',
+        a: 'AP Cybersecurity and AP Business with Personal Finance. Both are part of College Board’s AP Career Kickstart program and have their first exams in May 2027.',
+      },
+      {
+        q: 'Do colleges give credit for AP Cybersecurity or AP Business with Personal Finance?',
+        a: 'Colleges are still setting policies. College Board expects to announce the first colleges granting credit in spring 2027.',
+      },
+      {
+        q: 'Are the new AP exams digital?',
+        a: 'Yes. Both exams are fully digital in the Bluebook app, with answers submitted automatically at the end.',
+      },
+      {
+        q: 'When are the first exams?',
+        a: 'AP Business with Personal Finance is on Tuesday, May 4, 2027, and AP Cybersecurity is on Wednesday, May 5, 2027, both in the morning session.',
+      },
+    ],
+    sources: [
+      { name: 'College Board: AP Business with Personal Finance', url: 'https://apcentral.collegeboard.org/courses/ap-business-personal-finance' },
+      { name: 'College Board: AP Business with Personal Finance Exam', url: 'https://apcentral.collegeboard.org/courses/ap-business-personal-finance/exam' },
+      { name: 'College Board: AP Cybersecurity', url: 'https://apcentral.collegeboard.org/courses/ap-cybersecurity' },
+      { name: 'College Board: AP Cybersecurity Exam', url: 'https://apcentral.collegeboard.org/courses/ap-cybersecurity/exam' },
+    ],
+  },
 ];
 
 export const ARTICLE_BY_SLUG: Record<string, Article> = Object.fromEntries(ARTICLES.map((a) => [a.slug, a]));
