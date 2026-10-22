@@ -638,6 +638,41 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
             </div>
           </div>
         </section>
+
+        {/* Dream score banner (SAT) */}
+        {data.exam === 'SAT' && (
+          <section className="dream-score shell" aria-labelledby="dream-score-title">
+            <div className="dream-score-card">
+              <div className="dream-score-copy">
+                <h2 id="dream-score-title">Ready to achieve your <span>dream score?</span></h2>
+                <Link className="btn btn-primary dream-score-btn" to={consultHref}>Secure Your Spot Now</Link>
+              </div>
+              <div className="dream-score-art" aria-hidden="true">
+                <div className="dream-score-sheet dream-score-sheet-back" />
+                <div className="dream-score-sheet">
+                  <small>SAT SCORE</small>
+                  <strong>1600</strong>
+                  <div className="dream-score-sections">
+                    <div><em>Reading &amp; Writing</em><b>800</b></div>
+                    <div><em>Math</em><b>800</b></div>
+                  </div>
+                  <i className="ds-line ds-w80" />
+                  <i className="ds-line ds-w60" />
+                  <div className="dream-score-bars">
+                    <span style={{ height: '46%' }} />
+                    <span style={{ height: '62%' }} />
+                    <span style={{ height: '74%' }} />
+                    <span style={{ height: '88%' }} />
+                    <span style={{ height: '100%' }} />
+                  </div>
+                  <i className="ds-line ds-w90" />
+                  <i className="ds-line ds-w70" />
+                  <span className="dream-score-check">✓</span>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />

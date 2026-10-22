@@ -1072,3 +1072,217 @@
     font-size: 28px;
   }
 }
+
+/* ── Dream score banner (bottom of the SAT page) ─────────────────────── */
+.dream-score {
+  padding: 56px 0 64px;
+}
+
+.dream-score-card {
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  align-items: center;
+  min-height: 340px;
+  border-radius: 22px;
+  background-color: #f8bf2c;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(135deg, #fdc93a 0%, #f8b51e 60%, #f5a614 100%);
+  background-size: 34px 34px, 34px 34px, 100% 100%;
+  box-shadow: 0 30px 60px -32px rgba(6, 26, 47, 0.45);
+}
+
+.dream-score-copy {
+  padding: 56px 0 56px clamp(28px, 6vw, 88px);
+}
+
+.dream-score-copy h2 {
+  margin: 0 0 32px;
+  max-width: 11em;
+  color: var(--navy);
+  font-size: clamp(30px, 3.6vw, 52px);
+  font-weight: 900;
+  line-height: 1.12;
+}
+
+.dream-score-copy h2 span {
+  display: block;
+}
+
+/* Navy pill on the gold card, same travelling-arrow hover as the rest of the site */
+:root .dream-score .dream-score-card .btn-primary.dream-score-btn {
+  --pb-bg: var(--navy);
+  --pb-fg: #ffffff;
+  --pb-badge: var(--logo-grad);
+  --pb-arrow: var(--navy);
+  --pb-trail: #ffffff;
+  --pb-fg-hover: var(--navy);
+  --pb-badge-hover: var(--navy);
+  --pb-arrow-hover: #ffffff;
+  box-shadow: 0 14px 28px -14px rgba(6, 26, 47, 0.7);
+}
+
+.dream-score-art {
+  position: relative;
+  align-self: stretch;
+  min-height: 300px;
+}
+
+.dream-score-sheet {
+  position: absolute;
+  left: 12%;
+  right: 14%;
+  top: 46px;
+  bottom: -40px;
+  padding: 30px 32px;
+  border-radius: 6px 6px 0 0;
+  background: #ffffff;
+  box-shadow: 0 24px 50px -20px rgba(6, 26, 47, 0.45);
+  transform: rotate(-2deg);
+  transition: transform 0.35s ease;
+}
+
+.dream-score-sheet-back {
+  left: 9%;
+  right: 17%;
+  top: 56px;
+  padding: 0;
+  background: #e9edf3;
+  transform: rotate(-6deg);
+}
+
+.dream-score-card:hover .dream-score-sheet:not(.dream-score-sheet-back) {
+  transform: rotate(0deg) translateY(-8px);
+}
+
+.dream-score-sheet small {
+  display: block;
+  color: #3b4a5c;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.dream-score-sheet strong {
+  display: block;
+  margin: 2px 0 16px;
+  color: #1c6fe0;
+  font-size: clamp(54px, 5.4vw, 78px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.dream-score-sections {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.dream-score-sections div {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #f2f5f9;
+}
+
+.dream-score-sections em {
+  color: #6b7a8c;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.dream-score-sections b {
+  color: var(--navy);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.ds-line {
+  display: block;
+  height: 9px;
+  margin-bottom: 9px;
+  border-radius: 99px;
+  background: #e6ebf1;
+}
+
+.ds-w90 { width: 90%; }
+.ds-w80 { width: 80%; }
+.ds-w70 { width: 70%; }
+.ds-w60 { width: 60%; }
+
+.dream-score-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 56px;
+  margin: 14px 0 16px;
+}
+
+.dream-score-bars span {
+  flex: 1;
+  border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, #4a90f0, #1c6fe0);
+  opacity: 0.85;
+}
+
+.dream-score-check {
+  position: absolute;
+  right: 28px;
+  top: 30px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #16a34a;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+@media (max-width: 860px) {
+  .dream-score-card {
+    grid-template-columns: 1fr;
+  }
+
+  .dream-score-copy {
+    padding: 40px 28px 8px;
+  }
+
+  .dream-score-copy h2 {
+    margin-bottom: 24px;
+    font-size: clamp(24px, 7vw, 32px);
+  }
+
+  .dream-score-art {
+    min-height: 280px;
+  }
+
+  .dream-score-sheet {
+    left: 14%;
+    right: 14%;
+    top: 30px;
+    padding: 24px;
+  }
+
+  .dream-score-sheet-back {
+    left: 11%;
+    right: 17%;
+    top: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dream-score-sheet {
+    transition: none;
+  }
+}
