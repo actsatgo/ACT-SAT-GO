@@ -679,7 +679,7 @@
 
 .k12-hero > .shell.k12-hero-grid {
   flex: none;
-  grid-template-columns: minmax(0, 0.48fr) 1fr;
+  grid-template-columns: minmax(0, 580px) 1fr;
   padding-block: 44px;
 }
 
@@ -744,4 +744,10 @@
   margin-bottom: 4px;
   background: #0b1f38;
   box-shadow: 0 0 0 6px rgba(253, 185, 19, 0.08);
+}
+
+/* Hero heading: exactly one phrase per line */
+.k12-hero-copy h1 {
+  white-space: nowrap;
+  font-size: clamp(26px, 3.4vw, 46px);
 }
