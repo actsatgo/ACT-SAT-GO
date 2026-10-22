@@ -32,8 +32,8 @@
 /* Result card (overlaps the photo's left edge) */
 .card-result {
   position: absolute;
-  left: -94px;
-  top: calc(58% + 10px);
+  left: -20px;
+  top: 22%;
   z-index: 3;
   width: 226px;
   padding: 16px 18px;
@@ -396,5 +396,15 @@
   .stats-band > div,
   .stats-band .stat-rating {
     gap: 14px;
+  }
+}
+
+.stats-band-reach .stat-text span {
+  white-space: nowrap;
+}
+
+@media (min-width: 901px) and (max-width: 1240px) {
+  .card-result {
+    left: -80px;
   }
 }
