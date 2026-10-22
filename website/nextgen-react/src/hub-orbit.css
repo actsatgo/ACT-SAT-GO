@@ -1,0 +1,194 @@
+/* ── Programs banner: moving orbit ───────────────────────────────────
+   The cap sits in the centre; the three promises circle it and stay
+   upright, and glowing dots travel around the rings. */
+.hub .hub-header {
+  align-items: center;
+}
+
+.hub-orbit {
+  --orbit-r: 150px;
+  --orbit-spin: 36s;
+  position: relative;
+  flex-shrink: 0;
+  width: 520px;
+  height: 360px;
+  margin: 0;
+}
+
+.hub-orbit-ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 300px;
+  height: 300px;
+  margin: -150px 0 0 -150px;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 50%;
+  animation: hub-orbit-spin 22s linear infinite;
+}
+
+.hub-orbit-ring-inner {
+  width: 164px;
+  height: 164px;
+  margin: -82px 0 0 -82px;
+  border: 1px solid rgba(253, 185, 19, 0.25);
+  animation-duration: 14s;
+  animation-direction: reverse;
+}
+
+/* Travelling light on each ring */
+.hub-orbit-ring::after {
+  content: "";
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: #fdb913;
+  box-shadow: 0 0 12px 3px rgba(253, 185, 19, 0.7);
+}
+
+.hub-orbit-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 96px;
+  height: 96px;
+  margin: -48px 0 0 -48px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
+  color: var(--navy);
+  animation: hub-orbit-pulse 3.2s ease-in-out infinite;
+}
+
+.hub-orbit-core svg {
+  width: 40px;
+  height: 40px;
+}
+
+.hub-orbit-carrier {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  animation: hub-orbit-spin var(--orbit-spin) linear infinite;
+}
+
+.hub-orbit-arm {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.hub-orbit-arm-1 { transform: rotate(-90deg) translateX(var(--orbit-r)) rotate(90deg); }
+.hub-orbit-arm-2 { transform: rotate(30deg) translateX(var(--orbit-r)) rotate(-30deg); }
+.hub-orbit-arm-3 { transform: rotate(150deg) translateX(var(--orbit-r)) rotate(-150deg); }
+
+/* Counter-rotates so the chip text stays level */
+.hub-orbit-upright {
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: hub-orbit-spin var(--orbit-spin) linear infinite reverse;
+}
+
+.hub-orbit-chip {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: #0d2a4a;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 14px 28px -12px rgba(0, 0, 0, 0.7);
+  transition: border-color 0.25s ease;
+}
+
+.hub-orbit-chip i {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(253, 185, 19, 0.16);
+  color: var(--gold);
+}
+
+.hub-orbit-chip i svg {
+  width: 15px;
+  height: 15px;
+}
+
+.hub-orbit-chip.is-gold {
+  border: 0;
+  background: linear-gradient(135deg, #fdb913 0%, #fc9b0a 55%, #f97c0a 100%);
+  color: var(--navy);
+}
+
+.hub-orbit-chip.is-gold i {
+  background: var(--navy);
+}
+
+.hub-orbit:hover :is(.hub-orbit-carrier, .hub-orbit-upright) {
+  animation-play-state: paused;
+}
+
+.hub-orbit-chip:hover {
+  border-color: rgba(253, 185, 19, 0.7);
+}
+
+@keyframes hub-orbit-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hub-orbit-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(253, 185, 19, 0.35), 0 0 40px rgba(253, 185, 19, 0.35); }
+  50% { box-shadow: 0 0 0 18px rgba(253, 185, 19, 0), 0 0 60px rgba(253, 185, 19, 0.5); }
+}
+
+@media (max-width: 1040px) {
+  .hub-orbit {
+    align-self: center;
+    margin: 0 auto;
+  }
+}
+
+/* Phones: scale the whole orbit down to fit the width */
+@media (max-width: 560px) {
+  .hub-orbit {
+    transform: scale(0.66);
+    margin: -60px -90px -60px;
+  }
+}
+
+@media (max-width: 370px) {
+  .hub-orbit {
+    transform: scale(0.6);
+    margin: -72px -104px -72px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hub-orbit-ring,
+  .hub-orbit-core,
+  .hub-orbit-carrier,
+  .hub-orbit-upright {
+    animation: none;
+  }
+}
