@@ -554,3 +554,86 @@
   background-clip: text;
   color: transparent;
 }
+
+/* Footer: same four columns, tightened, with a thin gold line on top,
+   a smaller logo badge and round social icons */
+.footer {
+  border-top: 3px solid var(--gold);
+}
+
+.footer-top {
+  gap: 24px 40px;
+  padding: 36px 0 28px;
+}
+
+.footer-brand-col {
+  gap: 14px;
+}
+
+.footer-brand-col .brand {
+  align-self: flex-start;
+}
+
+.footer .brand-logo-img {
+  height: 40px;
+}
+
+.footer-desc {
+  max-width: 38ch;
+  line-height: 1.6;
+}
+
+.footer-col {
+  gap: 10px;
+}
+
+.footer-links {
+  gap: 7px;
+}
+
+.footer-contact {
+  gap: 9px;
+}
+
+.footer-social {
+  gap: 8px;
+  margin-top: 0;
+}
+
+.footer-social a {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.footer-social a svg {
+  width: 14px;
+  height: 14px;
+}
+
+.footer-social a:hover {
+  color: #04111f;
+  background: var(--gold);
+  border-color: var(--gold);
+  transform: none;
+}
+
+.footer-bottom {
+  padding: 14px 0;
+}
+
+@media (max-width: 550px) {
+  .footer-top {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 22px 16px !important;
+    padding: 28px 0 22px !important;
+  }
+
+  .footer-top > :first-child,
+  .footer-top > :last-child {
+    grid-column: 1 / -1;
+  }
+}
