@@ -60,14 +60,11 @@ export function EnquiryPage() {
       <Header />
 
       <main>
-        <section className="hero section-dark" style={{ paddingBottom: '60px' }}>
+        <section className="hero section-dark enquiry-hero" style={{ paddingBottom: '60px' }}>
           <span className="orb orb-gold" aria-hidden="true" />
-          <div className="shell" style={{ maxWidth: SITE.bookingUrl ? '860px' : '560px', margin: '0 auto', textAlign: 'center' }}>
-            <h1 style={{ marginBottom: '12px' }}>Book a <span>Free Diagnostic Lesson</span></h1>
-            <p className="hero-text" style={{ marginBottom: '20px' }}>
-              Your child gets a baseline score; you get a clear plan for the target score and test date. No payment, no obligation.
-            </p>
-            <p className="hero-text" style={{ marginBottom: '32px', fontSize: '15px' }}>
+          <div className="shell" style={{ maxWidth: '860px', margin: '0 auto', textAlign: 'center' }}>
+            <h1 className="enquiry-title">Book a <span>Free Diagnostic Session</span></h1>
+            <p className="hero-text" style={{ margin: '0 auto 24px', fontSize: '15px' }}>
               Prefer to talk first? Call <a href={SITE.phoneHref} onClick={() => trackContactClick('phone')} style={{ color: 'var(--gold)', fontWeight: 800 }}>{SITE.phoneDisplay}</a>
               {' '}or <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" onClick={() => trackContactClick('whatsapp')} style={{ color: 'var(--gold)', fontWeight: 800 }}>text us on WhatsApp</a>.
             </p>
@@ -75,7 +72,7 @@ export function EnquiryPage() {
             {SITE.bookingUrl && (
               <div style={{ marginBottom: '32px' }}>
                 <h2 style={{ fontSize: '22px', marginBottom: '12px' }}>Pick a time for your free call</h2>
-                <iframe className="booking-embed" src={SITE.bookingUrl} title="Book a free diagnostic lesson" loading="lazy" />
+                <iframe className="booking-embed" src={SITE.bookingUrl} title="Book a free diagnostic session" loading="lazy" />
                 <p className="hero-text" style={{ fontSize: '14px', marginTop: '16px' }}>Can&rsquo;t find a time that works? Send the form below and we&rsquo;ll call you.</p>
               </div>
             )}
@@ -85,7 +82,7 @@ export function EnquiryPage() {
                 <div className="c-success-state">
                   <div className="c-success-icon">✓</div>
                   <h4>Request received!</h4>
-                  <p>Thank you. An academic advisor from ACT SAT GO will contact you shortly to schedule your free diagnostic lesson.</p>
+                  <p>Thank you. An academic advisor from ACT SAT GO will contact you shortly to schedule your free diagnostic session.</p>
                 </div>
               ) : (
                 <form onSubmit={handleFormSubmit}>

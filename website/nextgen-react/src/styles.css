@@ -4208,3 +4208,14 @@ html, body {
 @media (max-width: 680px) {
   .brand-logo-img { height: 38px; padding: 5px 10px; }
 }
+
+/* Booking page: compact one-line heading */
+.enquiry-hero {
+  padding-top: 40px;
+}
+
+.enquiry-hero .enquiry-title {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 3.4vw, 42px);
+  line-height: 1.15;
+}

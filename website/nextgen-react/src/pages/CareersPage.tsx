@@ -88,7 +88,7 @@ const DEFAULT_JOBS = [
     title: 'Student Success Executive',
     location: 'Remote (Global)',
     type: 'Full-time',
-    desc: 'Welcome new families after their free diagnostic lesson, guide them through onboarding, and build relationships that last.',
+    desc: 'Welcome new families after their free diagnostic session, guide them through onboarding, and build relationships that last.',
   },
   {
     id: 'job_9',

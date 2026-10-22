@@ -36,7 +36,7 @@ export const POLICIES: Record<string, Policy> = {
       {
         heading: 'How we use it',
         body: [
-          'To respond to enquiries, schedule diagnostic lessons and sessions, and match your child with a tutor.',
+          'To respond to enquiries, schedule diagnostic sessions and sessions, and match your child with a tutor.',
           'To deliver tutoring, practice tests and progress reports, and to improve our teaching.',
           'To send service messages and, if you agree, occasional updates about programs. You can unsubscribe at any time.',
           'To measure which pages and campaigns are useful. We do not sell personal information.',
@@ -127,8 +127,8 @@ export const POLICIES: Record<string, Policy> = {
       'We want families to feel safe trying us. This page explains how the free diagnostic, rescheduling, cancellations and refunds work. If your written plan says something different, your plan applies.',
     sections: [
       {
-        heading: 'Free diagnostic lesson',
-        body: ['The diagnostic lesson is free. No card is needed to book it and there is no obligation to buy afterwards.'],
+        heading: 'Free diagnostic session',
+        body: ['The diagnostic session is free. No card is needed to book it and there is no obligation to buy afterwards.'],
       },
       {
         heading: 'Rescheduling a session',

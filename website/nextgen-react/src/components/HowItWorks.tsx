@@ -3,7 +3,7 @@ import { PRIMARY_CTA, CONSULT_PATH } from '../site';
 
 const STEPS = [
   {
-    title: 'Book a free diagnostic lesson',
+    title: 'Book a free diagnostic session',
     text: 'Pick a time or send the short form. No payment, no obligation.',
   },
   {

@@ -258,7 +258,7 @@ export function K12TutoringPage() {
               </p>
 
               <div className="k12-hero-actions">
-                <a className="btn btn-primary" href={CONSULT_HREF}>Book a Free Diagnostic Lesson <span aria-hidden="true">→</span></a>
+                <a className="btn btn-primary" href={CONSULT_HREF}>Book a Free Diagnostic Session <span aria-hidden="true">→</span></a>
                 <a className="btn btn-outline" href="/#programs">Explore Programs</a>
               </div>
 
@@ -361,8 +361,8 @@ export function K12TutoringPage() {
 
             <div className="k12-cta-text">
               <h2>Every Child Has Potential.<br /><span>We Help Them Unlock It.</span></h2>
-              <p>Book a free diagnostic lesson and get a personalized learning plan for your child — no payment, no obligation.</p>
-              <a className="btn btn-primary" href={CONSULT_HREF}>Book a Free Diagnostic Lesson <span aria-hidden="true">→</span></a>
+              <p>Book a free diagnostic session and get a personalized learning plan for your child — no payment, no obligation.</p>
+              <a className="btn btn-primary" href={CONSULT_HREF}>Book a Free Diagnostic Session <span aria-hidden="true">→</span></a>
             </div>
             <div className="k12-cta-stats">
               {BOTTOM_STATS.map((s) => (

@@ -8,7 +8,7 @@ export interface FaqItem {
 
 export const HOME_FAQ: FaqItem[] = [
   {
-    q: 'What happens after I book the free diagnostic lesson?',
+    q: 'What happens after I book the free diagnostic session?',
     a: 'An academic advisor confirms a time that suits your family, your child takes a short diagnostic with a tutor, and we walk you through the results and a recommended plan. There is no payment and no obligation — you only choose a plan if you want to continue.',
   },
   {

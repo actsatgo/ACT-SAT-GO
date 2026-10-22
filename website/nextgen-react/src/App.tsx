@@ -242,7 +242,7 @@ export default function App() {
               <li>
                 <span className="cta-step-num">1</span>
                 <div>
-                  <strong>Free diagnostic lesson</strong>
+                  <strong>Free diagnostic session</strong>
                   <span>Find out exactly where your score stands today.</span>
                 </div>
               </li>
@@ -325,7 +325,7 @@ export default function App() {
               <div>
                 <h2>Ready to Achieve Your <span>Dream Score?</span></h2>
                 <p>
-                  Book a <strong>free diagnostic lesson</strong>: your child gets a baseline score, you get a clear plan for the
+                  Book a <strong>free diagnostic session</strong>: your child gets a baseline score, you get a clear plan for the
                   target score and test date. No payment, no obligation.
                 </p>
               </div>
@@ -350,7 +350,7 @@ export default function App() {
             <div className="c-success-state">
               <div className="c-success-icon">✓</div>
               <h4>Request received!</h4>
-              <p>Thank you. An academic advisor from ACT SAT GO will contact you shortly to schedule your free diagnostic lesson.</p>
+              <p>Thank you. An academic advisor from ACT SAT GO will contact you shortly to schedule your free diagnostic session.</p>
               {SITE.bookingUrl && (
                 <p><a href={SITE.bookingUrl} target="_blank" rel="noopener noreferrer" onClick={() => trackContactClick('booking')} style={{ color: 'var(--gold)', fontWeight: 800 }}>Prefer to pick a time yourself? Open the calendar →</a></p>
               )}

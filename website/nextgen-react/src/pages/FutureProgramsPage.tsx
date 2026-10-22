@@ -257,7 +257,7 @@ export function FutureProgramsPage() {
               <p>Join ACT SAT GO and be the first to know when our new programs launch.</p>
             </div>
             <a className="btn btn-primary" href={CONSULT_HREF}>
-              Book a Free Diagnostic Lesson <IconCalendar />
+              Book a Free Diagnostic Session <IconCalendar />
             </a>
           </div>
         </section>

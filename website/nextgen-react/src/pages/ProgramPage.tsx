@@ -613,7 +613,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
               <div>
                 <h2>Still Not Sure Which Program Fits You?</h2>
                 <p>
-                  Book a <strong>free 1-on-1 {data.exam} diagnostic lesson</strong>. Your child gets a baseline score and you get
+                  Book a <strong>free 1-on-1 {data.exam} diagnostic session</strong>. Your child gets a baseline score and you get
                   a recommended program for the target score and test date &mdash; no payment, no obligation.
                 </p>
               </div>
