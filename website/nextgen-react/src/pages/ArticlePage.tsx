@@ -71,7 +71,7 @@ export function ArticlePage() {
           )}
 
           <aside className="article-cta">
-            <p>Not sure where your child stands? Start with a free diagnostic lesson or a free timed practice test.</p>
+            <p>Not sure where your child stands? Start with a free diagnostic session or a free timed practice test.</p>
             <p>
               <Link className="btn btn-primary" to={CONSULT_PATH}>{PRIMARY_CTA}</Link>{' '}
               <Link className="btn" to="/free-test">{SECONDARY_CTA}</Link>

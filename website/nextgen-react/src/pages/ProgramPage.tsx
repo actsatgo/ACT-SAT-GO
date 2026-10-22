@@ -1,17 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { HowItWorks } from '../components/HowItWorks';
 import { TutorCards } from '../components/TutorCards';
 import { PRIMARY_CTA, SECONDARY_CTA, CONSULT_PATH } from '../site';
 import { Footer } from '../components/Footer';
-import { CountUp } from '../components/CountUp';
 import { FaqSection } from '../components/FaqSection';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import type { ProgramPageData } from '../data/programs';
-import apHeroImg from '../assets/img/ap-hero.webp';
+import apHeroImg from '../assets/img/ap-hero-photo.webp';
 import satHeroImg from '../assets/img/sat-hero.webp';
 import highlightsImg from '../assets/img/highlights-girl-cutout.webp';
+import highlightsActImg from '../assets/img/highlights-act-cutout.webp';
+import highlightsApImg from '../assets/img/highlights-ap-cutout.webp';
 
 
 function getHighlightIcon(label: string, value: string) {
@@ -247,6 +248,138 @@ const CTA_BENEFITS = [
   { title: 'Ongoing Support', text: 'Till You Achieve', icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 4h10v4a5 5 0 0 1-10 0Z" /><path d="M7 5H4.5A1.5 1.5 0 0 0 3 6.5c0 1.8 1.4 3.3 3.2 3.5" /><path d="M17 5h2.5A1.5 1.5 0 0 1 21 6.5c0 1.8-1.4 3.3-3.2 3.5" /><path d="M12 13v3M9 20h6M10 16h4l.6 4H9.4Z" /></svg> },
 ];
 
+// Perfect-score report shown in the "dream score" banner at the bottom of the page
+const DREAM_SCORES: Record<string, { label: string; total: string; sections: [string, string][] }> = {
+  SAT: { label: 'SCORE', total: '1600', sections: [['Reading & Writing', '800'], ['Math', '800']] },
+  ACT: { label: 'COMPOSITE', total: '36', sections: [['English', '36'], ['Math', '36'], ['Reading', '36']] },
+  AP: { label: 'SCORE', total: '5', sections: [['Calculus BC', '5'], ['Biology', '5'], ['Physics 1', '5']] },
+};
+
+const AP_HERO_SUBJECTS = [
+  {
+    name: 'AP Calculus',
+    color: '#1c6fe0',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="5" y="3" width="14" height="18" rx="2" />
+        <rect x="8" y="6" width="8" height="3" rx="0.5" />
+        <path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01" strokeWidth="2.6" />
+      </svg>
+    ),
+  },
+  {
+    name: 'AP Biology',
+    color: '#14a38b',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15" />
+        <path d="M4 20 14 10" />
+      </svg>
+    ),
+  },
+  {
+    name: 'AP Physics',
+    color: '#7c3aed',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+        <circle cx="12" cy="12" r="1.6" fill="currentColor" />
+        <ellipse cx="12" cy="12" rx="9.5" ry="4" />
+        <ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(60 12 12)" />
+        <ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(120 12 12)" />
+      </svg>
+    ),
+  },
+  {
+    name: 'AP English',
+    color: '#f5891f',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 5.5C5.5 4.5 9 4.5 12 6.5c3-2 6.5-2 9-1V19c-2.5-1-6-1-9 1-3-2-6.5-2-9-1Z" />
+        <path d="M12 6.5V20" />
+      </svg>
+    ),
+  },
+];
+
+function countUp(el: HTMLElement, to: number, from: number, ms: number, delay: number) {
+  let start = 0;
+  let raf = 0;
+  const step = (now: number) => {
+    if (!start) start = now;
+    const t = Math.min(1, (now - start) / ms);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = String(Math.round(from + (to - from) * eased));
+    if (t < 1) raf = requestAnimationFrame(step);
+  };
+  const timer = window.setTimeout(() => { raf = requestAnimationFrame(step); }, delay);
+  return () => { window.clearTimeout(timer); cancelAnimationFrame(raf); };
+}
+
+function DreamScoreArt({ exam }: { exam: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const info = DREAM_SCORES[exam];
+
+  useEffect(() => {
+    const art = ref.current;
+    if (!art || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const nums = Array.from(art.querySelectorAll<HTMLElement>('[data-count]'));
+    let stops: Array<() => void> = [];
+
+    const play = () => {
+      stops.forEach((s) => s());
+      art.classList.remove('is-live');
+      nums.forEach((n) => { n.textContent = n.dataset.from ?? '0'; });
+      void art.offsetWidth;
+      art.classList.add('is-live');
+      stops = nums.map((n, i) => countUp(n, Number(n.dataset.count), Number(n.dataset.from), 1400, i === 0 ? 350 : 650 + i * 120));
+    };
+
+    art.classList.add('is-armed');
+    nums.forEach((n) => { n.textContent = n.dataset.from ?? '0'; });
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) { play(); io.disconnect(); }
+    }, { threshold: 0.4 });
+    io.observe(art);
+
+    // Replay when the visitor comes back to the card, at most every few seconds
+    const card = art.closest('.dream-score-card');
+    let last = Date.now();
+    const onEnter = () => {
+      if (Date.now() - last > 4000 && art.classList.contains('is-live')) { last = Date.now(); play(); }
+    };
+    card?.addEventListener('mouseenter', onEnter);
+    return () => { io.disconnect(); stops.forEach((s) => s()); card?.removeEventListener('mouseenter', onEnter); };
+  }, [exam]);
+
+  const startFrom = (score: string) => String(Math.max(1, Math.round(Number(score) * (Number(score) > 10 ? 0.6 : 0.4))));
+
+  return (
+    <div className="dream-score-art" aria-hidden="true" ref={ref}>
+      <span className="ds-spark ds-spark-1">✦</span>
+      <span className="ds-spark ds-spark-2">✦</span>
+      <span className="ds-spark ds-spark-3">✦</span>
+      <div className="dream-score-sheet dream-score-sheet-back" />
+      <div className="dream-score-sheet dream-score-sheet-front">
+        <small>{exam} {info.label}</small>
+        <strong data-count={info.total} data-from={startFrom(info.total)}>{info.total}</strong>
+        <div className={`dream-score-sections is-${info.sections.length}`}>
+          {info.sections.map(([name, score]) => (
+            <div key={name}><em>{name}</em><b data-count={score} data-from={startFrom(score)}>{score}</b></div>
+          ))}
+        </div>
+        <i className="ds-line ds-w80" />
+        <i className="ds-line ds-w60" />
+        <div className="dream-score-bars">
+          {[46, 62, 74, 88, 100].map((h) => <span key={h} style={{ height: `${h}%` }} />)}
+        </div>
+        <i className="ds-line ds-w90" />
+        <i className="ds-line ds-w70" />
+        <span className="dream-score-check">✓</span>
+      </div>
+    </div>
+  );
+}
+
 export function ProgramPage({ data }: { data: ProgramPageData }) {
   useScrollReveal();
 
@@ -266,7 +399,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
 
       <main>
         {/* Hero */}
-        <section className={`prog-hero section-dark${(isSat || isAct) ? ' sat-page' : ''}`}>
+        <section className={`prog-hero section-dark${(isSat || isAct) ? ' sat-page' : ''}${isAp ? ' ap-page' : ''}`}>
           <span className="orb orb-gold" aria-hidden="true" />
           <span className="orb orb-ring" aria-hidden="true" />
           <div className="shell prog-hero-grid">
@@ -300,46 +433,23 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
             </div>
 
             {isAp ? (
-              <div className="prog-hero-art ap-hero-art" aria-hidden="true">
-                <div
-                  className="ap-hero-illustration"
-                  style={{ backgroundImage: `url(${apHeroImg})` }}
+              <div className="prog-hero-art ap-hero-art ap-hero-photo-wrap">
+                <img
+                  className="ap-hero-photo"
+                  src={apHeroImg}
+                  width={1300}
+                  height={774}
+                  alt="Student studying for AP exams"
+                  fetchPriority="high"
                 />
-
-                <div className="orbit-card badge-ap-strategy">
-                  <div className="badge-icon-bg">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <circle cx="12" cy="12" r="6"></circle>
-                      <circle cx="12" cy="12" r="2"></circle>
-                    </svg>
-                  </div>
-                  <span>Smart Strategy</span>
-                </div>
-
-                <div className="orbit-card badge-ap-concepts">
-                  <div className="badge-icon-bg">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .4 2.5 1.5 3.5.7.8 1.3 1.5 1.5 2.5"></path>
-                      <line x1="9" y1="18" x2="15" y2="18"></line>
-                      <line x1="10" y1="22" x2="14" y2="22"></line>
-                    </svg>
-                  </div>
-                  <span>Deep Concepts</span>
-                </div>
-
-                <div className="orbit-card badge-ap-scores">
-                  <div className="badge-icon-bg">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
-                      <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
-                      <path d="M4 22h16"></path>
-                      <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path>
-                      <path d="M12 2a6 6 0 0 1 6 6v3.5c0 3.3-2.7 6-6 6s-6-2.7-6-6V8a6 6 0 0 1 6-6z"></path>
-                    </svg>
-                  </div>
-                  <span>Top Scores & Credit</span>
-                </div>
+                <ul className="ap-hero-subjects" aria-label="AP subjects we teach">
+                  {AP_HERO_SUBJECTS.map((sub) => (
+                    <li key={sub.name}>
+                      <span className="ap-subject-icon" style={{ background: sub.color }} aria-hidden="true">{sub.icon}</span>
+                      {sub.name}
+                    </li>
+                  ))}
+                </ul>
               </div>
             ) : (isSat || isAct) ? (
               <div className="hero-art" aria-hidden="true">
@@ -423,7 +533,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
               </div>
             </div>
             <div className="highlights-photo reveal" aria-hidden="true">
-              <img src={highlightsImg} alt={`Student preparing for the ${data.exam} with ACT SAT GO`} loading="lazy" />
+              <img src={isAp ? highlightsApImg : isAct ? highlightsActImg : highlightsImg} alt={`Student preparing for the ${data.exam} with ACT SAT GO`} loading="lazy" />
             </div>
           </div>
         </section>
@@ -605,7 +715,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
 
         {data.faq && <FaqSection items={data.faq} title={`${data.exam} questions students and parents ask`} />}
 
-        {/* CTA + stats */}
+        {/* CTA */}
         <section className="prog-cta section-dark" id="consultation">
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell">
@@ -613,7 +723,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
               <div>
                 <h2>Still Not Sure Which Program Fits You?</h2>
                 <p>
-                  Book a <strong>free 1-on-1 {data.exam} diagnostic lesson</strong>. Your child gets a baseline score and you get
+                  Book a <strong>free 1-on-1 {data.exam} diagnostic session</strong>. Your child gets a baseline score and you get
                   a recommended program for the target score and test date &mdash; no payment, no obligation.
                 </p>
               </div>
@@ -637,16 +747,21 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
                 </div>
               ))}
             </div>
-            <div className="prog-stats">
-              {data.stats.map((s) => (
-                <div key={s.label} className={s.text ? 'prog-stat-text' : undefined}>
-                  {s.text ? <strong>{s.value}</strong> : <CountUp value={s.value} />}
-                  <span>{s.label}</span>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
+
+        {/* Dream score banner (SAT, ACT and AP) */}
+        {DREAM_SCORES[data.exam] && (
+          <section className="dream-score shell" aria-labelledby="dream-score-title">
+            <div className="dream-score-card">
+              <div className="dream-score-copy">
+                <h2 id="dream-score-title">Ready to achieve your <span>dream score?</span></h2>
+                <Link className="btn btn-primary dream-score-btn" to={consultHref}>Secure Your Spot Now</Link>
+              </div>
+              <DreamScoreArt exam={data.exam} />
+            </div>
+          </section>
+        )}
       </main>
 
       <Footer />

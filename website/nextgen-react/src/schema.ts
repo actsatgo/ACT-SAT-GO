@@ -138,7 +138,7 @@ const titleOf = (path: string) => PAGES.find((p) => p.path === path)?.title ?? S
 const SAT_DESC = 'Live 1-on-1 Digital SAT tutoring with a personalised plan, full-length adaptive practice tests and a score report after each one.';
 const ACT_DESC = 'Online 1-on-1 tutoring built for the enhanced ACT: 131 core questions, about 2 hours, Science optional.';
 const AP_SERVICE_DESC = '1-on-1 online AP tutoring for Calculus AB/BC, Physics, Chemistry, Biology, Statistics, Economics, Computer Science and more.';
-const AP_PAGE_DESC = `${AP_SERVICE_DESC.replace(' and more.', ' and more — aiming for 4s and 5s.')} Book a free diagnostic lesson.`;
+const AP_PAGE_DESC = `${AP_SERVICE_DESC.replace(' and more.', ' and more — aiming for 4s and 5s.')} Book a free diagnostic session.`;
 const K12_DESC = '1-on-1 online tutoring for elementary, middle and high school students in Math, English, Science and study skills, with a personalised plan for every child.';
 const FREE_TEST_DESC = 'One full-length Digital SAT or ACT practice test in a real exam interface, with a scaled score and a section, topic and question-level score report.';
 
@@ -203,8 +203,8 @@ function graphFor(path: string): Json[] | null {
     case '/consultation':
       return [
         webPage('ContactPage', path, titleOf(path),
-          'Book a free 1-on-1 diagnostic lesson for the Digital SAT, ACT, AP or K-12 tutoring. No payment, no obligation.'),
-        breadcrumb(path, 'Book a Free Diagnostic Lesson'),
+          'Book a free 1-on-1 diagnostic session for the Digital SAT, ACT, AP or K-12 tutoring. No payment, no obligation.'),
+        breadcrumb(path, 'Book a Free Diagnostic Session'),
       ];
     case '/about-us':
       return [

@@ -179,7 +179,7 @@ export function ApGuidesSection({ pageQuery = '' }: ApGuidesSectionProps) {
       <div className="ap-guides-cta">
         <div>
           <h3>Want a tutor for your AP exam?</h3>
-          <p>Book a free diagnostic lesson and get a study plan built around your course and exam date.</p>
+          <p>Book a free diagnostic session and get a study plan built around your course and exam date.</p>
         </div>
         <a className="ap-guides-cta-btn" href="/consultation">
           Book a free session <span aria-hidden="true">→</span>

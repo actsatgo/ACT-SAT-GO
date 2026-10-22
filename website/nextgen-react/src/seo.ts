@@ -32,7 +32,7 @@ export const PAGES: PageMeta[] = [
     path: '/act',
     title: 'Enhanced ACT Tutoring Online, 1-on-1 | ACT SAT GO',
     description:
-      'Online 1-on-1 tutoring built for the enhanced ACT: 131 core questions, about 2 hours, Science optional. Programs, fees and a free diagnostic lesson.',
+      'Online 1-on-1 tutoring built for the enhanced ACT: 131 core questions, about 2 hours, Science optional. Programs, fees and a free diagnostic session.',
   },
   {
     path: '/ap',
@@ -66,9 +66,9 @@ export const PAGES: PageMeta[] = [
   },
   {
     path: '/consultation',
-    title: 'Book a Free Diagnostic Lesson | ACT SAT GO',
+    title: 'Book a Free Diagnostic Session | ACT SAT GO',
     description:
-      'Book a free diagnostic lesson: your child gets a baseline score and you get a clear plan for the SAT, ACT or AP — no payment, no obligation.',
+      'Book a free diagnostic session: your child gets a baseline score and you get a clear plan for the SAT, ACT or AP — no payment, no obligation.',
   },
   {
     path: '/free-test',

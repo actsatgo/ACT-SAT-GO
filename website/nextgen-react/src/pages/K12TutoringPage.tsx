@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
@@ -187,8 +187,8 @@ const GRADE_LEVELS = [
 
 const JOURNEY_STEPS = [
   { n: '1', title: 'Assess', text: "We understand your child's strengths, challenges, and goals.", icon: <IconClipboard />, accent: '#f59b00' },
-  { n: '2', title: 'Plan', text: 'We create a personalized learning plan tailored to their needs.', icon: <IconTarget />, accent: '#1c5fa5' },
-  { n: '3', title: 'Learn', text: 'Engaging sessions with expert tutors and proven teaching methods.', icon: <IconBookSquare />, accent: '#6d28d9' },
+  { n: '2', title: 'Plan', text: 'We create a personalized learning plan tailored to their needs.', icon: <IconTarget />, accent: '#f59b00' },
+  { n: '3', title: 'Learn', text: 'Engaging sessions with expert tutors and proven teaching methods.', icon: <IconBookSquare />, accent: '#f59b00' },
   { n: '4', title: 'Grow', text: 'Track progress, build confidence, and achieve measurable results.', icon: <IconChart />, accent: '#f59b00' },
 ];
 
@@ -210,7 +210,6 @@ const BOTTOM_STATS = [
 
 export function K12TutoringPage() {
   useScrollReveal();
-  const heroArtRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
 
   useEffect(() => {
@@ -228,33 +227,6 @@ export function K12TutoringPage() {
     }
   }, [location.hash]);
 
-  useEffect(() => {
-  }, []);
-
-  useEffect(() => {
-    const el = heroArtRef.current;
-    if (!el) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-    const handleMove = (e: MouseEvent) => {
-      const rect = el.getBoundingClientRect();
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      el.style.setProperty('--tilt-x', `${(-y * 6).toFixed(2)}deg`);
-      el.style.setProperty('--tilt-y', `${(x * 6).toFixed(2)}deg`);
-    };
-    const handleLeave = () => {
-      el.style.setProperty('--tilt-x', '0deg');
-      el.style.setProperty('--tilt-y', '0deg');
-    };
-
-    el.addEventListener('mousemove', handleMove);
-    el.addEventListener('mouseleave', handleLeave);
-    return () => {
-      el.removeEventListener('mousemove', handleMove);
-      el.removeEventListener('mouseleave', handleLeave);
-    };
-  }, []);
 
   return (
     <>
@@ -263,12 +235,18 @@ export function K12TutoringPage() {
       <main>
         {/* Hero */}
         <section className="k12-hero section-dark">
+          <img
+            className="k12-hero-bg"
+            src={k12HeroImg}
+            alt="Three smiling students supported by ACT SAT GO tutoring"
+            width={1550}
+            height={1015}
+          />
           <span className="k12-hero-texture" aria-hidden="true" />
           <span className="orb orb-gold" aria-hidden="true" />
           <span className="orb orb-ring" aria-hidden="true" />
           <div className="shell k12-hero-grid">
             <div className="k12-hero-copy">
-              <span className="eyebrow-hero">K-12 TUTORING</span>
               <h1>
                 Personalized Support.<br />
                 Stronger Foundations.<br />
@@ -280,7 +258,7 @@ export function K12TutoringPage() {
               </p>
 
               <div className="k12-hero-actions">
-                <a className="btn btn-primary" href={CONSULT_HREF}>Book a Free Diagnostic Lesson <span aria-hidden="true">→</span></a>
+                <a className="btn btn-primary" href={CONSULT_HREF}>Book a Free Diagnostic Session <span aria-hidden="true">→</span></a>
                 <a className="btn btn-outline" href="/#programs">Explore Programs</a>
               </div>
 
@@ -294,12 +272,6 @@ export function K12TutoringPage() {
               </div>
             </div>
 
-            <div className="k12-hero-art" ref={heroArtRef} aria-hidden="true">
-              <span className="k12-blob k12-blob-gold"></span>
-              <span className="k12-blob k12-blob-blue"></span>
-              <span className="k12-ring-glow"></span>
-              <img className="k12-hero-photo" src={k12HeroImg} alt="Three students supported by ACT SAT GO tutoring" />
-            </div>
           </div>
         </section>
 
@@ -357,7 +329,7 @@ export function K12TutoringPage() {
             <div className="k12-journey-steps">
               {JOURNEY_STEPS.map((s, i) => (
                 <div key={s.n} className="k12-journey-step" style={{ ['--accent' as string]: s.accent }}>
-                  {i > 0 && <span className="k12-journey-line" aria-hidden="true" />}
+                  {i < JOURNEY_STEPS.length - 1 && <span className="k12-journey-line" aria-hidden="true" />}
                   <span className="k12-journey-icon" aria-hidden="true">{s.icon}</span>
                   <strong>{s.n}. {s.title}</strong>
                   <p>{s.text}</p>
@@ -389,8 +361,8 @@ export function K12TutoringPage() {
 
             <div className="k12-cta-text">
               <h2>Every Child Has Potential.<br /><span>We Help Them Unlock It.</span></h2>
-              <p>Book a free diagnostic lesson and get a personalized learning plan for your child — no payment, no obligation.</p>
-              <a className="btn btn-primary" href={CONSULT_HREF}>Book a Free Diagnostic Lesson <span aria-hidden="true">→</span></a>
+              <p>Book a free diagnostic session and get a personalized learning plan for your child — no payment, no obligation.</p>
+              <a className="btn btn-primary" href={CONSULT_HREF}>Book a Free Diagnostic Session <span aria-hidden="true">→</span></a>
             </div>
             <div className="k12-cta-stats">
               {BOTTOM_STATS.map((s) => (

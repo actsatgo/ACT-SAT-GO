@@ -270,7 +270,7 @@ export const ACT_PAGE: ProgramPageData = {
     },
     {
       q: 'How much does ACT tutoring cost at ACT SAT GO?',
-      a: 'ACT programs range from $599 for ACT Test Series+ to $1,299 for the full ACT Mastery Program, and every program is 1-on-1 and online. The full list of programs and fees is on this page. The first diagnostic lesson is free.',
+      a: 'ACT programs range from $599 for ACT Test Series+ to $1,299 for the full ACT Mastery Program, and every program is 1-on-1 and online. The full list of programs and fees is on this page. The first diagnostic session is free.',
     },
   ],
 };
@@ -432,7 +432,7 @@ export const SAT_PAGE: ProgramPageData = {
     },
     {
       q: 'How much does SAT tutoring cost at ACT SAT GO?',
-      a: 'SAT programs range from $500 for SAT Test Series+ to $1,600 for the full SAT Mastery Track, and every program is 1-on-1 and online. The full list of programs and fees is on this page. The first diagnostic lesson is free.',
+      a: 'SAT programs range from $500 for SAT Test Series+ to $1,600 for the full SAT Mastery Track, and every program is 1-on-1 and online. The full list of programs and fees is on this page. The first diagnostic session is free.',
     },
   ],
 };

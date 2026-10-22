@@ -3520,7 +3520,7 @@ h1 span,
 
 .c-textarea {
   min-height: 80px;
-  resize: vertical;
+  resize: none;
 }
 
 .c-submit-btn {
@@ -4208,3 +4208,208 @@ html, body {
 @media (max-width: 680px) {
   .brand-logo-img { height: 38px; padding: 5px 10px; }
 }
+
+/* Booking page: compact one-line heading */
+.enquiry-hero {
+  padding-top: 40px;
+}
+
+.enquiry-hero .enquiry-title {
+  margin: 0 0 10px;
+  font-size: clamp(28px, 3.4vw, 42px);
+  line-height: 1.15;
+}
+
+/* Styled dropdowns in the dark booking forms */
+.dark-select {
+  position: relative;
+}
+
+.dark-select-code {
+  flex: none;
+  width: 116px;
+}
+
+.dark-select-toggle {
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dark-select-toggle span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dark-select-toggle::after {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--gold);
+  border-bottom: 2px solid var(--gold);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.dark-select-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.dark-select-toggle.is-open {
+  border-color: var(--gold);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(245, 155, 0, 0.25);
+}
+
+.dark-select-toggle.is-open::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+.dark-select-menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 100%;
+  max-height: 260px;
+  overflow-y: auto;
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: #0f2340;
+  box-shadow: 0 20px 44px -16px rgba(0, 0, 0, 0.75);
+  scrollbar-width: thin;
+}
+
+.dark-select-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.88);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.dark-select-option:hover,
+.dark-select-option:focus-visible {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+  outline: none;
+}
+
+.dark-select-option.is-selected {
+  background: rgba(253, 185, 19, 0.14);
+  color: var(--gold);
+}
+
+.dark-select-option.is-selected::after {
+  content: '';
+  width: 6px;
+  height: 11px;
+  border-right: 2.5px solid var(--gold);
+  border-bottom: 2.5px solid var(--gold);
+  transform: rotate(45deg) translate(-2px, -2px);
+}
+
+/* AP hero: cut-out scene on the navy hero with an HTML subject list beside it */
+.ap-hero-art.ap-hero-photo-wrap {
+  width: calc(100% + 70px);
+  max-width: none;
+  min-height: 0;
+  margin-left: -70px;
+}
+
+.ap-hero-photo {
+  display: block;
+  width: calc(100% - 150px);
+  height: auto;
+  -webkit-mask-image: linear-gradient(180deg, #000 88%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 88%, transparent 100%);
+  filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.45));
+  animation: satHeroFloat 6.5s ease-in-out infinite;
+}
+
+.ap-hero-subjects {
+  position: absolute;
+  top: 6%;
+  right: 0;
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ap-hero-subjects li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #ffffff;
+  font-size: 17px;
+  font-weight: 900;
+  white-space: nowrap;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+.ap-subject-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  color: #ffffff;
+  box-shadow: 0 10px 22px -10px rgba(0, 0, 0, 0.6), inset 0 0 0 2px rgba(255, 255, 255, 0.18);
+  transition: transform 0.25s ease;
+}
+
+.ap-subject-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
+.ap-hero-subjects li:hover .ap-subject-icon {
+  transform: scale(1.08) rotate(-6deg);
+}
+
+@media (max-width: 1040px) {
+  .ap-hero-art.ap-hero-photo-wrap { width: 100%; margin-left: 0; }
+  .ap-hero-photo { width: 100%; }
+  .ap-hero-subjects {
+    position: static;
+    flex: 1 1 100%;
+    grid-template-columns: repeat(2, auto);
+    justify-content: center;
+    gap: 14px 24px;
+    margin-top: 8px;
+  }
+  .ap-hero-subjects li { font-size: 15px; gap: 10px; }
+  .ap-subject-icon { width: 40px; height: 40px; }
+  .ap-subject-icon svg { width: 20px; height: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-hero-photo { animation: none; }
+}
+
+.prog-hero.ap-page .orb-ring { display: none; }

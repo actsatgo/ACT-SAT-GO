@@ -7,6 +7,7 @@ import { trackLead, leadSource, trackContactClick } from '../lib/analytics';
 import { SITE, PRIMARY_CTA } from '../site';
 import { HowItWorks } from '../components/HowItWorks';
 import { WHATSAPP_HREF } from '../components/WhatsAppButton';
+import { DarkSelect, PHONE_CODE_OPTIONS, EXAM_OPTIONS as EXAM_SELECT_OPTIONS } from '../components/DarkSelect';
 
 const EXAM_OPTIONS = ['General', 'SAT', 'ACT', 'AP Prep', 'K-12 Tutoring'];
 
@@ -60,14 +61,11 @@ export function EnquiryPage() {
       <Header />
 
       <main>
-        <section className="hero section-dark" style={{ paddingBottom: '60px' }}>
+        <section className="hero section-dark enquiry-hero" style={{ paddingBottom: '60px' }}>
           <span className="orb orb-gold" aria-hidden="true" />
-          <div className="shell" style={{ maxWidth: SITE.bookingUrl ? '860px' : '560px', margin: '0 auto', textAlign: 'center' }}>
-            <h1 style={{ marginBottom: '12px' }}>Book a <span>Free Diagnostic Lesson</span></h1>
-            <p className="hero-text" style={{ marginBottom: '20px' }}>
-              Your child gets a baseline score; you get a clear plan for the target score and test date. No payment, no obligation.
-            </p>
-            <p className="hero-text" style={{ marginBottom: '32px', fontSize: '15px' }}>
+          <div className="shell" style={{ maxWidth: '860px', margin: '0 auto', textAlign: 'center' }}>
+            <h1 className="enquiry-title">Book a <span>Free Diagnostic Session</span></h1>
+            <p className="hero-text" style={{ margin: '0 auto 24px', fontSize: '15px' }}>
               Prefer to talk first? Call <a href={SITE.phoneHref} onClick={() => trackContactClick('phone')} style={{ color: 'var(--gold)', fontWeight: 800 }}>{SITE.phoneDisplay}</a>
               {' '}or <a href={WHATSAPP_HREF} target="_blank" rel="noopener noreferrer" onClick={() => trackContactClick('whatsapp')} style={{ color: 'var(--gold)', fontWeight: 800 }}>text us on WhatsApp</a>.
             </p>
@@ -75,7 +73,7 @@ export function EnquiryPage() {
             {SITE.bookingUrl && (
               <div style={{ marginBottom: '32px' }}>
                 <h2 style={{ fontSize: '22px', marginBottom: '12px' }}>Pick a time for your free call</h2>
-                <iframe className="booking-embed" src={SITE.bookingUrl} title="Book a free diagnostic lesson" loading="lazy" />
+                <iframe className="booking-embed" src={SITE.bookingUrl} title="Book a free diagnostic session" loading="lazy" />
                 <p className="hero-text" style={{ fontSize: '14px', marginTop: '16px' }}>Can&rsquo;t find a time that works? Send the form below and we&rsquo;ll call you.</p>
               </div>
             )}
@@ -85,7 +83,7 @@ export function EnquiryPage() {
                 <div className="c-success-state">
                   <div className="c-success-icon">✓</div>
                   <h4>Request received!</h4>
-                  <p>Thank you. An academic advisor from ACT SAT GO will contact you shortly to schedule your free diagnostic lesson.</p>
+                  <p>Thank you. An academic advisor from ACT SAT GO will contact you shortly to schedule your free diagnostic session.</p>
                 </div>
               ) : (
                 <form onSubmit={handleFormSubmit}>
@@ -118,25 +116,13 @@ export function EnquiryPage() {
                   <div className="c-form-group">
                     <label htmlFor="enq-phone">Phone Number</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <select
-                        className="c-input"
-                        style={{ width: '110px', padding: '0 8px', backgroundColor: '#0d1b31', color: 'white' }}
+                      <DarkSelect
+                        className="dark-select-code"
+                        ariaLabel="Country code"
                         value={phoneCountryCode}
-                        onChange={(e) => setPhoneCountryCode(e.target.value)}
-                      >
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+1">+1 (US)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+91">+91 (IN)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+44">+44 (UK)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+971">+971 (AE)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+65">+65 (SG)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+61">+61 (AU)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+966">+966 (SA)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+974">+974 (QA)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+968">+968 (OM)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+965">+965 (KW)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+973">+973 (BH)</option>
-                        <option style={{ backgroundColor: '#0d1b31', color: 'white' }} value="+852">+852 (HK)</option>
-                      </select>
+                        options={PHONE_CODE_OPTIONS}
+                        onChange={setPhoneCountryCode}
+                      />
                       <input
                         id="enq-phone"
                         type="tel"
@@ -151,22 +137,16 @@ export function EnquiryPage() {
 
                   <div className="c-form-group">
                     <label htmlFor="enq-exam">Exam / Program Interest</label>
-                    <select
+                    <DarkSelect
                       id="enq-exam"
-                      className="c-input"
                       value={formData.exam}
-                      onChange={(e) => setFormData({ ...formData, exam: e.target.value })}
-                    >
-                      <option value="General">General / Other</option>
-                      <option value="SAT">SAT Prep</option>
-                      <option value="ACT">ACT Prep</option>
-                      <option value="AP Prep">AP Prep</option>
-                      <option value="K-12 Tutoring">K-12 Tutoring</option>
-                    </select>
+                      options={EXAM_SELECT_OPTIONS}
+                      onChange={(exam) => setFormData({ ...formData, exam })}
+                    />
                   </div>
 
                   <div className="c-form-group">
-                    <label htmlFor="enq-message">Target score and test date (optional)</label>
+                    <label htmlFor="enq-message">Target score and test date</label>
                     <textarea
                       id="enq-message"
                       className="c-input c-textarea"

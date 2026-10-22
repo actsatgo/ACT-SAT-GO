@@ -13,42 +13,58 @@ const DEFAULT_JOBS = [
   {
     id: 'job_1',
     dept: 'Academics',
-    title: 'SAT / ACT Tutor (Math)',
+    title: 'SAT Math Tutor',
     location: 'Remote (Global)',
-    type: 'Freelancer',
-    desc: 'Guide students to master math concepts, ace standardized tests and achieve their dream scores.',
+    type: 'Freelance',
+    desc: 'Teach Digital SAT Math one student at a time, from algebra to advanced math, turning each diagnostic into a clear plan for the target score.',
+  },
+  {
+    id: 'job_1b',
+    dept: 'Academics',
+    title: 'ACT Math Tutor',
+    location: 'Remote (Global)',
+    type: 'Freelance',
+    desc: 'Prepare students for ACT Math with fast, accurate problem solving across algebra, geometry and trigonometry, plus a pacing strategy that works.',
   },
   {
     id: 'job_2',
     dept: 'Academics',
-    title: 'SAT/ACT Tutor (Verbal)',
+    title: 'SAT Verbal Tutor',
     location: 'Remote (Global)',
-    type: 'Freelancer',
-    desc: 'Help students excel in Reading & Writing sections of SAT and ACT with proven strategies.',
+    type: 'Freelance',
+    desc: 'Coach the Digital SAT Reading and Writing section: comprehension, grammar and timing, with a plan built around each student\'s diagnostic.',
+  },
+  {
+    id: 'job_2b',
+    dept: 'Academics',
+    title: 'ACT English Tutor',
+    location: 'Remote (Global)',
+    type: 'Freelance',
+    desc: 'Teach grammar, punctuation and rhetorical skills for ACT English, with timed practice that builds speed and accuracy.',
   },
   {
     id: 'job_3',
     dept: 'Academics',
-    title: 'AP Calculus',
+    title: 'AP Calculus Tutor',
     location: 'Remote (Global)',
-    type: 'Freelancer',
-    desc: 'Teach AP Calculus AB/BC, preparing high school students for top AP scores.',
+    type: 'Freelance',
+    desc: 'Prepare high schoolers for AP Calculus AB and BC, with timed practice on the exam\'s multiple-choice and free-response questions.',
   },
   {
     id: 'job_4',
     dept: 'Academics',
-    title: 'AP Biology',
+    title: 'AP Biology Tutor',
     location: 'Remote (Global)',
-    type: 'Freelancer',
-    desc: 'Deliver comprehensive coaching in AP Biology concepts and experimental design.',
+    type: 'Freelance',
+    desc: 'Make AP Biology click, from core concepts to lab-based and experimental design questions, with exam-style practice.',
   },
   {
     id: 'job_5',
     dept: 'Academics',
-    title: 'AP Computer Science',
+    title: 'AP Computer Science Tutor',
     location: 'Remote (Global)',
-    type: 'Freelancer',
-    desc: 'Help students master coding, algorithms, and AP Computer Science exam topics.',
+    type: 'Freelance',
+    desc: 'Help students write clean code, reason through algorithms and get comfortable with the AP Computer Science free-response questions.',
   },
   {
     id: 'job_6',
@@ -56,7 +72,7 @@ const DEFAULT_JOBS = [
     title: 'Operations Manager',
     location: 'Remote (Global)',
     type: 'Full-time',
-    desc: 'Oversee daily operations, optimize scheduling, and manage coordinator teams.',
+    desc: 'Keep lessons running on time: own tutor scheduling, session quality and the coordinator team, so every family gets a smooth experience.',
   },
   {
     id: 'job_7',
@@ -64,7 +80,7 @@ const DEFAULT_JOBS = [
     title: 'Student Success Specialist',
     location: 'Remote (Global)',
     type: 'Full-time',
-    desc: 'Support student academic journeys, coordinate between parents and mentors.',
+    desc: 'Be the family\'s go-to person: check in on progress, share reports with parents, and keep student and tutor working toward the same goal.',
   },
   {
     id: 'job_8',
@@ -72,17 +88,46 @@ const DEFAULT_JOBS = [
     title: 'Student Success Executive',
     location: 'Remote (Global)',
     type: 'Full-time',
-    desc: 'Manage onboarding, build parent relationships, and ensure high student satisfaction.',
+    desc: 'Welcome new families after their free diagnostic session, guide them through onboarding, and build relationships that last.',
   },
   {
     id: 'job_9',
     dept: 'Operations',
-    title: 'Assessment and Testing Coordinator',
+    title: 'Assessment & Testing Coordinator',
     location: 'Remote (Global)',
     type: 'Full-time',
-    desc: 'Schedule and coordinate practice tests, analyze student performance metrics.',
+    desc: 'Run full-length mock tests, read the score reports and show tutors exactly where each student needs more practice.',
   },
 ];
+
+/* Icon in the navy card header, picked from the job's department */
+function jobIcon(dept: string) {
+  const d = dept.toLowerCase();
+  if (d.includes('academ')) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 10 12 5 2 10l10 5 10-5z" />
+        <path d="M6 12v5c3 2 9 2 12 0v-5" />
+      </svg>
+    );
+  }
+  if (d.includes('success')) {
+    return (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M19 14c1.5-1.5 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4 3 5.5l7 7Z" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="7" width="18" height="13" rx="2" />
+      <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2" />
+    </svg>
+  );
+}
+
+/* Older job records say "Freelancer"; show the job type, not the person */
+const jobType = (type: string) => (type === 'Freelancer' ? 'Freelance' : type);
 
 const CULTURE = [
   {
@@ -176,14 +221,125 @@ const PARTNER_PERKS = [
    PAGE
  ───────────────────────────────────────────── */
 
+// Single-choice dropdown styled like the Test Prep menu (used in the Operations form)
+function FormDropdown({
+  id,
+  value,
+  placeholder,
+  options,
+  onChange,
+}: {
+  id: string;
+  value: string;
+  placeholder: string;
+  options: { value: string; label: string }[];
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    return () => document.removeEventListener('mousedown', onDown);
+  }, [open]);
+
+  const current = options.find((o) => o.value === value);
+  return (
+    <div
+      className="test-prep-dropdown form-dropdown"
+      ref={ref}
+      onKeyDown={(e) => {
+        // Escape closes the menu without also closing the pop-up
+        if (e.key === 'Escape' && open) {
+          e.stopPropagation();
+          setOpen(false);
+        }
+      }}
+    >
+      <button
+        type="button"
+        id={id}
+        className={`test-prep-toggle${open ? ' is-open' : ''}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className={current ? '' : 'is-placeholder'}>{current ? current.label : placeholder}</span>
+      </button>
+      {open && (
+        <div className="test-prep-menu form-dropdown-menu" role="listbox">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              type="button"
+              role="option"
+              aria-selected={o.value === value}
+              className={`form-dropdown-option${o.value === value ? ' is-selected' : ''}`}
+              onClick={() => {
+                onChange(o.value);
+                setOpen(false);
+              }}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function CareersPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cvDragOver, setCvDragOver] = useState(false);
+  const [testPrepOpen, setTestPrepOpen] = useState(false);
+  const [applyOpen, setApplyOpen] = useState(false);
+  const [applyRole, setApplyRole] = useState('');
+  const [applyKind, setApplyKind] = useState<'tutor' | 'ops'>('tutor');
+  const [opsForm, setOpsForm] = useState({
+    role: '',
+    experience: '',
+    currentRole: '',
+    availability: '',
+    salary: '',
+    notice: '',
+    linkedin: '',
+  });
+  const testPrepRef = useRef<HTMLDivElement>(null);
+
+  // Close the test prep dropdown on an outside click or Escape
+  useEffect(() => {
+    if (!testPrepOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!testPrepRef.current?.contains(e.target as Node)) setTestPrepOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setTestPrepOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [testPrepOpen]);
   const jobsMarqueeRef = useRef<HTMLDivElement>(null);
   const jobsPausedRef = useRef(false);
   const jobsDragRef = useRef({ dragging: false, moved: false, startX: 0, startScroll: 0 });
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [phoneCountryCode, setPhoneCountryCode] = useState('+1');
+  const [jobFilter, setJobFilter] = useState<'all' | 'academics' | 'operations'>('all');
+  const isAcademicDept = (dept?: string) => (dept || '').toLowerCase().includes('academ');
+  const opsRoles = Array.from(new Set(jobs.filter((j) => !isAcademicDept(j.dept)).map((j) => j.title)));
+  const shownJobs = jobs.filter((job) => {
+    if (jobFilter === 'all') return true;
+    const academic = (job.dept || '').toLowerCase().includes('academ');
+    return jobFilter === 'academics' ? academic : !academic;
+  });
+  const [phoneCountryCode, setPhoneCountryCode] = useState('+91');
   const [phoneLocalNumber, setPhoneLocalNumber] = useState('');
   const [form, setForm] = useState({
     name: '',
@@ -245,7 +401,7 @@ export function CareersPage() {
     };
     rafId = requestAnimationFrame(step);
     return () => cancelAnimationFrame(rafId);
-  }, [jobs.length]);
+  }, [shownJobs.length]);
 
   // Keep the loop seamless: once scrolled past one full copy of the (duplicated) list, jump back.
   useEffect(() => {
@@ -262,7 +418,42 @@ export function CareersPage() {
     };
     el.addEventListener('scroll', handleScroll, { passive: true });
     return () => el.removeEventListener('scroll', handleScroll);
-  }, [jobs.length]);
+  }, [shownJobs.length]);
+
+  // Arrow buttons: glide the carousel by exactly one card in either direction, wrapping
+  // around the duplicated list so both arrows loop forever. Auto-scroll pauses briefly.
+  const jobsArrowTimer = useRef<number | undefined>(undefined);
+  const jobsArrowAnim = useRef<number | undefined>(undefined);
+  const scrollJobs = (dir: 1 | -1) => {
+    const el = jobsMarqueeRef.current;
+    const card = el?.querySelector<HTMLElement>('.careers-job-card');
+    if (!el || !card) return;
+    const gap = parseFloat(getComputedStyle(card.parentElement as HTMLElement).columnGap) || 0;
+    const step = card.offsetWidth + gap;
+    const singleWidth = el.scrollWidth / 2;
+    if (singleWidth <= 0) return;
+    const wrap = (x: number) => ((x % singleWidth) + singleWidth) % singleWidth;
+    // Start from the nearest card edge so repeated clicks stay aligned
+    const from = Math.round(el.scrollLeft / step) * step;
+    const startAt = el.scrollLeft;
+    const delta = from + dir * step - startAt;
+    const duration = 450;
+    let t0: number | null = null;
+    if (jobsArrowAnim.current) cancelAnimationFrame(jobsArrowAnim.current);
+    jobsPausedRef.current = true;
+    const tick = (time: number) => {
+      if (t0 === null) t0 = time;
+      const t = Math.min(1, (time - t0) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.scrollLeft = wrap(startAt + delta * eased);
+      if (t < 1) jobsArrowAnim.current = requestAnimationFrame(tick);
+    };
+    jobsArrowAnim.current = requestAnimationFrame(tick);
+    window.clearTimeout(jobsArrowTimer.current);
+    jobsArrowTimer.current = window.setTimeout(() => {
+      jobsPausedRef.current = false;
+    }, 2500);
+  };
 
   const handleJobsPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (e.pointerType !== 'mouse') return; // let touch/trackpad use native scrolling
@@ -270,7 +461,6 @@ export function CareersPage() {
     if (!el) return;
     jobsDragRef.current = { dragging: true, moved: false, startX: e.clientX, startScroll: el.scrollLeft };
     jobsPausedRef.current = true;
-    el.setPointerCapture(e.pointerId);
   };
 
   const handleJobsPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -279,7 +469,12 @@ export function CareersPage() {
     const el = jobsMarqueeRef.current;
     if (!el) return;
     const dx = e.clientX - drag.startX;
-    if (Math.abs(dx) > 3) drag.moved = true;
+    // Capture the pointer only once it is a real drag; capturing on press would
+    // retarget the click to the carousel and the Apply Now buttons would never fire.
+    if (!drag.moved && Math.abs(dx) > 3) {
+      drag.moved = true;
+      el.setPointerCapture(e.pointerId);
+    }
     el.scrollLeft = drag.startScroll - dx;
   };
 
@@ -288,7 +483,8 @@ export function CareersPage() {
     if (!drag.dragging) return;
     drag.dragging = false;
     jobsPausedRef.current = false;
-    jobsMarqueeRef.current?.releasePointerCapture(e.pointerId);
+    const el = jobsMarqueeRef.current;
+    if (el?.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
   };
 
   const handleJobsClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -300,7 +496,38 @@ export function CareersPage() {
     }
   };
 
-  const handleApplyClick = (jobTitle: string) => {
+  // Application form lives in a pop-up; Escape or the backdrop closes it, page scroll is locked while open
+  const openApply = (role = '', kind: 'tutor' | 'ops' = 'tutor') => {
+    setApplyRole(role);
+    setApplyKind(kind);
+    if (kind === 'ops') setOpsForm((f) => ({ ...f, role }));
+    setErrorMsg('');
+    setApplyOpen(true);
+  };
+
+  useEffect(() => {
+    if (window.location.hash === '#apply-form') setApplyOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (!applyOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !testPrepOpen) setApplyOpen(false);
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [applyOpen, testPrepOpen]);
+
+  const handleApplyClick = (jobTitle: string, dept?: string) => {
+    if (dept && !isAcademicDept(dept)) {
+      openApply(jobTitle, 'ops');
+      return;
+    }
     let subject = jobTitle;
     let testPrep: string[] = [];
     
@@ -316,10 +543,7 @@ export function CareersPage() {
       testPrep,
     }));
 
-    const formEl = document.getElementById('apply-form');
-    if (formEl) {
-      formEl.scrollIntoView({ behavior: 'smooth' });
-    }
+    openApply(jobTitle);
   };
 
   const handleTestPrepChange = (option: string) => {
@@ -376,6 +600,23 @@ export function CareersPage() {
       setErrorMsg('Please upload your CV.');
       return;
     }
+    const isOps = applyKind === 'ops';
+    if (isOps && (!opsForm.role || !opsForm.experience || !opsForm.availability)) {
+      setErrorMsg('Please choose the role, your experience and your availability.');
+      return;
+    }
+    // Operations applications go to the same applications list as tutors; the role is
+    // stored as the subject and the extra answers are summarised in the remarks.
+    const opsSummary = [
+      `Role: ${opsForm.role}`,
+      `Experience: ${opsForm.experience}`,
+      opsForm.currentRole && `Current / last role: ${opsForm.currentRole}`,
+      `Availability: ${opsForm.availability}`,
+      opsForm.salary && `Expected monthly salary (INR): ${opsForm.salary}`,
+      opsForm.notice && `Notice period: ${opsForm.notice}`,
+      opsForm.linkedin && `LinkedIn: ${opsForm.linkedin}`,
+      form.remarks && `Notes: ${form.remarks}`,
+    ].filter(Boolean).join('\n');
 
     setSubmitStatus('submitting');
     setErrorMsg('');
@@ -391,21 +632,33 @@ export function CareersPage() {
           email: form.email,
           phone: `${phoneCountryCode} ${phoneLocalNumber}`.trim(),
           city: form.city,
-          subject: form.subject,
-          testPrep: form.testPrep,
-          grades: form.grades,
-          hourlyRate: form.hourlyRate,
           cvFile,
-          videoUrl: form.videoUrl,
-          message: form.remarks,
-          remarks: form.remarks,
           type: 'Tutor',
+          ...(isOps
+            ? {
+                exam: 'Operations',
+                subject: `Operations: ${opsForm.role}`,
+                hourlyRate: opsForm.salary ? `₹${opsForm.salary.replace(/^₹\s*|\/month$/g, '')}/month` : '',
+                companiesWorkedWith: opsForm.currentRole,
+                videoUrl: opsForm.linkedin,
+                message: opsSummary,
+                remarks: opsSummary,
+              }
+            : {
+                subject: form.subject,
+                testPrep: form.testPrep,
+                grades: form.grades,
+                hourlyRate: form.hourlyRate,
+                videoUrl: form.videoUrl,
+                message: form.remarks,
+                remarks: form.remarks,
+              }),
         }),
       });
 
       if (response.ok) {
         setSubmitStatus('success');
-        setPhoneCountryCode('+1');
+        setPhoneCountryCode('+91');
         setPhoneLocalNumber('');
         setForm({
           name: '',
@@ -420,6 +673,7 @@ export function CareersPage() {
           remarks: '',
         });
         setCvFile(null);
+        setOpsForm({ role: '', experience: '', currentRole: '', availability: '', salary: '', notice: '', linkedin: '' });
       } else {
         const data = await response.json().catch(() => ({}));
         setErrorMsg(data.error || 'Failed to submit application.');
@@ -459,7 +713,7 @@ export function CareersPage() {
               </p>
               <a
                 href="#open-positions"
-                className="careers-hero-cta"
+                className="btn btn-primary careers-hero-btn"
                 onClick={(e) => {
                   e.preventDefault();
                   const el = document.getElementById('open-positions');
@@ -467,9 +721,6 @@ export function CareersPage() {
                 }}
               >
                 View Open Positions
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
               </a>
             </div>
 
@@ -481,10 +732,42 @@ export function CareersPage() {
           <div className="shell">
             <p className="careers-section-eyebrow">OPEN POSITIONS</p>
             <h2 className="careers-jobs-title">
-              Find your opportunity<br />to make an impact.
+              Help the next 1,000 students <span>reach their target score.</span>
             </h2>
+            <p className="careers-jobs-lead">
+              Every role is fully remote. Tutors choose their own hours and teach 1-on-1; team members work
+              directly with families in the USA, UK, India, Singapore and UAE.
+            </p>
+            <p className="careers-jobs-freelance">Freelancers are always welcome to apply.</p>
 
-            {/* Job cards */}
+            <div className="careers-jobs-bar">
+            <div className="careers-tabs" role="tablist" aria-label="Filter roles">
+              {(
+                [
+                  ['all', 'All'],
+                  ['academics', 'Academics'],
+                  ['operations', 'Operations'],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="tab"
+                  aria-selected={jobFilter === key}
+                  className={`careers-tab${jobFilter === key ? ' is-active' : ''}`}
+                  onClick={() => setJobFilter(key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            </div>
+
+            {/* Job cards, with an arrow on each side */}
+            <div className="careers-jobs-carousel">
+              <button type="button" className="careers-jobs-arrow is-prev" aria-label="Previous role" onClick={() => scrollJobs(-1)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+              </button>
             <div
               className="careers-jobs-marquee"
               ref={jobsMarqueeRef}
@@ -497,16 +780,24 @@ export function CareersPage() {
               onClickCapture={handleJobsClickCapture}
             >
               <div className="careers-jobs-track">
-                {[...jobs, ...jobs].map((job, i) => (
+                {[...shownJobs, ...shownJobs].map((job, i) => (
                   <article key={`${job.id || job.title}-${i}`} className="careers-job-card">
-                    <h3 className="careers-job-title" style={{ marginTop: 0 }}>{job.title}</h3>
-                    <p className="careers-job-location">{job.location}</p>
-                    <p className="careers-job-desc">{job.desc}</p>
+                    <header className="careers-job-head">
+                      <span className="careers-job-avatar" aria-hidden="true">{jobIcon(job.dept || '')}</span>
+                      <div>
+                        <h3 className="careers-job-title">{job.title}</h3>
+                        <span className="careers-job-sub">
+                          {job.dept ? `${job.dept} · ` : ''}{jobType(job.type)}
+                        </span>
+                      </div>
+                    </header>
+                    <div className="careers-job-body">
+                      <p className="careers-job-desc">{job.desc}</p>
+                    </div>
                     <div className="careers-job-footer">
-                      <span className="careers-job-badge">{job.type}</span>
                       <button
                         type="button"
-                        onClick={() => handleApplyClick(job.title)}
+                        onClick={() => handleApplyClick(job.title, job.dept)}
                         className="careers-job-apply-btn"
                       >
                         Apply Now
@@ -515,6 +806,27 @@ export function CareersPage() {
                   </article>
                 ))}
               </div>
+            </div>
+
+              <button type="button" className="careers-jobs-arrow is-next" aria-label="Next role" onClick={() => scrollJobs(1)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
+              </button>
+            </div>
+
+            <div className="careers-jobs-more">
+              <div>
+                <strong>Don't see your role?</strong>
+                <span>We're always glad to hear from great educators. Send us your details and CV.</span>
+              </div>
+              <a
+                href="#apply-form"
+                onClick={(e) => {
+                  e.preventDefault();
+                  openApply();
+                }}
+              >
+                Apply anyway →
+              </a>
             </div>
           </div>
         </section>
@@ -564,10 +876,7 @@ export function CareersPage() {
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  const formEl = document.getElementById('apply-form');
-                  if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={() => openApply()}
                 className="careers-partner-btn"
               >
                 Learn More →
@@ -603,7 +912,7 @@ export function CareersPage() {
         </section>
 
         {/* ── Tutor Application Form ── */}
-        <section id="apply-form" className="careers-form-section">
+        <section id="teach-with-us" className="careers-form-section">
           <div className="shell">
             <div className="careers-form-grid">
               
@@ -635,15 +944,89 @@ export function CareersPage() {
                   </ul>
                 </div>
 
+              </div>
+
+              {/* Perks and the button that opens the application pop-up */}
+              <div className="careers-form-side">
                 <ul className="careers-form-perks">
                   <li><strong>Fully remote</strong><span>Teach from anywhere</span></li>
                   <li><strong>Your hours</strong><span>Pick the slots that suit you</span></li>
                   <li><strong>Global students</strong><span>USA, UK, India, Singapore, UAE</span></li>
                   <li><strong>1-on-1 only</strong><span>No crowded group classes</span></li>
                 </ul>
+                <button type="button" className="form-submit-btn careers-open-apply" onClick={() => openApply()}>
+                  Apply to Teach
+                </button>
+                <p className="careers-open-apply-note">Takes about 5 minutes. Keep your CV and a short intro video link handy.</p>
               </div>
 
-              {/* Form Card */}
+            </div>
+          </div>
+        </section>
+
+        {/* ── CTA Banner ── */}
+        <section className="careers-cta-section">
+          <div className="shell careers-cta-inner">
+            <div className="careers-cta-copy">
+              <p className="careers-cta-eyebrow">MAKE AN IMPACT</p>
+              <h2 className="careers-cta-title">
+                Build a career that<br />makes a <span className="careers-cta-accent">difference.</span>
+              </h2>
+              <p className="careers-cta-desc">
+                Join a team where your work empowers students, supports families and creates a lasting impact.
+              </p>
+              <button
+                type="button"
+                onClick={() => openApply()}
+                className="careers-cta-btn"
+              >
+                Apply Now
+              </button>
+            </div>
+            {/* decorative illustration */}
+            <div className="careers-cta-illustration" aria-hidden="true">
+              <svg viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* platform steps */}
+                <rect x="40" y="120" width="60" height="60" rx="4" fill="#1d4ed8" />
+                <rect x="110" y="90" width="60" height="90" rx="4" fill="#ffb400" />
+                <rect x="180" y="60" width="60" height="120" rx="4" fill="#1d4ed8" />
+                {/* flag on top */}
+                <line x1="210" y1="60" x2="210" y2="20" stroke="white" strokeWidth="3" strokeLinecap="round" />
+                <polygon points="210,20 240,32 210,44" fill="#ffb400" />
+                {/* silhouettes */}
+                {/* small person */}
+                <circle cx="70" cy="108" r="8" fill="white" fillOpacity="0.7" />
+                <path d="M60 120v10a10 10 0 0 0 20 0v-10" fill="white" fillOpacity="0.7" />
+                {/* medium person */}
+                <circle cx="140" cy="76" r="9" fill="white" fillOpacity="0.85" />
+                <path d="M129 90v11a11 11 0 0 0 22 0V90" fill="white" fillOpacity="0.85" />
+                {/* tall person */}
+                <circle cx="210" cy="44" r="10" fill="white" />
+                <path d="M198 58v12a12 12 0 0 0 24 0V58" fill="white" />
+                {/* helping arm */}
+                <path d="M180 76 L196 58" stroke="#ffb400" strokeWidth="2.5" strokeLinecap="round" />
+                {/* leaves */}
+                <ellipse cx="22" cy="150" rx="14" ry="28" fill="#1e3a5f" transform="rotate(-30 22 150)" />
+                <ellipse cx="14" cy="140" rx="10" ry="22" fill="#1d4ed8" fillOpacity="0.6" transform="rotate(-50 14 140)" />
+                <ellipse cx="258" cy="155" rx="14" ry="28" fill="#1e3a5f" transform="rotate(30 258 155)" />
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Application pop-up ── */}
+        {applyOpen && (
+          <div
+            className="careers-apply-modal"
+            id="apply-form"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) setApplyOpen(false);
+            }}
+          >
+            <div className="careers-apply-dialog" role="dialog" aria-modal="true" aria-label={applyKind === 'ops' ? 'Operations application form' : 'Tutor application form'}>
+              <button type="button" className="careers-apply-close" aria-label="Close" onClick={() => setApplyOpen(false)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
               <div className="careers-form-card">
                 {submitStatus === 'success' ? (
                   <div className="careers-form-success animate-fade-in">
@@ -654,7 +1037,9 @@ export function CareersPage() {
                     </div>
                     <h3>Application Submitted!</h3>
                     <p>
-                      Thank you for applying. Our academic coordinators will review your CV and video introduction. We will contact you via WhatsApp or Email if your profile matches our requirements.
+                      {applyKind === 'ops'
+                        ? 'Thank you for applying. Our team will review your CV and contact you via WhatsApp or Email if your profile matches the role.'
+                        : 'Thank you for applying. Our academic coordinators will review your CV and video introduction. We will contact you via WhatsApp or Email if your profile matches our requirements.'}
                     </p>
                     <button className="btn-reset-form" onClick={() => setSubmitStatus('idle')}>
                       Submit Another Application
@@ -662,11 +1047,37 @@ export function CareersPage() {
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit} className="careers-application-form">
-                    <span className="careers-form-badge">Remote · Flexible hours</span>
                     <h3 className="form-legend">
-                      Apply to teach with us
-                      <small>Fields marked * are required.</small>
+                      {applyKind === 'ops'
+                        ? (opsForm.role ? `Apply: ${opsForm.role}` : 'Join our operations team')
+                        : (applyRole ? `Apply: ${applyRole}` : 'Apply to teach with us')}
                     </h3>
+
+                    <div className="careers-apply-kind" role="tablist" aria-label="Application type">
+                      {(
+                        [
+                          ['tutor', 'Tutor'],
+                          ['ops', 'Operations'],
+                        ] as const
+                      ).map(([key, label]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          role="tab"
+                          aria-selected={applyKind === key}
+                          className={`careers-tab${applyKind === key ? ' is-active' : ''}`}
+                          onClick={() => {
+                            if (applyKind === key) return;
+                            setApplyKind(key);
+                            setApplyRole('');
+                            setOpsForm((f) => ({ ...f, role: '' }));
+                            setErrorMsg('');
+                          }}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
                     
                     {errorMsg && (
                       <div className="careers-form-error-banner animate-fade-in" role="alert">
@@ -708,8 +1119,8 @@ export function CareersPage() {
                             value={phoneCountryCode}
                             onChange={(e) => setPhoneCountryCode(e.target.value)}
                           >
-                            <option value="+1">+1 (US)</option>
                             <option value="+91">+91 (IN)</option>
+                            <option value="+1">+1 (US)</option>
                             <option value="+44">+44 (UK)</option>
                             <option value="+971">+971 (AE)</option>
                             <option value="+65">+65 (SG)</option>
@@ -745,135 +1156,245 @@ export function CareersPage() {
                       </div>
                     </div>
 
+                    {applyKind === 'tutor' ? (
+                      <>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="subject">Subject / Expertise *</label>
+                          <input
+                            type="text"
+                            id="subject"
+                            placeholder="e.g. SAT Math, AP Physics"
+                            required
+                            value={form.subject}
+                            onChange={(e) => setForm({ ...form, subject: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="hourlyRate">Expected Hourly Rate (INR)</label>
+                          <input
+                            type="text"
+                            id="hourlyRate"
+                            placeholder="e.g. ₹600/hr"
+                            value={form.hourlyRate}
+                            onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="grades">Grades *</label>
+                          <input
+                            type="text"
+                            id="grades"
+                            placeholder="e.g. Grades 9-12"
+                            required
+                            value={form.grades}
+                            onChange={(e) => setForm({ ...form, grades: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label id="test-prep-label">Test Prep Specializations *</label>
+                          <div className="test-prep-dropdown" ref={testPrepRef}>
+                            <button
+                              type="button"
+                              className={`test-prep-toggle${testPrepOpen ? ' is-open' : ''}`}
+                              aria-haspopup="listbox"
+                              aria-expanded={testPrepOpen}
+                              aria-labelledby="test-prep-label"
+                              onClick={() => setTestPrepOpen((o) => !o)}
+                            >
+                              <span className={form.testPrep.length ? '' : 'is-placeholder'}>
+                                {form.testPrep.length ? form.testPrep.join(', ') : 'Select one or more'}
+                              </span>
+                            </button>
+                            {testPrepOpen && (
+                              <div className="test-prep-menu" role="listbox" aria-multiselectable="true">
+                                {TEST_PREP_OPTIONS.map((option) => (
+                                  <label key={option} className="checklist-item">
+                                    <input
+                                      type="checkbox"
+                                      checked={form.testPrep.includes(option)}
+                                      onChange={() => handleTestPrepChange(option)}
+                                    />
+                                    <span className="checklist-label">{option}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      </>
+                    ) : (
+                      <>
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="opsRole">Role Applying For *</label>
+                          <FormDropdown
+                            id="opsRole"
+                            value={opsForm.role}
+                            placeholder="Select a role"
+                            options={[...opsRoles.map((r) => ({ value: r, label: r })), ...(opsForm.role && !opsRoles.includes(opsForm.role) && opsForm.role !== 'Other' ? [{ value: opsForm.role, label: opsForm.role }] : []), { value: 'Other', label: 'Other / open application' }]}
+                            onChange={(v) => setOpsForm((f) => ({ ...f, role: v }))}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="opsExperience">Work Experience *</label>
+                          <FormDropdown
+                            id="opsExperience"
+                            value={opsForm.experience}
+                            placeholder="Select years"
+                            options={[{ value: 'Fresher (0-1 years)', label: 'Fresher (0-1 years)' }, { value: '1-3 years', label: '1-3 years' }, { value: '3-5 years', label: '3-5 years' }, { value: '5+ years', label: '5+ years' }]}
+                            onChange={(v) => setOpsForm((f) => ({ ...f, experience: v }))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="opsCurrentRole">Current / Last Role and Company</label>
+                          <input
+                            type="text"
+                            id="opsCurrentRole"
+                            placeholder="e.g. Admissions Counsellor, XYZ Education"
+                            value={opsForm.currentRole}
+                            onChange={(e) => setOpsForm({ ...opsForm, currentRole: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="opsAvailability">Availability *</label>
+                          <FormDropdown
+                            id="opsAvailability"
+                            value={opsForm.availability}
+                            placeholder="Select one"
+                            options={[{ value: 'Full-time', label: 'Full-time' }, { value: 'Part-time', label: 'Part-time' }, { value: 'Freelance', label: 'Freelance' }]}
+                            onChange={(v) => setOpsForm((f) => ({ ...f, availability: v }))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="form-row">
+                        <div className="form-group">
+                          <label htmlFor="opsSalary">Expected Monthly Salary (INR)</label>
+                          <input
+                            type="text"
+                            id="opsSalary"
+                            placeholder="e.g. ₹40,000/month"
+                            value={opsForm.salary}
+                            onChange={(e) => setOpsForm({ ...opsForm, salary: e.target.value })}
+                          />
+                        </div>
+                        <div className="form-group">
+                          <label htmlFor="opsNotice">Notice Period</label>
+                          <FormDropdown
+                            id="opsNotice"
+                            value={opsForm.notice}
+                            placeholder="Select one"
+                            options={[{ value: 'Immediate', label: 'Immediate' }, { value: '15 days', label: '15 days' }, { value: '30 days', label: '30 days' }, { value: '60 days or more', label: '60 days or more' }]}
+                            onChange={(v) => setOpsForm((f) => ({ ...f, notice: v }))}
+                          />
+                        </div>
+                      </div>
+                      </>
+                    )}
+
                     <div className="form-row">
                       <div className="form-group">
-                        <label htmlFor="subject">Subject / Expertise *</label>
-                        <input
-                          type="text"
-                          id="subject"
-                          placeholder="e.g. SAT Math, AP Physics"
-                          required
-                          value={form.subject}
-                          onChange={(e) => setForm({ ...form, subject: e.target.value })}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="hourlyRate">Expected Hourly Rate (USD) <small>optional</small></label>
-                        <input
-                          type="text"
-                          id="hourlyRate"
-                          placeholder="e.g. $35/hr"
-                          value={form.hourlyRate}
-                          onChange={(e) => setForm({ ...form, hourlyRate: e.target.value })}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="grades">Grades / Target Audiences *</label>
-                      <input
-                        type="text"
-                        id="grades"
-                        placeholder="e.g. Grades 9-12, College"
-                        required
-                        value={form.grades}
-                        onChange={(e) => setForm({ ...form, grades: e.target.value })}
-                      />
-                    </div>
-
-                    <div className="form-group">
-                      <label>Test Prep Specializations (Select Multiple) *</label>
-                      <div className="test-prep-checklist">
-                        {TEST_PREP_OPTIONS.map((option) => (
-                          <label key={option} className="checklist-item">
-                            <input
-                              type="checkbox"
-                              checked={form.testPrep.includes(option)}
-                              onChange={() => handleTestPrepChange(option)}
-                            />
-                            <span className="checklist-label">{option}</span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="cv-upload" className="cv-upload-label">
-                        Upload CV (PDF, DOC, DOCX - Max 5MB) *
-                      </label>
-                      <div
-                        className={`file-uploader-box${cvDragOver ? ' is-dragover' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        aria-label="Upload CV"
-                        onClick={() => fileInputRef.current?.click()}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
+                        <label htmlFor="cv-upload" className="cv-upload-label">
+                          Upload CV (PDF, DOC, DOCX - Max 5MB) *
+                        </label>
+                        <div
+                          className={`file-uploader-box${cvDragOver ? ' is-dragover' : ''}`}
+                          role="button"
+                          tabIndex={0}
+                          aria-label="Upload CV"
+                          onClick={() => fileInputRef.current?.click()}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              fileInputRef.current?.click();
+                            }
+                          }}
+                          onDragOver={(e) => {
                             e.preventDefault();
-                            fileInputRef.current?.click();
-                          }
-                        }}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          setCvDragOver(true);
-                        }}
-                        onDragLeave={() => setCvDragOver(false)}
-                        onDrop={(e) => {
-                          e.preventDefault();
-                          setCvDragOver(false);
-                          const file = e.dataTransfer.files?.[0];
-                          if (file) readCvFile(file);
-                        }}
-                      >
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          id="cv-upload"
-                          accept=".pdf,.doc,.docx"
-                          onChange={handleFileChange}
-                          style={{ display: 'none' }}
-                        />
-                        <span className="file-drop-icon" aria-hidden="true">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="17 8 12 3 7 8" />
-                            <line x1="12" y1="3" x2="12" y2="15" />
-                          </svg>
-                        </span>
-                        <span className="file-drop-text">
-                          {cvFile ? (
-                            <strong>{cvFile.name}</strong>
-                          ) : (
-                            <strong>
-                              Drop your CV here or <u>browse</u>
-                            </strong>
-                          )}
-                          <span className="file-name-display">
-                            {cvFile ? 'Click to choose a different file' : 'PDF, DOC or DOCX, up to 5MB'}
+                            setCvDragOver(true);
+                          }}
+                          onDragLeave={() => setCvDragOver(false)}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            setCvDragOver(false);
+                            const file = e.dataTransfer.files?.[0];
+                            if (file) readCvFile(file);
+                          }}
+                        >
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            id="cv-upload"
+                            accept=".pdf,.doc,.docx"
+                            onChange={handleFileChange}
+                            style={{ display: 'none' }}
+                          />
+                          <span className="file-drop-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                              <polyline points="17 8 12 3 7 8" />
+                              <line x1="12" y1="3" x2="12" y2="15" />
+                            </svg>
                           </span>
-                        </span>
+                          <span className="file-drop-text">
+                            {cvFile ? (
+                              <strong>{cvFile.name}</strong>
+                            ) : (
+                              <strong>
+                                Drop your CV here or <u>browse</u>
+                              </strong>
+                            )}
+                            <span className="file-name-display">
+                              {cvFile ? 'Click to choose a different file' : 'PDF, DOC or DOCX, up to 5MB'}
+                            </span>
+                          </span>
+                        </div>
                       </div>
+
+                      {applyKind === 'tutor' ? (
+                        <div className="form-group">
+                          <label htmlFor="videoUrl">Tutoring Video Introduction Link</label>
+                          <input
+                            type="url"
+                            id="videoUrl"
+                            placeholder="e.g. Loom, YouTube, Google Drive link"
+                            value={form.videoUrl}
+                            onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
+                          />
+                          <span className="field-hint">Please provide a 2-3 min video link explaining a concept or introducing yourself.</span>
+                        </div>
+                      ) : (
+                        <div className="form-group">
+                          <label htmlFor="opsLinkedin">LinkedIn Profile</label>
+                          <input
+                            type="url"
+                            id="opsLinkedin"
+                            placeholder="https://linkedin.com/in/your-name"
+                            value={opsForm.linkedin}
+                            onChange={(e) => setOpsForm({ ...opsForm, linkedin: e.target.value })}
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div className="form-group">
-                      <label htmlFor="videoUrl">Tutoring Video Introduction Link *</label>
-                      <input
-                        type="url"
-                        id="videoUrl"
-                        placeholder="e.g. Loom, YouTube, Google Drive link"
-                        required
-                        value={form.videoUrl}
-                        onChange={(e) => setForm({ ...form, videoUrl: e.target.value })}
-                      />
-                      <span className="field-hint">Please provide a 2-3 min video link explaining a concept or introducing yourself.</span>
-                    </div>
-
-                    <div className="form-group">
-                      <label htmlFor="remarks">Remarks (If Any)</label>
+                      <label htmlFor="remarks">
+                        {applyKind === 'ops' ? 'Why ACT SAT GO?' : 'Remarks (If Any)'}
+                      </label>
                       <textarea
                         id="remarks"
                         rows={3}
-                        placeholder="Any additional details or schedule preferences..."
+                        placeholder={applyKind === 'ops'
+                          ? 'A few lines on why this role suits you...'
+                          : 'Any additional details or schedule preferences...'}
                         value={form.remarks}
                         onChange={(e) => setForm({ ...form, remarks: e.target.value })}
                       />
@@ -892,63 +1413,9 @@ export function CareersPage() {
                   </form>
                 )}
               </div>
-
             </div>
           </div>
-        </section>
-
-        {/* ── CTA Banner ── */}
-        <section className="careers-cta-section">
-          <div className="shell careers-cta-inner">
-            <div className="careers-cta-copy">
-              <p className="careers-cta-eyebrow">MAKE AN IMPACT</p>
-              <h2 className="careers-cta-title">
-                Build a career that<br />makes a <span className="careers-cta-accent">difference.</span>
-              </h2>
-              <p className="careers-cta-desc">
-                Join a team where your work empowers students, supports families and creates a lasting impact.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  const formEl = document.getElementById('apply-form');
-                  if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="careers-cta-btn"
-              >
-                Apply Now
-              </button>
-            </div>
-            {/* decorative illustration */}
-            <div className="careers-cta-illustration" aria-hidden="true">
-              <svg viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* platform steps */}
-                <rect x="40" y="120" width="60" height="60" rx="4" fill="#1d4ed8" />
-                <rect x="110" y="90" width="60" height="90" rx="4" fill="#ffb400" />
-                <rect x="180" y="60" width="60" height="120" rx="4" fill="#1d4ed8" />
-                {/* flag on top */}
-                <line x1="210" y1="60" x2="210" y2="20" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                <polygon points="210,20 240,32 210,44" fill="#ffb400" />
-                {/* silhouettes */}
-                {/* small person */}
-                <circle cx="70" cy="108" r="8" fill="white" fillOpacity="0.7" />
-                <path d="M60 120v10a10 10 0 0 0 20 0v-10" fill="white" fillOpacity="0.7" />
-                {/* medium person */}
-                <circle cx="140" cy="76" r="9" fill="white" fillOpacity="0.85" />
-                <path d="M129 90v11a11 11 0 0 0 22 0V90" fill="white" fillOpacity="0.85" />
-                {/* tall person */}
-                <circle cx="210" cy="44" r="10" fill="white" />
-                <path d="M198 58v12a12 12 0 0 0 24 0V58" fill="white" />
-                {/* helping arm */}
-                <path d="M180 76 L196 58" stroke="#ffb400" strokeWidth="2.5" strokeLinecap="round" />
-                {/* leaves */}
-                <ellipse cx="22" cy="150" rx="14" ry="28" fill="#1e3a5f" transform="rotate(-30 22 150)" />
-                <ellipse cx="14" cy="140" rx="10" ry="22" fill="#1d4ed8" fillOpacity="0.6" transform="rotate(-50 14 140)" />
-                <ellipse cx="258" cy="155" rx="14" ry="28" fill="#1e3a5f" transform="rotate(30 258 155)" />
-              </svg>
-            </div>
-          </div>
-        </section>
+        )}
       </main>
     </>
   );

@@ -1,0 +1,71 @@
+/* ── Hover effects for cards and tiles that had none ─────────────────────
+   Light cards lift with a soft shadow and a gold edge; cards on navy lift
+   with a gold ring; small list items nudge. Only on devices that can hover. */
+
+@media (hover: hover) {
+  :is(
+    .choose-card, .future-program-card, .highlight-card, .k12-grade-card,
+    .k12-skill-card, .pain-card, .tutor-card, .step-card, .future-languages-card,
+    .about-tech-card, .curriculum-card, .hiw-step, .why-tile
+  ) {
+    transition: opacity 0.7s ease, transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+  }
+
+  :is(
+    .choose-card, .future-program-card, .highlight-card, .k12-grade-card,
+    .k12-skill-card, .pain-card, .tutor-card, .step-card, .future-languages-card
+  ):hover {
+    transform: translateY(-6px);
+    border-color: rgba(252, 155, 10, 0.55);
+    box-shadow: 0 0 0 1px rgba(252, 155, 10, 0.35), 0 24px 44px -20px rgba(6, 26, 47, 0.3);
+  }
+
+  :is(.about-tech-card, .curriculum-card, .hiw-step):hover {
+    transform: translateY(-6px);
+    border-color: rgba(253, 185, 19, 0.55);
+    box-shadow: 0 0 0 1px rgba(253, 185, 19, 0.45), 0 24px 44px -20px rgba(0, 0, 0, 0.65);
+  }
+
+  .why-tile:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 16px 30px -18px rgba(6, 26, 47, 0.45);
+  }
+
+  .why-us .why-tile:hover {
+    border-color: rgba(255, 180, 0, 0.8);
+    background-color: rgba(255, 255, 255, 0.09);
+  }
+
+  /* Small feature rows and bullets */
+  :is(.future-why-item, .future-feature-item, .newsletter-feature-item, .ft-benefit-item, .hero-bullet-item) {
+    transition: transform 0.25s ease, color 0.25s ease;
+  }
+
+  :is(.future-why-item, .future-feature-item, .newsletter-feature-item, .ft-benefit-item, .hero-bullet-item):hover {
+    transform: translateX(4px);
+  }
+
+  /* Learning journey: the step's icon lights up */
+  .k12-journey-step .k12-journey-icon {
+    transition: transform 0.25s ease, background-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .k12-journey-step:hover .k12-journey-icon {
+    transform: translateY(-4px) scale(1.06);
+    background-color: var(--accent);
+    color: var(--navy);
+    box-shadow: 0 0 0 8px rgba(253, 185, 19, 0.14);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(
+    .choose-card, .future-program-card, .highlight-card, .k12-grade-card,
+    .k12-skill-card, .pain-card, .tutor-card, .step-card, .future-languages-card,
+    .about-tech-card, .curriculum-card, .hiw-step, .why-tile,
+    .future-why-item, .future-feature-item, .newsletter-feature-item, .ft-benefit-item, .hero-bullet-item
+  ):hover,
+  .k12-journey-step:hover .k12-journey-icon {
+    transform: none;
+  }
+}

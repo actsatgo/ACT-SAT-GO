@@ -645,3 +645,111 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Hero photo is cropped tight (no baked-in badge), so it is sized directly:
+   larger than before but clear of the copy column */
+.k12-hero-art {
+  margin-left: 0;
+  justify-items: end;
+}
+
+.k12-hero-photo {
+  max-width: 880px;
+  margin-top: 28px;
+  transform: none;
+}
+
+@media (max-width: 1040px) {
+  .k12-hero-art {
+    justify-items: center;
+  }
+
+  .k12-hero-photo {
+    max-width: 640px;
+    margin-top: 16px;
+  }
+}
+
+/* Hero photo: full-height on the right, its left edge fading into the navy */
+.k12-hero {
+  min-height: clamp(460px, 37vw, 560px);
+  display: flex;
+  align-items: center;
+}
+
+.k12-hero > .shell.k12-hero-grid {
+  flex: none;
+  grid-template-columns: minmax(0, 580px) 1fr;
+  padding-block: 44px;
+}
+
+.k12-hero-bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  width: auto;
+  height: 100%;
+  max-width: 62%;
+  object-fit: cover;
+  object-position: right center;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 9%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 9%);
+  pointer-events: none;
+}
+
+.k12-hero .orb {
+  display: none;
+}
+
+@media (max-width: 1040px) {
+  .k12-hero {
+    display: block;
+    min-height: 0;
+  }
+
+  .k12-hero-bg {
+    position: relative;
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    aspect-ratio: 1550 / 1015;
+    -webkit-mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 70%, transparent 100%);
+  }
+
+  .k12-hero > .shell.k12-hero-grid {
+    grid-template-columns: 1fr;
+    padding-block: 0 48px;
+    margin-top: -24px;
+  }
+}
+
+/* Learning journey: steps top-aligned, one gold accent, one continuous line
+   running from each icon to the next behind the icons */
+.k12-journey-step {
+  align-content: start;
+  gap: 8px;
+}
+
+.k12-journey-line {
+  top: 23px;
+  left: 50%;
+  right: auto;
+  width: calc(100% + 8px);
+  z-index: 0;
+  border-top: 2px dashed rgba(253, 185, 19, 0.35);
+}
+
+.k12-journey-icon {
+  margin-bottom: 4px;
+  background: #0b1f38;
+  box-shadow: 0 0 0 6px rgba(253, 185, 19, 0.08);
+}
+
+/* Hero heading: exactly one phrase per line */
+.k12-hero-copy h1 {
+  white-space: nowrap;
+  font-size: clamp(26px, 3.4vw, 46px);
+}

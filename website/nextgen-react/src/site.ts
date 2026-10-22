@@ -46,7 +46,7 @@ export const STATS = {
 export const STUDENT_COUNTRIES = ['USA', 'UK', 'India', 'Singapore', 'UAE'];
 
 /** The one name for the primary call to action, used everywhere. */
-export const PRIMARY_CTA = 'Book a Free Diagnostic Lesson';
+export const PRIMARY_CTA = 'Book a Free Diagnostic Session';
 /** Soft offer for visitors not ready to talk to anyone yet. */
 export const SECONDARY_CTA = 'Take a Free Practice Test';
 export const CONSULT_PATH = '/consultation';
