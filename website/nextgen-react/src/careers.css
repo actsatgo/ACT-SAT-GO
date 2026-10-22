@@ -1950,3 +1950,118 @@
 @media (max-width: 640px) {
   .careers-jobs-carousel .careers-jobs-arrow { width: 38px; height: 38px; }
 }
+
+/* "Become a tutor" section: intro on the left, perks + button on the right */
+.careers-form-section .careers-form-grid {
+  align-items: center;
+}
+
+.careers-form-section .careers-form-info {
+  position: static;
+}
+
+.careers-form-side .careers-form-perks {
+  margin-top: 0;
+}
+
+.careers-form-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.careers-form-side .careers-open-apply {
+  margin-top: 24px;
+}
+
+.careers-open-apply-note {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Application pop-up */
+.careers-apply-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  overflow-y: auto;
+  padding: 40px 16px;
+  background: rgba(6, 26, 47, 0.72);
+  backdrop-filter: blur(4px);
+  animation: careersModalFade 0.2s ease;
+}
+
+.careers-apply-dialog {
+  position: relative;
+  width: min(760px, 100%);
+  margin: 0 auto;
+  animation: careersModalRise 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.careers-apply-dialog .careers-form-card {
+  padding: 36px 40px 32px;
+}
+
+.careers-apply-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 1.5px solid #dde3ed;
+  border-radius: 50%;
+  background: #ffffff;
+  color: var(--navy);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.careers-apply-close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.careers-apply-close:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #ffffff;
+}
+
+.careers-apply-dialog .form-legend {
+  padding-right: 48px;
+}
+
+@keyframes careersModalFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes careersModalRise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 600px) {
+  .careers-apply-modal {
+    padding: 16px 10px;
+  }
+
+  .careers-apply-dialog .careers-form-card {
+    padding: 24px 18px 22px;
+  }
+
+  .careers-form-side {
+    align-items: stretch;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .careers-apply-modal,
+  .careers-apply-dialog {
+    animation: none;
+  }
+}

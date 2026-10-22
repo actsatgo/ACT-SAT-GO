@@ -225,6 +225,8 @@ export function CareersPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [cvDragOver, setCvDragOver] = useState(false);
   const [testPrepOpen, setTestPrepOpen] = useState(false);
+  const [applyOpen, setApplyOpen] = useState(false);
+  const [applyRole, setApplyRole] = useState('');
   const testPrepRef = useRef<HTMLDivElement>(null);
 
   // Close the test prep dropdown on an outside click or Escape
@@ -405,6 +407,30 @@ export function CareersPage() {
     }
   };
 
+  // Application form lives in a pop-up; Escape or the backdrop closes it, page scroll is locked while open
+  const openApply = (role = '') => {
+    setApplyRole(role);
+    setApplyOpen(true);
+  };
+
+  useEffect(() => {
+    if (window.location.hash === '#apply-form') setApplyOpen(true);
+  }, []);
+
+  useEffect(() => {
+    if (!applyOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !testPrepOpen) setApplyOpen(false);
+    };
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [applyOpen, testPrepOpen]);
+
   const handleApplyClick = (jobTitle: string) => {
     let subject = jobTitle;
     let testPrep: string[] = [];
@@ -421,10 +447,7 @@ export function CareersPage() {
       testPrep,
     }));
 
-    const formEl = document.getElementById('apply-form');
-    if (formEl) {
-      formEl.scrollIntoView({ behavior: 'smooth' });
-    }
+    openApply(jobTitle);
   };
 
   const handleTestPrepChange = (option: string) => {
@@ -673,7 +696,7 @@ export function CareersPage() {
                 href="#apply-form"
                 onClick={(e) => {
                   e.preventDefault();
-                  document.getElementById('apply-form')?.scrollIntoView({ behavior: 'smooth' });
+                  openApply();
                 }}
               >
                 Apply anyway →
@@ -727,10 +750,7 @@ export function CareersPage() {
               </div>
               <button
                 type="button"
-                onClick={() => {
-                  const formEl = document.getElementById('apply-form');
-                  if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
-                }}
+                onClick={() => openApply()}
                 className="careers-partner-btn"
               >
                 Learn More →
@@ -766,7 +786,7 @@ export function CareersPage() {
         </section>
 
         {/* ── Tutor Application Form ── */}
-        <section id="apply-form" className="careers-form-section">
+        <section id="teach-with-us" className="careers-form-section">
           <div className="shell">
             <div className="careers-form-grid">
               
@@ -798,15 +818,89 @@ export function CareersPage() {
                   </ul>
                 </div>
 
+              </div>
+
+              {/* Perks and the button that opens the application pop-up */}
+              <div className="careers-form-side">
                 <ul className="careers-form-perks">
                   <li><strong>Fully remote</strong><span>Teach from anywhere</span></li>
                   <li><strong>Your hours</strong><span>Pick the slots that suit you</span></li>
                   <li><strong>Global students</strong><span>USA, UK, India, Singapore, UAE</span></li>
                   <li><strong>1-on-1 only</strong><span>No crowded group classes</span></li>
                 </ul>
+                <button type="button" className="form-submit-btn careers-open-apply" onClick={() => openApply()}>
+                  Apply to Teach
+                </button>
+                <p className="careers-open-apply-note">Takes about 5 minutes. Keep your CV and a short intro video link handy.</p>
               </div>
 
-              {/* Form Card */}
+            </div>
+          </div>
+        </section>
+
+        {/* ── CTA Banner ── */}
+        <section className="careers-cta-section">
+          <div className="shell careers-cta-inner">
+            <div className="careers-cta-copy">
+              <p className="careers-cta-eyebrow">MAKE AN IMPACT</p>
+              <h2 className="careers-cta-title">
+                Build a career that<br />makes a <span className="careers-cta-accent">difference.</span>
+              </h2>
+              <p className="careers-cta-desc">
+                Join a team where your work empowers students, supports families and creates a lasting impact.
+              </p>
+              <button
+                type="button"
+                onClick={() => openApply()}
+                className="careers-cta-btn"
+              >
+                Apply Now
+              </button>
+            </div>
+            {/* decorative illustration */}
+            <div className="careers-cta-illustration" aria-hidden="true">
+              <svg viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* platform steps */}
+                <rect x="40" y="120" width="60" height="60" rx="4" fill="#1d4ed8" />
+                <rect x="110" y="90" width="60" height="90" rx="4" fill="#ffb400" />
+                <rect x="180" y="60" width="60" height="120" rx="4" fill="#1d4ed8" />
+                {/* flag on top */}
+                <line x1="210" y1="60" x2="210" y2="20" stroke="white" strokeWidth="3" strokeLinecap="round" />
+                <polygon points="210,20 240,32 210,44" fill="#ffb400" />
+                {/* silhouettes */}
+                {/* small person */}
+                <circle cx="70" cy="108" r="8" fill="white" fillOpacity="0.7" />
+                <path d="M60 120v10a10 10 0 0 0 20 0v-10" fill="white" fillOpacity="0.7" />
+                {/* medium person */}
+                <circle cx="140" cy="76" r="9" fill="white" fillOpacity="0.85" />
+                <path d="M129 90v11a11 11 0 0 0 22 0V90" fill="white" fillOpacity="0.85" />
+                {/* tall person */}
+                <circle cx="210" cy="44" r="10" fill="white" />
+                <path d="M198 58v12a12 12 0 0 0 24 0V58" fill="white" />
+                {/* helping arm */}
+                <path d="M180 76 L196 58" stroke="#ffb400" strokeWidth="2.5" strokeLinecap="round" />
+                {/* leaves */}
+                <ellipse cx="22" cy="150" rx="14" ry="28" fill="#1e3a5f" transform="rotate(-30 22 150)" />
+                <ellipse cx="14" cy="140" rx="10" ry="22" fill="#1d4ed8" fillOpacity="0.6" transform="rotate(-50 14 140)" />
+                <ellipse cx="258" cy="155" rx="14" ry="28" fill="#1e3a5f" transform="rotate(30 258 155)" />
+              </svg>
+            </div>
+          </div>
+        </section>
+
+        {/* ── Application pop-up ── */}
+        {applyOpen && (
+          <div
+            className="careers-apply-modal"
+            id="apply-form"
+            onMouseDown={(e) => {
+              if (e.target === e.currentTarget) setApplyOpen(false);
+            }}
+          >
+            <div className="careers-apply-dialog" role="dialog" aria-modal="true" aria-label="Tutor application form">
+              <button type="button" className="careers-apply-close" aria-label="Close" onClick={() => setApplyOpen(false)}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+              </button>
               <div className="careers-form-card">
                 {submitStatus === 'success' ? (
                   <div className="careers-form-success animate-fade-in">
@@ -826,7 +920,7 @@ export function CareersPage() {
                 ) : (
                   <form onSubmit={handleSubmit} className="careers-application-form">
                     <h3 className="form-legend">
-                      Apply to teach with us
+                      {applyRole ? `Apply: ${applyRole}` : 'Apply to teach with us'}
                       <small>Fields marked * are required.</small>
                     </h3>
                     
@@ -1073,63 +1167,9 @@ export function CareersPage() {
                   </form>
                 )}
               </div>
-
             </div>
           </div>
-        </section>
-
-        {/* ── CTA Banner ── */}
-        <section className="careers-cta-section">
-          <div className="shell careers-cta-inner">
-            <div className="careers-cta-copy">
-              <p className="careers-cta-eyebrow">MAKE AN IMPACT</p>
-              <h2 className="careers-cta-title">
-                Build a career that<br />makes a <span className="careers-cta-accent">difference.</span>
-              </h2>
-              <p className="careers-cta-desc">
-                Join a team where your work empowers students, supports families and creates a lasting impact.
-              </p>
-              <button
-                type="button"
-                onClick={() => {
-                  const formEl = document.getElementById('apply-form');
-                  if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="careers-cta-btn"
-              >
-                Apply Now
-              </button>
-            </div>
-            {/* decorative illustration */}
-            <div className="careers-cta-illustration" aria-hidden="true">
-              <svg viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* platform steps */}
-                <rect x="40" y="120" width="60" height="60" rx="4" fill="#1d4ed8" />
-                <rect x="110" y="90" width="60" height="90" rx="4" fill="#ffb400" />
-                <rect x="180" y="60" width="60" height="120" rx="4" fill="#1d4ed8" />
-                {/* flag on top */}
-                <line x1="210" y1="60" x2="210" y2="20" stroke="white" strokeWidth="3" strokeLinecap="round" />
-                <polygon points="210,20 240,32 210,44" fill="#ffb400" />
-                {/* silhouettes */}
-                {/* small person */}
-                <circle cx="70" cy="108" r="8" fill="white" fillOpacity="0.7" />
-                <path d="M60 120v10a10 10 0 0 0 20 0v-10" fill="white" fillOpacity="0.7" />
-                {/* medium person */}
-                <circle cx="140" cy="76" r="9" fill="white" fillOpacity="0.85" />
-                <path d="M129 90v11a11 11 0 0 0 22 0V90" fill="white" fillOpacity="0.85" />
-                {/* tall person */}
-                <circle cx="210" cy="44" r="10" fill="white" />
-                <path d="M198 58v12a12 12 0 0 0 24 0V58" fill="white" />
-                {/* helping arm */}
-                <path d="M180 76 L196 58" stroke="#ffb400" strokeWidth="2.5" strokeLinecap="round" />
-                {/* leaves */}
-                <ellipse cx="22" cy="150" rx="14" ry="28" fill="#1e3a5f" transform="rotate(-30 22 150)" />
-                <ellipse cx="14" cy="140" rx="10" ry="22" fill="#1d4ed8" fillOpacity="0.6" transform="rotate(-50 14 140)" />
-                <ellipse cx="258" cy="155" rx="14" ry="28" fill="#1e3a5f" transform="rotate(30 258 155)" />
-              </svg>
-            </div>
-          </div>
-        </section>
+        )}
       </main>
     </>
   );
