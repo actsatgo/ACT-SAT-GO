@@ -1,22 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
-import { useScrollReveal } from '../hooks/useScrollReveal';
 import { fetchBlogs, type BlogPost } from '../admin/api';
-import { ApGuidesSection, apGuideMatches } from '../components/ApGuides';
-import { AP_GUIDES } from '../data/apGuides';
-import { TestGuidesSection, testGuideMatches } from '../components/TestGuides';
-import { TEST_GUIDES } from '../data/testGuides';
+import { AP_GUIDES, apGuidePdf, type ApGuide, type ApGuideCategory } from '../data/apGuides';
+import { TEST_GUIDES, TEST_GUIDES_UPDATED, testGuideCover, testGuidePdf } from '../data/testGuides';
+import { ARTICLES, articlePath } from '../data/articles';
 import { QUERY_API_BASE } from '../config';
-import { Link } from 'react-router-dom';
-import { ARTICLES, articlePath, formatArticleDate } from '../data/articles';
+import { CONSULT_PATH, PRIMARY_CTA } from '../site';
+import { trackDownload } from '../lib/analytics';
 
 // Image assets
 import heroImg from '../assets/img/resouces-hero.webp';
-import satReviewImg from '../assets/img/sat-review-cover.webp';
-import actChecklistImg from '../assets/img/act-checklist-cover.webp';
-import apOverviewImg from '../assets/img/ap-overview-cover.webp';
-import collegeTimelineImg from '../assets/img/college-timeline-cover.webp';
 import blogStudyHabitsImg from '../assets/img/6.webp';
 import blogSatDiffImg from '../assets/img/7.webp';
 import blogCollegeEssayImg from '../assets/img/8.webp';
@@ -25,7 +20,7 @@ import blogApWorthImg from '../assets/img/9.webp';
 // Custom icons
 function IconSearch() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="11" cy="11" r="8" />
       <line x1="21" y1="21" x2="16.65" y2="16.65" />
     </svg>
@@ -34,7 +29,7 @@ function IconSearch() {
 
 function IconDownload() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="7 10 12 15 17 10" />
       <line x1="12" y1="15" x2="12" y2="3" />
@@ -42,92 +37,55 @@ function IconDownload() {
   );
 }
 
-function IconBook() {
+function IconChevron() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
-      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="9 6 15 12 9 18" />
     </svg>
   );
 }
 
-function IconGraduation() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 10v6M2 10l10-5 10 5-10 5z" />
-      <path d="M6 12v5c0 2 2 3 6 3s6-1 6-3v-5" />
-    </svg>
-  );
+const POPULAR = ['SAT Prep', 'ACT Strategies', 'AP Guides', 'IB Guides', 'A Level', 'Study Tips'];
+
+// Words that describe the kind of resource rather than its topic ("SAT Prep" means SAT).
+const FILLER_WORDS = new Set(['prep', 'guide', 'guides', 'strategies', 'tips', 'resources', 'pdf', 'and', '&']);
+
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** True when every topic word in `query` starts a word somewhere in `text`. */
+function matches(text: string, query: string): boolean {
+  const words = query.toLowerCase().split(/\s+/).filter((w) => w && !FILLER_WORDS.has(w));
+  if (words.length === 0) return true;
+  return words.every((w) => new RegExp(`\\b${escapeRegExp(w)}`, 'i').test(text));
 }
 
-function IconClipboard() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-    </svg>
-  );
-}
+// AP subject areas, in the order and wording College Board uses on its course list.
+const AP_GROUPS: { id: string; label: string; categories: ApGuideCategory[] }[] = [
+  { id: 'ap-arts', label: 'Arts', categories: ['Arts'] },
+  { id: 'ap-english', label: 'English', categories: ['English'] },
+  { id: 'ap-history', label: 'History and Social Sciences', categories: ['History & Social Sciences'] },
+  { id: 'ap-math', label: 'Math and Computer Science', categories: ['Math & Computer Science'] },
+  { id: 'ap-sciences', label: 'Sciences', categories: ['Sciences'] },
+  { id: 'ap-languages', label: 'World Languages and Cultures', categories: ['World Languages'] },
+  { id: 'ap-capstone', label: 'Capstone and Career Kickstart', categories: ['Capstone', 'Career Kickstart'] },
+];
 
-function IconBuilding() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
-      <line x1="9" y1="22" x2="9" y2="16" />
-      <line x1="15" y1="22" x2="15" y2="16" />
-      <line x1="9" y1="16" x2="15" y2="16" />
-      <path d="M8 6h2v2H8zM14 6h2v2h-2zM8 11h2v2H8zM14 11h2v2h-2z" />
-    </svg>
-  );
-}
+const ARTICLE_TAGS = ['All', 'SAT', 'ACT', 'SAT & ACT', 'College Admissions', 'AP'];
+const ARTICLES_SHOWN = 8;
 
-function IconBulb() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A5 5 0 0 0 8 8c0 1 .4 2.5 1.5 3.5.7.8 1.3 1.5 1.5 2.5" />
-      <line x1="9" y1="18" x2="15" y2="18" />
-      <line x1="10" y1="22" x2="14" y2="22" />
-    </svg>
-  );
-}
+const SECTION_IDS = ['sat-act-guides', 'ap-guides', 'articles', 'blog'];
 
-function IconVideo() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-      <line x1="8" y1="21" x2="16" y2="21" />
-      <line x1="12" y1="17" x2="12" y2="21" />
-      <polygon points="10 7 15 10 10 13" fill="currentColor" stroke="none" />
-    </svg>
-  );
-}
+const sizeLabel = (kb: number) => (kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
 
-
-function IconSparkle() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3v18M3 12h18M12 3l3 3M12 21l-3-3M3 12l3-3M21 12l-3 3" />
-    </svg>
-  );
-}
-
-function IconShield() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
+const apText = (g: ApGuide) => `${g.title} ${g.category} ${g.summary} ${g.keywords.join(' ')} AP guide`;
 
 export function ResourcesPage() {
-  useScrollReveal();
-
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTopic, setActiveTopic] = useState('');
+  const [articleTag, setArticleTag] = useState('All');
+  const [showAllArticles, setShowAllArticles] = useState(false);
+  const [activeSection, setActiveSection] = useState(SECTION_IDS[0]);
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
-  // Guide the visitor asked for from a Featured Resources card, sent with the email.
-  const [requestedGuide, setRequestedGuide] = useState('');
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
 
   const getBlogImage = (post: BlogPost) => {
@@ -161,9 +119,22 @@ export function ResourcesPage() {
     window.scrollTo(0, 0);
   }, []);
 
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
+  // Highlight the sidebar link for the section currently on screen.
+  useEffect(() => {
+    if (!('IntersectionObserver' in window)) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting);
+        if (visible.length > 0) setActiveSection(visible[0].target.id);
+      },
+      { rootMargin: '-120px 0px -65% 0px' },
+    );
+    SECTION_IDS.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+    return () => io.disconnect();
+  }, [blogs.length, searchQuery]);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,9 +149,7 @@ export function ResourcesPage() {
           email: email.trim(),
           phone: '',
           exam: 'General',
-          message: requestedGuide
-            ? `Requested the ${requestedGuide} from the Resources page.`
-            : 'Signed up for newsletter resources & tips.',
+          message: 'Signed up for newsletter resources & tips.',
           type: 'Newsletter',
         }),
       });
@@ -190,118 +159,48 @@ export function ResourcesPage() {
     setEmail('');
   };
 
-  const requestGuide = (title: string) => {
-    setRequestedGuide(title);
-    setIsSubscribed(false);
-    document.getElementById('newsletter')?.scrollIntoView({ behavior: 'smooth' });
+  const clearSearch = () => setSearchQuery('');
+
+  const handlePillClick = (pill: string) => {
+    setSearchQuery(searchQuery.toLowerCase() === pill.toLowerCase() ? '' : pill);
   };
 
-  const clearSearch = () => {
-    setSearchQuery('');
-    setActiveTopic('');
-  };
+  // Filtering
+  const testGuides = TEST_GUIDES.filter((g) =>
+    matches(`${g.title} ${g.tag} ${g.summary} ${g.keywords.join(' ')} test guide`, searchQuery),
+  );
+  const apGuides = AP_GUIDES.filter((g) => matches(apText(g), searchQuery));
+  const apGroups = AP_GROUPS.map((group) => ({
+    ...group,
+    guides: apGuides.filter((g) => group.categories.includes(g.category)),
+  })).filter((group) => group.guides.length > 0);
 
-  const topicPillMap: Record<string, string> = {
-    'Test Prep': 'SAT Prep',
-    'Study Strategies': 'Study Tips',
-    'Subject Guides': 'AP Guides',
-    'College Admissions': 'College Admissions',
-    'Career & Future': 'Career',
-    'Webinars & Videos': 'Webinars'
-  };
+  const searchedArticles = ARTICLES.filter((a) => matches(`${a.title} ${a.tag} ${a.description}`, searchQuery));
+  const articleCount = (tag: string) =>
+    tag === 'All' ? searchedArticles.length : searchedArticles.filter((a) => a.tag === tag).length;
+  const articles = searchedArticles.filter((a) => articleTag === 'All' || a.tag === articleTag);
+  const shownArticles = showAllArticles ? articles : articles.slice(0, ARTICLES_SHOWN);
 
-  const handleTopicClick = (topicName: string) => {
-    if (activeTopic === topicName) {
-      setActiveTopic('');
-      setSearchQuery('');
-    } else {
-      setActiveTopic(topicName);
-      // Map topic to a search filter keyword to demonstrate interactivity
-      const tag = topicPillMap[topicName] || '';
-      setSearchQuery(tag);
-    }
-  };
+  const filteredBlogs = blogs.filter((post) =>
+    matches(`${post.title} ${post.text} ${post.tag} ${post.tags.join(' ')}`, searchQuery),
+  );
 
-  const handlePillClick = (pillName: string) => {
-    setSearchQuery(pillName);
-    // Sync active topic if applicable
-    const topic = Object.keys(topicPillMap).find(key => topicPillMap[key].toLowerCase() === pillName.toLowerCase() || pillName.toLowerCase().includes(key.toLowerCase()));
-    if (topic) {
-      setActiveTopic(topic);
-    } else {
-      setActiveTopic('');
-    }
-  };
+  const hasResults = testGuides.length + apGuides.length + searchedArticles.length + filteredBlogs.length > 0;
 
-  // Mock Data
-  const TOPICS = [
-    { name: 'Test Prep', sub: 'SAT, ACT, AP, IB, GMAT', icon: <IconBook /> },
-    { name: 'Study Strategies', sub: 'Tips & Techniques', icon: <IconGraduation /> },
-    { name: 'Subject Guides', sub: 'Math, English & More', icon: <IconClipboard /> },
-    { name: 'College Admissions', sub: 'Applications & More', icon: <IconBuilding /> },
-    { name: 'Career & Future', sub: 'Explore Possibilities', icon: <IconBulb /> },
-    { name: 'Webinars & Videos', sub: 'Watch & Learn', icon: <IconVideo /> },
-  ];
+  const counts = useMemo(
+    () => [
+      { n: TEST_GUIDES.length, label: 'SAT & ACT guides' },
+      { n: AP_GUIDES.length, label: 'AP exam guides' },
+      { n: ARTICLES.length, label: 'expert articles' },
+    ],
+    [],
+  );
 
-  const FEATURED_RESOURCES = [
-    {
-      badge: 'PDF GUIDE',
-      title: 'SAT Quick Review Guide',
-      text: 'A concise guide to help you revise key concepts and formulas before the test.',
-      image: satReviewImg,
-      tags: ['sat', 'sat prep', 'test prep']
-    },
-    {
-      badge: 'CHECKLIST',
-      title: 'ACT Strategy Checklist',
-      text: 'Step-by-step checklist to plan and ace the ACT with confidence.',
-      image: actChecklistImg,
-      tags: ['act', 'act strategies', 'test prep']
-    },
-    {
-      badge: 'GUIDE',
-      href: '#ap-guides',
-      title: 'AP Subject Overview',
-      text: 'Explore all AP subjects, exam formats, and preparation tips.',
-      image: apOverviewImg,
-      tags: ['ap', 'ap guides', 'test prep']
-    },
-    {
-      badge: 'TEMPLATE',
-      title: 'College Application Timeline',
-      text: 'Your month-by-month roadmap for a successful college application.',
-      image: collegeTimelineImg,
-      tags: ['college admissions', 'template']
-    }
-  ];
-
-
-  // Filtering Logic
-  const filteredResources = FEATURED_RESOURCES.filter(res => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      res.title.toLowerCase().includes(query) ||
-      res.text.toLowerCase().includes(query) ||
-      res.tags.some(t => t.includes(query)) ||
-      res.badge.toLowerCase().includes(query)
-    );
-  });
-
-  const filteredBlogs = blogs.filter(post => {
-    if (!searchQuery) return true;
-    const query = searchQuery.toLowerCase();
-    return (
-      post.title.toLowerCase().includes(query) ||
-      post.text.toLowerCase().includes(query) ||
-      post.tags.some(t => t.includes(query)) ||
-      post.tag.toLowerCase().includes(query)
-    );
-  });
-
-  const hasApGuides = AP_GUIDES.some(g => apGuideMatches(g, searchQuery));
-  const hasTestGuides = TEST_GUIDES.some(g => testGuideMatches(g, searchQuery));
-  const hasResults = filteredResources.length > 0 || filteredBlogs.length > 0 || hasApGuides || hasTestGuides;
+  const sideLink = (id: string, label: string, n: number) => (
+    <a className={`lib-side-link${activeSection === id ? ' active' : ''}`} href={`#${id}`}>
+      {label} <span>{n}</span>
+    </a>
+  );
 
   return (
     <>
@@ -328,7 +227,13 @@ export function ResourcesPage() {
                 </p>
 
                 {/* Search box */}
-                <form className="resources-search-form" onSubmit={handleSearchSubmit}>
+                <form
+                  className="resources-search-form"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    document.getElementById('library')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
                   <div className="resources-search-wrapper">
                     <input
                       type="text"
@@ -346,14 +251,7 @@ export function ResourcesPage() {
                 {/* Popular tags */}
                 <div className="resources-popular">
                   <span>Popular:</span>
-                  {[
-                    'SAT Prep',
-                    'ACT Strategies',
-                    'AP Guides',
-                    'IB Guides',
-                    'A Level',
-                    'Study Tips'
-                  ].map(pill => (
+                  {POPULAR.map((pill) => (
                     <button
                       key={pill}
                       type="button"
@@ -363,6 +261,20 @@ export function ResourcesPage() {
                       {pill}
                     </button>
                   ))}
+                </div>
+
+                {/* Library counts */}
+                <div className="lib-stats">
+                  {counts.map((c) => (
+                    <div key={c.label}>
+                      <strong>{c.n}</strong>
+                      <span>{c.label}</span>
+                    </div>
+                  ))}
+                  <div>
+                    <strong>$0</strong>
+                    <span>free, no sign-up</span>
+                  </div>
                 </div>
               </div>
 
@@ -378,133 +290,186 @@ export function ResourcesPage() {
           </div>
         </section>
 
-        {/* Browse by Topic */}
-        <section className="resources-section shell">
-          <div className="resources-section-heading with-ornament">
-            <h2>Browse by Topic</h2>
-            <p>Select a category to filter resources and articles</p>
-          </div>
-
-          <div className="topics-grid">
-            {TOPICS.map(topic => (
-              <div
-                key={topic.name}
-                className={`topic-card${activeTopic === topic.name ? ' active' : ''}`}
-                onClick={() => handleTopicClick(topic.name)}
-              >
-                <div className="topic-icon-wrapper">
-                  {topic.icon}
-                </div>
-                <h3>{topic.name}</h3>
-                <p>{topic.sub}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Empty state when search yields nothing */}
-        {!hasResults && (
-          <section className="shell" style={{ paddingBottom: '70px' }}>
-            <div className="search-empty-state">
-              <h3>No match found</h3>
-              <p>We couldn't find any resources or articles matching "{searchQuery}".</p>
-              <button className="clear-search-btn" onClick={clearSearch}>
-                Clear Search &amp; View All
-              </button>
-            </div>
-          </section>
-        )}
-
-        {/* Featured Resources */}
-        {filteredResources.length > 0 && (
-          <section className="resources-section shell" style={{ paddingTop: '0' }}>
-            <div className="section-header-row">
-              <div className="section-title">
-                <h2>Featured Resources</h2>
-                <p>High-quality guides, checklists and academic roadmaps ready to download</p>
-              </div>
-              <a className="view-all-link" href="#resources" onClick={(e) => { e.preventDefault(); clearSearch(); }}>
-                View all resources <span aria-hidden="true">→</span>
-              </a>
-            </div>
-
-            <div className="featured-grid">
-              {filteredResources.map(res => (
-                <div key={res.title} className="featured-card">
-                  <div className="featured-image-container">
-                    <span className="featured-badge">{res.badge}</span>
-                    <img src={res.image} alt={`${res.title} cover`} loading="lazy" />
-                    <a
-                      href={'href' in res ? res.href : '#newsletter'}
-                      className="featured-download-btn"
-                      aria-label={'href' in res ? `Browse the AP exam guides` : `Get the ${res.title} by email`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if ('href' in res) {
-                          document.getElementById('ap-guides')?.scrollIntoView({ behavior: 'smooth' });
-                          return;
-                        }
-                        requestGuide(res.title);
-                      }}
-                    >
-                      <IconDownload />
-                    </a>
-                  </div>
-                  <div className="featured-content">
-                    <h3>{res.title}</h3>
-                    <p>{res.text}</p>
-                  </div>
-                </div>
+        <div className="shell lib-layout" id="library">
+          {/* Sidebar */}
+          <aside className="lib-sidebar" aria-label="Resource library sections">
+            <p className="lib-side-title">Library</p>
+            {sideLink('sat-act-guides', 'SAT & ACT guides', testGuides.length)}
+            {sideLink('ap-guides', 'AP exam guides', apGuides.length)}
+            <div className="lib-side-sub">
+              {apGroups.map((group) => (
+                <a key={group.id} href={`#${group.id}`}>
+                  {group.label} <span>{group.guides.length}</span>
+                </a>
               ))}
             </div>
-          </section>
-        )}
-
-        {/* SAT & ACT test guides — free PDF downloads */}
-        {hasTestGuides && <TestGuidesSection pageQuery={searchQuery} />}
-
-        {/* AP exam guides — free PDF downloads */}
-        {hasApGuides && <ApGuidesSection pageQuery={searchQuery} />}
-
-        {/* Guides & articles — static pages, prerendered for search and AI engines */}
-        <section className="resources-section shell" style={{ paddingTop: '0' }} aria-labelledby="guides-title">
-          <div className="section-header-row">
-            <div className="section-title">
-              <h2 id="guides-title">SAT &amp; ACT Guides</h2>
-              <p>Straight answers to the questions parents and students ask most</p>
+            {sideLink('articles', 'Articles', searchedArticles.length)}
+            {filteredBlogs.length > 0 && sideLink('blog', 'Blog', filteredBlogs.length)}
+            <div className="lib-side-cta">
+              <strong>Not sure where to start?</strong>
+              <p>Take a free, scored SAT practice test.</p>
+              <a href="/free-test">
+                Start the test <span aria-hidden="true">→</span>
+              </a>
             </div>
-          </div>
-          <div className="blog-grid">
-            {ARTICLES.map((a) => (
-              <article key={a.slug} className="blog-card">
-                <div className="blog-content-area">
-                  <span className="blog-post-tag">{a.tag}</span>
-                  <h3><Link to={articlePath(a.slug)}>{a.title}</Link></h3>
-                  <p>{a.description}</p>
-                  <div className="blog-card-footer">
-                    <span>Updated {formatArticleDate(a.updated)}</span>
-                  </div>
+          </aside>
+
+          <div className="lib-main">
+            {searchQuery && (
+              <p className="lib-search-note" aria-live="polite">
+                Showing results for <strong>“{searchQuery}”</strong>
+                <button type="button" onClick={clearSearch}>
+                  Clear search
+                </button>
+              </p>
+            )}
+
+            {/* Empty state when search yields nothing */}
+            {!hasResults && (
+              <div className="search-empty-state">
+                <h3>No match found</h3>
+                <p>We couldn't find any guides or articles matching "{searchQuery}".</p>
+                <button className="clear-search-btn" onClick={clearSearch}>
+                  Clear Search &amp; View All
+                </button>
+              </div>
+            )}
+
+            {/* SAT & ACT test guides */}
+            {testGuides.length > 0 && (
+              <section id="sat-act-guides" className="lib-section" aria-labelledby="sat-act-guides-title">
+                <div className="lib-head">
+                  <h2 id="sat-act-guides-title">SAT &amp; ACT Test Guides</h2>
+                  <p>Free PDFs, no sign-up · updated {TEST_GUIDES_UPDATED}</p>
                 </div>
-              </article>
-            ))}
+                <div className="lib-feature-pair">
+                  {testGuides.map((g) => {
+                    const pdf = testGuidePdf(g);
+                    return (
+                      <article key={g.slug} className="lib-feature-card">
+                        <a
+                          href={pdf}
+                          target="_blank"
+                          rel="noopener"
+                          aria-label={`Open the ${g.title} test guide PDF in a new tab`}
+                          onClick={() => trackDownload(g.title, 'open')}
+                        >
+                          <img src={testGuideCover(g)} alt={`${g.title} test guide cover`} width={110} height={142} loading="lazy" />
+                        </a>
+                        <div>
+                          <span className="lib-tag">{g.tag}</span>
+                          <h3>{g.title} Test Guide</h3>
+                          <p>{g.summary}</p>
+                          <div className="lib-feature-foot">
+                            <span className="lib-meta">
+                              PDF · {g.pages} pages · {sizeLabel(g.sizeKb)}
+                            </span>
+                            <a className="lib-download" href={pdf} download onClick={() => trackDownload(g.title, 'download')}>
+                              <IconDownload /> Download
+                            </a>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* AP exam guides, grouped by subject area */}
+            {apGroups.length > 0 && (
+              <section id="ap-guides" className="lib-section" aria-labelledby="ap-guides-title">
+                <div className="lib-head">
+                  <h2 id="ap-guides-title">AP Exam Guides</h2>
+                  <p>{AP_GUIDES.length} subjects · every unit explained, 10 practice questions each · free PDFs</p>
+                </div>
+                <div className="lib-ap-groups">
+                  {apGroups.map((group) => (
+                    <div key={group.id} id={group.id} className="lib-ap-group">
+                      <h3>{group.label}</h3>
+                      <ul>
+                        {group.guides.map((g) => (
+                          <li key={g.slug}>
+                            <a
+                              href={apGuidePdf(g)}
+                              target="_blank"
+                              rel="noopener"
+                              title={g.summary}
+                              onClick={() => trackDownload(g.title, 'open')}
+                            >
+                              <span>{g.title}</span>
+                              <IconChevron />
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Guides & articles — static pages, prerendered for search and AI engines */}
+            {searchedArticles.length > 0 && (
+              <section id="articles" className="lib-section" aria-labelledby="articles-title">
+                <div className="lib-head">
+                  <h2 id="articles-title">Articles</h2>
+                  <p>Straight answers to the questions parents and students ask most</p>
+                </div>
+                <div className="lib-chips" role="group" aria-label="Filter articles by topic">
+                  {ARTICLE_TAGS.filter((t) => articleCount(t) > 0).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      className={`lib-chip${articleTag === t ? ' active' : ''}`}
+                      aria-pressed={articleTag === t}
+                      onClick={() => {
+                        setArticleTag(t);
+                        setShowAllArticles(false);
+                      }}
+                    >
+                      {t} <span>{articleCount(t)}</span>
+                    </button>
+                  ))}
+                </div>
+                <ol className="lib-article-list">
+                  {shownArticles.map((a, i) => (
+                    <li key={a.slug}>
+                      <span className="lib-num" aria-hidden="true">
+                        {String(i + 1).padStart(2, '0')}
+                      </span>
+                      <div>
+                        <span className="lib-tag">{a.tag}</span>
+                        <Link to={articlePath(a.slug)}>{a.title}</Link>
+                      </div>
+                      <span className="lib-arrow" aria-hidden="true">→</span>
+                    </li>
+                  ))}
+                </ol>
+                {articles.length > ARTICLES_SHOWN && (
+                  <div className="lib-more">
+                    <button type="button" className="lib-more-btn" onClick={() => setShowAllArticles((s) => !s)}>
+                      {showAllArticles ? 'Show fewer' : `Show all ${articles.length} articles`}
+                    </button>
+                  </div>
+                )}
+              </section>
+            )}
           </div>
-        </section>
+        </div>
 
         {/* From the Blog */}
         {filteredBlogs.length > 0 && (
-          <section className="resources-section shell" style={{ paddingTop: '0' }}>
+          <section className="resources-section shell lib-blog" id="blog">
             <div className="section-header-row">
               <div className="section-title">
-                <h2>From the Blog</h2>
+                <h2>Latest from the Blog</h2>
                 <p>Expert tutoring strategies, exam updates, and academic planning advice</p>
               </div>
-              <a className="view-all-link" href="#blog" onClick={(e) => { e.preventDefault(); clearSearch(); }}>
-                View all blogs <span aria-hidden="true">→</span>
-              </a>
             </div>
 
             <div className="blog-grid">
-              {filteredBlogs.map(post => (
+              {filteredBlogs.map((post) => (
                 <article key={post.title} className="blog-card">
                   <div className="blog-image-wrapper">
                     <img src={getBlogImage(post)} alt={post.title} loading="lazy" />
@@ -525,25 +490,39 @@ export function ResourcesPage() {
           </section>
         )}
 
+        {/* Tutoring CTA */}
+        <section className="shell lib-cta-wrap">
+          <div className="lib-cta">
+            <div>
+              <span className="lib-eyebrow">FREE · 1-ON-1 · ONLINE</span>
+              <h2>Guides help. A plan built for you helps more.</h2>
+              <p>
+                Take a free practice test, then book a diagnostic session and get a study plan built around your target
+                score and test date.
+              </p>
+            </div>
+            <div className="lib-cta-actions">
+              <a className="lib-btn-gold" href={CONSULT_PATH}>
+                {PRIMARY_CTA} <span aria-hidden="true">→</span>
+              </a>
+              <a className="lib-btn-ghost" href="/free-test">
+                Take a Free Practice Test
+              </a>
+            </div>
+          </div>
+        </section>
+
         {/* Newsletter subscription */}
-        <section className="resources-newsletter shell" id="newsletter">
+        <section className="resources-newsletter shell lib-newsletter" id="newsletter">
           <div className="newsletter-box">
             <div className="newsletter-main-row">
               <div className="newsletter-copy">
-                <h2>{requestedGuide ? `Get the ${requestedGuide} by email` : 'Stay Ahead with Expert Insights'}</h2>
-                <p>
-                  {requestedGuide
-                    ? 'Enter your email and our team will send the guide to your inbox, along with occasional study tips you can unsubscribe from any time.'
-                    : 'Subscribe to our newsletter and get the latest study tips, resources, and updates delivered straight to your inbox.'}
-                </p>
+                <h2>Get new guides in your inbox</h2>
+                <p>One short email when we publish a new guide or the test changes. Unsubscribe any time.</p>
               </div>
               <div className="newsletter-form-wrapper">
                 {isSubscribed ? (
-                  <div className="newsletter-success">
-                    {requestedGuide
-                      ? `✓ Thank you! We'll email you the ${requestedGuide} shortly.`
-                      : '✓ Thank you! You have successfully subscribed to our newsletter.'}
-                  </div>
+                  <div className="newsletter-success">✓ Thank you! You have successfully subscribed to our newsletter.</div>
                 ) : (
                   <form className="newsletter-form" onSubmit={handleSubscribe}>
                     <input
@@ -555,25 +534,10 @@ export function ResourcesPage() {
                       onChange={(e) => setEmail(e.target.value)}
                     />
                     <button type="submit" className="newsletter-btn">
-                      {requestedGuide ? 'Email Me the Guide' : 'Subscribe'}
+                      Subscribe
                     </button>
                   </form>
                 )}
-              </div>
-            </div>
-
-            <div className="newsletter-features">
-              <div className="newsletter-feature-item">
-                <IconSparkle />
-                <span>Expert Tips</span>
-              </div>
-              <div className="newsletter-feature-item">
-                <IconClipboard />
-                <span>Latest Updates</span>
-              </div>
-              <div className="newsletter-feature-item">
-                <IconShield />
-                <span>Exclusive Resources</span>
               </div>
             </div>
           </div>

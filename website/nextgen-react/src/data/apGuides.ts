@@ -133,7 +133,7 @@ export const AP_GUIDES: ApGuide[] = [
     category: "Sciences",
     pages: 12,
     sizeKb: 1030,
-    summary: "AP Physics C: Electricity & ∮B·dl Magnetism The Complete Exam Guide Hi, I'm Pigo! I'll drop tips all through this guide.",
+    summary: "Every unit explained, from Gauss's law to electromagnetic induction, with the calculus you need, the four free-response question types, a lab playbook, and 10 hard practice questions.",
     keywords: [],
   },
   {
@@ -169,7 +169,7 @@ export const AP_GUIDES: ApGuide[] = [
     category: "History & Social Sciences",
     pages: 13,
     sizeKb: 1008,
-    summary: "AP Comparative Government & Politics: The Complete Exam Guide 6 Hi, I'm Pigo! I'll drop tips all through this guide.",
+    summary: "All 5 units explained, the six core countries compared, the four free-response question types, and 10 hard practice questions.",
     keywords: [],
   },
   {
