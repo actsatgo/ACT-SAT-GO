@@ -141,7 +141,7 @@
 /* Sections */
 .lib-section {
   margin-bottom: 56px;
-  scroll-margin-top: 140px;
+  scroll-margin-top: 90px;
 }
 
 .lib-head {
@@ -281,7 +281,7 @@
 
 .lib-ap-group {
   border-top: 2px solid var(--navy);
-  scroll-margin-top: 190px;
+  scroll-margin-top: 90px;
 }
 
 .lib-ap-group h3 {
@@ -354,20 +354,30 @@
 .lib-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
   margin-bottom: 18px;
 }
 
+/* Article filters are quiet text links with an orange underline on the active one */
 .lib-chip {
-  padding: 7px 14px;
-  border: 1px solid var(--line);
-  border-radius: 30px;
-  background: white;
-  color: var(--navy);
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: #5b6b80;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.lib-chip:hover {
+  color: var(--navy);
+}
+
+.lib-chip + .lib-chip::before {
+  content: '·';
+  margin: 0 14px;
+  color: #c0c9d6;
 }
 
 .lib-chip span {
@@ -376,13 +386,15 @@
 }
 
 .lib-chip.active {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: white;
+  color: var(--navy);
+  text-decoration: underline;
+  text-decoration-color: var(--gold);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 7px;
 }
 
 .lib-chip.active span {
-  color: var(--gold);
+  color: #b77900;
 }
 
 .lib-article-list {
@@ -618,207 +630,94 @@
   }
 }
 
-/* ── Library tabs: sliding pill bar under the header ─────────────── */
-.lib-tabs {
-  position: sticky;
-  top: 48px;
-  z-index: 20;
-  /* A frosted band the width of the page, so cards slide under it cleanly */
-  margin: 0 calc(50% - 50vw);
-  padding: 12px calc(50vw - 50%);
-  background: rgba(245, 248, 252, 0.86);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* ── Library cards: one per section, each jumps to its section ─── */
+.lib-cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
 }
 
-.lib-tabs-inner {
-  position: relative;
+.lib-cards--4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.lib-tabs-row {
+.lib-card {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
   gap: 16px;
-}
-
-.lib-tabs-cta {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 11px 20px;
-  border-radius: 999px;
-  background: var(--navy);
-  color: #fff;
-  font-size: 14px;
-  font-weight: 800;
-  box-shadow: 0 6px 18px rgba(6, 26, 47, 0.18);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.lib-tabs-cta span {
-  color: var(--gold);
-}
-
-.lib-tabs-cta:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(6, 26, 47, 0.24);
-}
-
-/* AP subject areas: a smaller row that drops in while the AP section is on screen.
-   It floats below the main row so showing it never shifts the page. */
-.lib-tabs .pills--small {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  max-width: 100%;
-  animation: lib-tabs-drop 0.25s ease;
-}
-
-@keyframes lib-tabs-drop {
-  from { opacity: 0; transform: translateY(-6px); }
-}
-
-.pills {
-  min-width: 0;
-}
-
-.pills-track {
-  position: relative;
-  display: flex;
-  gap: 2px;
-  padding: 5px;
-  border-radius: 999px;
-  background: #eef2f8;
-  border: 1px solid #e1e7f0;
-  box-shadow: 0 8px 24px rgba(6, 26, 47, 0.08);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.pills-track::-webkit-scrollbar {
-  display: none;
-}
-
-.pills-item {
-  position: relative;
-  z-index: 1;
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  color: var(--navy);
-  font-size: 14.5px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.pills-count {
-  min-width: 24px;
-  padding: 2px 7px;
-  border-radius: 999px;
-  background: rgba(6, 26, 47, 0.07);
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 800;
-  text-align: center;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.pills-item.active .pills-count {
-  background: var(--gold);
-  color: var(--navy);
-}
-
-.pills-glider {
-  position: absolute;
-  top: 5px;
-  left: 0;
-  z-index: 0;
-  border-radius: 999px;
+  align-items: flex-start;
+  padding: 22px;
   background: #fff;
-  box-shadow: 0 3px 10px rgba(6, 26, 47, 0.12), inset 0 0 0 1px rgba(255, 255, 255, 0.9);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    transform 0.38s cubic-bezier(0.3, 1.25, 0.5, 1),
-    width 0.38s cubic-bezier(0.3, 1.25, 0.5, 1),
-    opacity 0.25s ease,
-    background-color 0.25s ease;
+  border: 1px solid #e3e8f0;
+  border-radius: 16px;
+  box-shadow: 0 10px 26px -18px rgba(6, 26, 47, 0.35);
+  color: var(--navy);
+  text-decoration: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.pills-glider.is-on {
-  opacity: 1;
+.lib-card:hover,
+.lib-card:focus-visible {
+  border-color: #fc9b0a;
+  box-shadow: 0 0 0 3px rgba(252, 155, 10, 0.15), 0 14px 30px -18px rgba(6, 26, 47, 0.4);
+  transform: translateY(-2px);
 }
 
-.pills-glider.is-ghost {
-  background: rgba(255, 255, 255, 0.62);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 6px 18px rgba(6, 26, 47, 0.1), inset 0 0 0 1px rgba(255, 255, 255, 0.95);
+.lib-card-icon {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: #fff3dc;
+  color: #b77900;
 }
 
-.pills--small .pills-track {
-  padding: 4px;
-  background: #fff;
-  backdrop-filter: blur(10px);
+.lib-card-body strong {
+  display: block;
+  font-size: 17px;
 }
 
-.pills--small .pills-glider {
-  top: 4px;
-  background: var(--navy);
-  box-shadow: none;
+.lib-card-body small {
+  display: block;
+  margin-top: 4px;
+  color: #64748b;
+  font-size: 13.5px;
+  line-height: 1.45;
 }
 
-.pills--small .pills-glider.is-ghost {
-  background: rgba(6, 26, 47, 0.08);
-  backdrop-filter: none;
-}
-
-.pills--small .pills-item {
-  padding: 7px 14px;
+.lib-card-body em {
+  display: block;
+  margin-top: 10px;
+  color: #b77900;
   font-size: 13px;
-  font-weight: 700;
-  transition: color 0.2s ease;
+  font-style: normal;
+  font-weight: 800;
 }
 
-.pills--small .pills-item.active {
-  color: #fff;
+@media (max-width: 1100px) {
+  .lib-cards--4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.pills--small .pills-item.active .pills-count {
-  background: rgba(255, 255, 255, 0.18);
-  color: #fff;
-}
-
-.pills--small .pills-count {
-  min-width: 20px;
-  padding: 1px 6px;
-  font-size: 11px;
-}
-
-@media (max-width: 768px) {
-  .lib-tabs {
-    top: 48px;
-    padding-top: 8px;
-    padding-bottom: 8px;
+@media (max-width: 860px) {
+  .lib-cards,
+  .lib-cards--4 {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
   }
 
-  .lib-tabs-cta {
+  .lib-card {
+    padding: 14px 16px;
+    align-items: center;
+  }
+
+  .lib-card-body small {
     display: none;
   }
 
-  .pills-item {
-    padding: 9px 14px;
-    font-size: 13.5px;
-  }
-
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pills-glider {
-    transition: opacity 0.2s ease;
+  .lib-card-body em {
+    margin-top: 2px;
   }
 }
