@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { BookOpen, GraduationCap, Newspaper, PenLine } from 'lucide-react';
 import { Footer } from '../components/Footer';
 import { fetchBlogs, type BlogPost } from '../admin/api';
 import { AP_GUIDES, apGuidePdf, type ApGuide, type ApGuideCategory } from '../data/apGuides';
@@ -39,14 +38,6 @@ function IconDownload() {
   );
 }
 
-function IconChevron() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="9 6 15 12 9 18" />
-    </svg>
-  );
-}
-
 const POPULAR = ['SAT Prep', 'ACT Strategies', 'AP Guides', 'IB Guides', 'A Level', 'Study Tips'];
 
 // Words that describe the kind of resource rather than its topic ("SAT Prep" means SAT).
@@ -61,20 +52,36 @@ function matches(text: string, query: string): boolean {
   return words.every((w) => new RegExp(`\\b${escapeRegExp(w)}`, 'i').test(text));
 }
 
-// AP subject areas, in the order and wording College Board uses on its course list.
-const AP_GROUPS: { id: string; label: string; categories: ApGuideCategory[] }[] = [
-  { id: 'ap-arts', label: 'Arts', categories: ['Arts'] },
-  { id: 'ap-english', label: 'English', categories: ['English'] },
-  { id: 'ap-history', label: 'History and Social Sciences', categories: ['History & Social Sciences'] },
+// AP subject areas, most-taken first. Groups marked `more` sit below a divider in the AP dropdown.
+const AP_GROUPS: { id: string; label: string; categories: ApGuideCategory[]; more?: boolean }[] = [
   { id: 'ap-math', label: 'Math and Computer Science', categories: ['Math & Computer Science'] },
   { id: 'ap-sciences', label: 'Sciences', categories: ['Sciences'] },
-  { id: 'ap-languages', label: 'World Languages and Cultures', categories: ['World Languages'] },
-  { id: 'ap-capstone', label: 'Capstone and Career Kickstart', categories: ['Capstone', 'Career Kickstart'] },
+  { id: 'ap-history', label: 'History and Social Sciences', categories: ['History & Social Sciences'] },
+  { id: 'ap-english', label: 'English', categories: ['English'] },
+  { id: 'ap-arts', label: 'Arts', categories: ['Arts'], more: true },
+  { id: 'ap-languages', label: 'World Languages and Cultures', categories: ['World Languages'], more: true },
+  { id: 'ap-capstone', label: 'Capstone and Career Kickstart', categories: ['Capstone', 'Career Kickstart'], more: true },
 ];
+
+// Subjects listed first within their group; the rest keep their usual order.
+const AP_FIRST = ['AP Macroeconomics', 'AP Microeconomics', 'AP Psychology', 'AP Human Geography'];
+const apRank = (g: ApGuide) => (AP_FIRST.includes(g.title) ? AP_FIRST.indexOf(g.title) : AP_FIRST.length);
+/** The guides in an AP group, popular subjects first. */
+const guidesInGroup = (guides: ApGuide[], categories: ApGuideCategory[]) =>
+  guides.filter((g) => categories.includes(g.category)).sort((x, y) => apRank(x) - apRank(y));
 
 const ARTICLE_TAGS = ['All', 'SAT', 'ACT', 'College Admissions', 'AP'];
 
 /** Articles tagged "SAT & ACT" cover both tests, so they show under the SAT chip and the ACT chip. */
+const EXAMS = ['SAT', 'ACT', 'AP', 'IB', 'Articles', 'Others'] as const;
+type Exam = (typeof EXAMS)[number];
+/** "Articles" lists every article; "Others" holds what isn't tied to one exam: admissions articles and the blog. */
+const articleInExam = (articleTag: string, exam: Exam | null) => {
+  if (!exam || exam === 'Articles') return true;
+  if (exam === 'Others') return articleTag === 'College Admissions';
+  return exam !== 'IB' && hasArticleTag(articleTag, exam);
+};
+
 const hasArticleTag = (articleTag: string, chip: string) =>
   chip === 'All' || articleTag === chip || (articleTag === 'SAT & ACT' && (chip === 'SAT' || chip === 'ACT'));
 const ARTICLES_SHOWN = 8;
@@ -82,10 +89,50 @@ const ARTICLES_SHOWN = 8;
 
 const sizeLabel = (kb: number) => (kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
 
+/** "Thursday, May 6, 2027 (morning session)" -> "Thu, May 6" */
+const shortDate = (date: string) => {
+  const [day, monthDay] = date.split(', ');
+  return monthDay ? `${day.slice(0, 3)}, ${monthDay}` : date;
+};
+
 const apText = (g: ApGuide) => `${g.title} ${g.category} ${g.summary} ${g.keywords.join(' ')} AP guide`;
 
 export function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  // The picked exam lives in the URL (?exam=sat) so each tab has its own shareable link.
+  const [params, setParams] = useSearchParams();
+  const exam = EXAMS.find((e) => e.toLowerCase() === params.get('exam')?.toLowerCase()) ?? null;
+  // An AP subject area picked from the AP tab's dropdown (?exam=ap&area=sciences).
+  const apArea = exam === 'AP' ? (AP_GROUPS.find((g) => g.id === `ap-${params.get('area')}`) ?? null) : null;
+  const setExam = (e: Exam | null, area?: string) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (e) next.set('exam', e.toLowerCase());
+        else next.delete('exam');
+        if (area) next.set('area', area.replace(/^ap-/, ''));
+        else next.delete('area');
+        return next;
+      },
+      { replace: true, preventScrollReset: true },
+    );
+  const [apMenuOpen, setApMenuOpen] = useState(false);
+  // Clicking the AP tab pins its dropdown open, so moving the pointer away doesn't close it.
+  const [apMenuPinned, setApMenuPinned] = useState(false);
+  const closeApMenu = () => {
+    setApMenuOpen(false);
+    setApMenuPinned(false);
+  };
+
+  // A tap anywhere outside the AP dropdown closes it.
+  useEffect(() => {
+    if (!apMenuOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if (!(e.target as Element).closest('.lib-exam-drop')) closeApMenu();
+    };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [apMenuOpen]);
   const [articleTag, setArticleTag] = useState('All');
   const [showAllArticles, setShowAllArticles] = useState(false);
   const [email, setEmail] = useState('');
@@ -153,22 +200,29 @@ export function ResourcesPage() {
   };
 
   // Filtering
-  const testGuides = TEST_GUIDES.filter((g) =>
-    matches(`${g.title} ${g.tag} ${g.summary} ${g.keywords.join(' ')} test guide`, searchQuery),
+  const testGuides = TEST_GUIDES.filter(
+    (g) =>
+      (!exam || g.slug.startsWith(exam.toLowerCase())) &&
+      matches(`${g.title} ${g.tag} ${g.summary} ${g.keywords.join(' ')} test guide`, searchQuery),
   );
-  const apGuides = AP_GUIDES.filter((g) => matches(apText(g), searchQuery));
+  const apGuides = AP_GUIDES.filter(
+    (g) =>
+      (!exam || exam === 'AP') && (!apArea || apArea.categories.includes(g.category)) && matches(apText(g), searchQuery),
+  );
   const apGroups = AP_GROUPS.map((group) => ({
     ...group,
-    guides: apGuides.filter((g) => group.categories.includes(g.category)),
+    guides: guidesInGroup(apGuides, group.categories),
   })).filter((group) => group.guides.length > 0);
 
-  const searchedArticles = ARTICLES.filter((a) => matches(`${a.title} ${a.tag} ${a.description}`, searchQuery));
+  const searchedArticles = ARTICLES.filter(
+    (a) => articleInExam(a.tag, exam) && matches(`${a.title} ${a.tag} ${a.description}`, searchQuery),
+  );
   const articleCount = (tag: string) => searchedArticles.filter((a) => hasArticleTag(a.tag, tag)).length;
   const articles = searchedArticles.filter((a) => hasArticleTag(a.tag, articleTag));
   const shownArticles = showAllArticles ? articles : articles.slice(0, ARTICLES_SHOWN);
 
   const filteredBlogs = blogs.filter((post) =>
-    matches(`${post.title} ${post.text} ${post.tag} ${post.tags.join(' ')}`, searchQuery),
+    (!exam || exam === 'Others') && matches(`${post.title} ${post.text} ${post.tag} ${post.tags.join(' ')}`, searchQuery),
   );
 
   const hasResults = testGuides.length + apGuides.length + searchedArticles.length + filteredBlogs.length > 0;
@@ -182,40 +236,16 @@ export function ResourcesPage() {
     [],
   );
 
-  const libraryCards = [
-    {
-      id: 'sat-act-guides',
-      icon: BookOpen,
-      title: 'SAT & ACT guides',
-      text: 'Two complete test guides: sections, scoring, a 12-week plan and practice.',
-      cta: `${testGuides.length} free PDFs`,
-      show: testGuides.length > 0,
-    },
-    {
-      id: 'ap-guides',
-      icon: GraduationCap,
-      title: 'AP exam guides',
-      text: 'Every AP subject, grouped by area, each with a full web guide and PDF.',
-      cta: `${apGuides.length} subjects`,
-      show: apGuides.length > 0,
-    },
-    {
-      id: 'articles',
-      icon: Newspaper,
-      title: 'Articles',
-      text: 'Straight answers on SAT, ACT, AP and college admissions.',
-      cta: `${searchedArticles.length} articles`,
-      show: searchedArticles.length > 0,
-    },
-    {
-      id: 'blog',
-      icon: PenLine,
-      title: 'Blog',
-      text: 'Study tips and news from our tutors.',
-      cta: `${filteredBlogs.length} posts`,
-      show: filteredBlogs.length > 0,
-    },
-  ].filter((c) => c.show);
+  const pickExam = (e: Exam, area?: string) => {
+    closeApMenu();
+    // Picking the tab that's already showing changes nothing.
+    if (e === exam && (area ?? null) === (apArea?.id ?? null)) return;
+    setExam(e, area);
+    setArticleTag('All');
+    setShowAllArticles(false);
+    // Keep the bar at the top of the screen as the content below it changes.
+    requestAnimationFrame(() => document.getElementById('library')?.scrollIntoView({ block: 'start' }));
+  };
 
   return (
     <>
@@ -303,25 +333,87 @@ export function ResourcesPage() {
         </section>
 
         <div className="shell lib-layout" id="library">
-          {/* Library cards: one per section, each jumps to its section */}
-          {libraryCards.length > 1 && (
-            <nav className={`lib-cards lib-cards--${libraryCards.length}`} aria-label="Resource library sections">
-              {libraryCards.map(({ id, icon: Icon, title, text, cta }) => (
-                <a key={id} className="lib-card" href={`#${id}`}>
-                  <span className="lib-card-icon" aria-hidden="true">
-                    <Icon size={22} strokeWidth={2} />
-                  </span>
-                  <span className="lib-card-body">
-                    <strong>{title}</strong>
-                    <small>{text}</small>
-                    <em>
-                      {cta} <span aria-hidden="true">→</span>
-                    </em>
-                  </span>
-                </a>
-              ))}
-            </nav>
-          )}
+          {/* Exam bar: narrows the library to one exam */}
+          <nav className="lib-exams" aria-label="Filter the library by exam">
+            {EXAMS.map((e) =>
+              e === 'AP' ? (
+                <div
+                  key={e}
+                  className={`lib-exam-drop${apMenuOpen ? ' is-open' : ''}`}
+                  // Hover opens it for mouse users; on touch a tap on the tab opens it instead
+                  onPointerEnter={(ev) => ev.pointerType === 'mouse' && setApMenuOpen(true)}
+                  onPointerLeave={(ev) => ev.pointerType === 'mouse' && !apMenuPinned && setApMenuOpen(false)}
+                  onKeyDown={(ev) => ev.key === 'Escape' && closeApMenu()}
+                >
+                  <button
+                    type="button"
+                    className={`lib-exam${exam === e ? ' active' : ''}`}
+                    aria-expanded={apMenuOpen}
+                    aria-haspopup="true"
+                    onClick={() => {
+                      // Selects all of AP (like the other tabs) and keeps the group list open
+                      pickExam('AP');
+                      setApMenuOpen(true);
+                      setApMenuPinned(true);
+                    }}
+                  >
+                    <span className="lib-exam-label">AP</span>
+                    <svg className="lib-exam-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <ul className="lib-exam-menu">
+                    {AP_GROUPS.map((g, i) => {
+                      const subjects = guidesInGroup(AP_GUIDES, g.categories);
+                      return (
+                        <li key={g.id} className={g.more && !AP_GROUPS[i - 1]?.more ? 'lib-exam-menu-break' : undefined}>
+                          <button
+                            type="button"
+                            className={apArea?.id === g.id ? 'active' : ''}
+                            onClick={() => pickExam('AP', g.id)}
+                          >
+                            AP {g.label}
+                            <span>
+                              <b>{subjects.length}</b> <i aria-hidden="true">›</i>
+                            </span>
+                          </button>
+                          {/* Hovering a group opens its subjects to the right */}
+                          <ul className="lib-exam-sub">
+                            {subjects.map((a) => {
+                              const page = AP_SUBJECT_BY_GUIDE[a.slug];
+                              return (
+                                <li key={a.slug}>
+                                  {page ? (
+                                    <Link to={apSubjectPath(page.slug)} onClick={closeApMenu}>
+                                      {a.title}
+                                    </Link>
+                                  ) : (
+                                    <button type="button" onClick={() => pickExam('AP', g.id)}>
+                                      {a.title}
+                                    </button>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ) : (
+                <button
+                  key={e}
+                  type="button"
+                  className={`lib-exam${exam === e ? ' active' : ''}`}
+                  aria-pressed={exam === e}
+                  onClick={() => pickExam(e)}
+                >
+                  <span className="lib-exam-label">{e}</span>
+                </button>
+              ),
+            )}
+          </nav>
 
           <div className="lib-main">
             {searchQuery && (
@@ -336,10 +428,25 @@ export function ResourcesPage() {
             {/* Empty state when search yields nothing */}
             {!hasResults && (
               <div className="search-empty-state">
-                <h3>No match found</h3>
-                <p>We couldn't find any guides or articles matching "{searchQuery}".</p>
-                <button className="clear-search-btn" onClick={clearSearch}>
-                  Clear Search &amp; View All
+                {exam === 'IB' && !searchQuery ? (
+                  <>
+                    <h3>IB guides are coming soon</h3>
+                    <p>We're writing them now. Meanwhile, browse our SAT, ACT and AP guides.</p>
+                  </>
+                ) : (
+                  <>
+                    <h3>No match found</h3>
+                    <p>We couldn't find any guides or articles matching "{searchQuery}".</p>
+                  </>
+                )}
+                <button
+                  className="clear-search-btn"
+                  onClick={() => {
+                    clearSearch();
+                    setExam(null);
+                  }}
+                >
+                  {exam === 'IB' && !searchQuery ? 'View All Resources' : 'Clear Search & View All'}
                 </button>
               </div>
             )}
@@ -348,7 +455,7 @@ export function ResourcesPage() {
             {testGuides.length > 0 && (
               <section id="sat-act-guides" className="lib-section" aria-labelledby="sat-act-guides-title">
                 <div className="lib-head">
-                  <h2 id="sat-act-guides-title">SAT &amp; ACT Test Guides</h2>
+                  <h2 id="sat-act-guides-title">{exam ? `${exam} Test Guide` : 'SAT & ACT Test Guides'}</h2>
                   <p>Free PDFs, no sign-up · updated {TEST_GUIDES_UPDATED}</p>
                 </div>
                 <div className="lib-feature-pair">
@@ -387,42 +494,60 @@ export function ResourcesPage() {
 
             {/* AP exam guides, grouped by subject area */}
             {apGroups.length > 0 && (
-              <section id="ap-guides" className="lib-section" aria-labelledby="ap-guides-title">
-                <div className="lib-head">
-                  <h2 id="ap-guides-title">AP Exam Guides</h2>
-                  <p>{AP_GUIDES.length} subjects · every unit explained, 10 practice questions each · free PDFs</p>
-                </div>
+              <section id="ap-guides" className="lib-section" aria-label="AP exam guides">
                 <div className="lib-ap-groups">
                   {apGroups.map((group) => (
                     <div key={group.id} id={group.id} className="lib-ap-group">
                       <h3>{group.label}</h3>
-                      <ul>
-                        {group.guides.map((g) => {
-                          const page = AP_SUBJECT_BY_GUIDE[g.slug];
-                          return page ? (
-                          <li key={g.slug}>
-                            <Link to={apSubjectPath(page.slug)} title={g.summary}>
-                              <span>{g.title}</span>
-                              <em className="lib-ap-page">Full guide</em>
-                              <IconChevron />
-                            </Link>
-                          </li>
-                          ) : (
-                          <li key={g.slug}>
-                            <a
-                              href={apGuidePdf(g)}
-                              target="_blank"
-                              rel="noopener"
-                              title={g.summary}
-                              onClick={() => trackDownload(g.title, 'open')}
-                            >
-                              <span>{g.title}</span>
-                              <IconChevron />
-                            </a>
-                          </li>
-                          );
-                        })}
-                      </ul>
+                      <table className="lib-ap-table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Subject</th>
+                            <th scope="col">2027 exam</th>
+                            <th scope="col">Length</th>
+                            <th scope="col">Units</th>
+                            <th scope="col">Score 5</th>
+                            <th scope="col">
+                              <span className="sr-only">Guide and PDF</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {group.guides.map((g) => {
+                            const page = AP_SUBJECT_BY_GUIDE[g.slug];
+                            return (
+                              <tr key={g.slug}>
+                                <th scope="row">
+                                  <strong>{g.title}</strong>
+                                  <span>{g.summary}</span>
+                                </th>
+                                <td data-label={page?.dateLabel ?? '2027 exam'}>{page ? shortDate(page.examDate) : '–'}</td>
+                                <td data-label="Length">{page?.length ?? '–'}</td>
+                                <td data-label="Units">{page?.units.length ?? '–'}</td>
+                                <td data-label="Score 5">{page?.scores?.fives ?? 'New'}</td>
+                                <td className="lib-ap-actions">
+                                  {page && (
+                                    <Link className="btn btn-primary lib-ap-open" to={apSubjectPath(page.slug)}>
+                                      Open guide
+                                    </Link>
+                                  )}
+                                  <a
+                                    className="lib-ap-pdf"
+                                    href={apGuidePdf(g)}
+                                    target="_blank"
+                                    rel="noopener"
+                                    aria-label={`Download the ${g.title} PDF guide`}
+                                    onClick={() => trackDownload(g.title, 'open')}
+                                  >
+                                    <IconDownload />
+                                    <span>Download PDF</span>
+                                  </a>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   ))}
                 </div>
@@ -432,22 +557,24 @@ export function ResourcesPage() {
             {/* Guides & articles — static pages, prerendered for search and AI engines */}
             {searchedArticles.length > 0 && (
               <section id="articles" className="lib-section" aria-label="Articles">
-                <div className="lib-chips" role="group" aria-label="Filter articles by topic">
-                  {ARTICLE_TAGS.filter((t) => articleCount(t) > 0).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      className={`lib-chip${articleTag === t ? ' active' : ''}`}
-                      aria-pressed={articleTag === t}
-                      onClick={() => {
-                        setArticleTag(t);
-                        setShowAllArticles(false);
-                      }}
-                    >
-                      {t} <span>{articleCount(t)}</span>
-                    </button>
-                  ))}
-                </div>
+                {(!exam || exam === 'Articles') && (
+                  <div className="lib-chips" role="group" aria-label="Filter articles by topic">
+                    {ARTICLE_TAGS.filter((t) => articleCount(t) > 0).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        className={`lib-chip${articleTag === t ? ' active' : ''}`}
+                        aria-pressed={articleTag === t}
+                        onClick={() => {
+                          setArticleTag(t);
+                          setShowAllArticles(false);
+                        }}
+                      >
+                        {t} <span>{articleCount(t)}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <ol className="lib-article-list">
                   {shownArticles.map((a, i) => (
                     <li key={a.slug}>
