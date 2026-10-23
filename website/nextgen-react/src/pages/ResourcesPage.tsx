@@ -234,7 +234,9 @@ export function ResourcesPage() {
 
   const pickExam = (e: Exam, area?: string) => {
     setApMenuOpen(false);
-    setExam(exam === e && !area && e !== 'AP' ? null : e, area);
+    // Picking the tab that's already showing changes nothing.
+    if (e === exam && (area ?? null) === (apArea?.id ?? null)) return;
+    setExam(e, area);
     setArticleTag('All');
     setShowAllArticles(false);
     // Keep the bar at the top of the screen as the content below it changes.
@@ -327,7 +329,7 @@ export function ResourcesPage() {
         </section>
 
         <div className="shell lib-layout" id="library">
-          {/* Exam bar: narrows the library to one exam; picking it again shows everything */}
+          {/* Exam bar: narrows the library to one exam */}
           <nav className="lib-exams" aria-label="Filter the library by exam">
             {EXAMS.map((e) =>
               e === 'AP' ? (
