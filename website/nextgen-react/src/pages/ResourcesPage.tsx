@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Header } from '../components/Header';
+import { SlidingPills } from '../components/SlidingPills';
+import type { PillItem } from '../components/SlidingPills';
 import { Footer } from '../components/Footer';
 import { fetchBlogs, type BlogPost } from '../admin/api';
 import { AP_GUIDES, apGuidePdf, type ApGuide, type ApGuideCategory } from '../data/apGuides';
@@ -85,6 +87,7 @@ export function ResourcesPage() {
   const [articleTag, setArticleTag] = useState('All');
   const [showAllArticles, setShowAllArticles] = useState(false);
   const [activeSection, setActiveSection] = useState(SECTION_IDS[0]);
+  const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
@@ -120,17 +123,21 @@ export function ResourcesPage() {
     window.scrollTo(0, 0);
   }, []);
 
-  // Highlight the sidebar link for the section currently on screen.
+  // Highlight the tab for the section (and AP subject group) currently on screen.
   useEffect(() => {
     if (!('IntersectionObserver' in window)) return;
     const io = new IntersectionObserver(
       (entries) => {
-        const visible = entries.filter((e) => e.isIntersecting);
-        if (visible.length > 0) setActiveSection(visible[0].target.id);
+        entries
+          .filter((e) => e.isIntersecting)
+          .forEach((e) => {
+            if (SECTION_IDS.includes(e.target.id)) setActiveSection(e.target.id);
+            else setActiveGroup(e.target.id);
+          });
       },
-      { rootMargin: '-120px 0px -65% 0px' },
+      { rootMargin: '-160px 0px -60% 0px' },
     );
-    SECTION_IDS.forEach((id) => {
+    [...SECTION_IDS, ...AP_GROUPS.map((g) => g.id)].forEach((id) => {
       const el = document.getElementById(id);
       if (el) io.observe(el);
     });
@@ -197,11 +204,13 @@ export function ResourcesPage() {
     [],
   );
 
-  const sideLink = (id: string, label: string, n: number) => (
-    <a className={`lib-side-link${activeSection === id ? ' active' : ''}`} href={`#${id}`}>
-      {label} <span>{n}</span>
-    </a>
-  );
+  const libraryTabs: PillItem[] = [
+    { id: 'sat-act-guides', label: 'SAT & ACT guides', count: testGuides.length },
+    { id: 'ap-guides', label: 'AP exam guides', count: apGuides.length },
+    { id: 'articles', label: 'Articles', count: searchedArticles.length },
+    ...(filteredBlogs.length > 0 ? [{ id: 'blog', label: 'Blog', count: filteredBlogs.length }] : []),
+  ];
+  const apTabs: PillItem[] = apGroups.map((g) => ({ id: g.id, label: g.label, count: g.guides.length }));
 
   return (
     <>
@@ -289,28 +298,20 @@ export function ResourcesPage() {
         </section>
 
         <div className="shell lib-layout" id="library">
-          {/* Sidebar */}
-          <aside className="lib-sidebar" aria-label="Resource library sections">
-            <p className="lib-side-title">Library</p>
-            {sideLink('sat-act-guides', 'SAT & ACT guides', testGuides.length)}
-            {sideLink('ap-guides', 'AP exam guides', apGuides.length)}
-            <div className="lib-side-sub">
-              {apGroups.map((group) => (
-                <a key={group.id} href={`#${group.id}`}>
-                  {group.label} <span>{group.guides.length}</span>
+          {/* Library tabs: a sliding pill bar that stays under the header */}
+          <div className="lib-tabs">
+            <div className="lib-tabs-inner">
+              <div className="lib-tabs-row">
+                <SlidingPills items={libraryTabs} active={activeSection} label="Resource library sections" />
+                <a className="lib-tabs-cta" href="/free-test">
+                  Free SAT practice test <span aria-hidden="true">→</span>
                 </a>
-              ))}
+              </div>
+              {activeSection === 'ap-guides' && apTabs.length > 1 && (
+                <SlidingPills items={apTabs} active={activeGroup} label="AP subject areas" small />
+              )}
             </div>
-            {sideLink('articles', 'Articles', searchedArticles.length)}
-            {filteredBlogs.length > 0 && sideLink('blog', 'Blog', filteredBlogs.length)}
-            <div className="lib-side-cta">
-              <strong>Not sure where to start?</strong>
-              <p>Take a free, scored SAT practice test.</p>
-              <a href="/free-test">
-                Start the test <span aria-hidden="true">→</span>
-              </a>
-            </div>
-          </aside>
+          </div>
 
           <div className="lib-main">
             {searchQuery && (
