@@ -35,6 +35,8 @@ const client = new MongoClient(MONGODB_URI);
 let leads = null; // the "leads" collection, set on connect
 let jobsCollection = null; // the "jobs" collection
 let blogsCollection = null; // the "blogs" collection
+let reviewsCollection = null; // the "googleReviews" collection
+let settingsCollection = null; // small key/value docs (e.g. last Google sync)
 
 async function connectDb() {
   await client.connect();
@@ -42,6 +44,8 @@ async function connectDb() {
   leads = db.collection('leads');
   jobsCollection = db.collection('jobs');
   blogsCollection = db.collection('blogs');
+  reviewsCollection = db.collection('googleReviews');
+  settingsCollection = db.collection('settings');
 
   // Unique business id + fast sort by date
   await leads.createIndex({ id: 1 }, { unique: true });
@@ -53,9 +57,13 @@ async function connectDb() {
   await blogsCollection.createIndex({ id: 1 }, { unique: true });
   await blogsCollection.createIndex({ createdAt: -1 });
 
+  await reviewsCollection.createIndex({ id: 1 }, { unique: true });
+  await settingsCollection.createIndex({ id: 1 }, { unique: true });
+
   console.log(`✓ Connected to MongoDB → ${MONGODB_DB}.leads, jobs, blogs`);
   await seedFromJsonIfEmpty();
   await seedJobsAndBlogsIfEmpty();
+  await seedReviewsIfEmpty();
 }
 
 async function seedJobsAndBlogsIfEmpty() {
@@ -550,6 +558,279 @@ app.delete('/api/blogs/:id', requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to delete blog' });
+  }
+});
+
+// ─── Google Reviews ───────────────────────────────────────────────────────────
+// Reviews are pulled from the Google Places API (New) and stored in MongoDB so
+// that admins can choose which ones show first, hide any, and add reviews by
+// hand. Google only returns up to 5 reviews per request, so every sync adds any
+// new ones to the stored list and the pool grows over time.
+// Needs GOOGLE_PLACES_API_KEY and GOOGLE_PLACE_ID in the environment.
+const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
+const GOOGLE_PLACE_ID = process.env.GOOGLE_PLACE_ID || '';
+const REVIEW_SYNC_INTERVAL_MS = 6 * 60 * 60 * 1000; // auto-sync at most every 6 hours
+const REVIEW_MIN_AUTO_SHOW = 4; // new Google reviews below 4 stars arrive hidden
+
+// The reviews already on the site, so the section is never empty before the
+// first Google sync. Admins can hide or delete any of them.
+const SEED_REVIEWS = [
+  ['Sudiksha Aaloori', "Hi, my name is Sudiksha Aaloori, and I've been preparing for the SAT with ACT SAT Go. My experience has been really positive so far. The tutors are knowledgeable, patient, and explain concepts in a way that's easy to understand. The study plan is well-structured, and the practice sessions have helped me become more confident with the SAT format and question types. I've seen improvement in my understanding of concepts, and I feel much more prepared for my upcoming test. I would definitely recommend ACT SAT Go to any student looking for quality SAT preparation and individual support throughout their journey."],
+  ['Tarun Prasad', 'My brother joined their course for SAT prep and we have seen a good improvement in scores. The tutors focus on the areas where the student is weak and give regular practice and feedback. The tests are similar to the real SAT, which helped build confidence. Overall, we are satisfied with the progress.'],
+  ["It's Dhwani", 'One of the best platforms for SAT & ACT preparation. The lessons are easy to understand and the practice tests are really helpful. I noticed a good improvement in my concepts and confidence. The mentors are supportive and always ready to help. Highly recommended for anyone preparing seriously for these exams ✨'],
+  ['Jagriti Ratnani', 'ACT / SAT Go Tutoring was a great experience. The tutors are knowledgeable, patient, and truly invested in their students’ success. They break down difficult concepts clearly and teach effective test-taking strategies that really boost confidence. The practice was tailored to specific weaknesses, and I saw noticeable improvement in my score. I highly recommend ACT / SAT Go Tutoring to anyone looking to improve and feel prepared on test day!'],
+  ['Simran Raghuwanshi', 'This organization provides excellent SAT test preparation with a very structured and outcome-oriented approach. The tutors clearly understand the Digital SAT format, question patterns, and scoring strategy, and they focus heavily on improving accuracy, timing, and test-taking skills. What I really appreciated was the personalized study plan—the student’s strengths and weak areas were identified early, and sessions were tailored accordingly. Regular practice tests, detailed performance analysis, and clear feedback helped track progress and build confidence. Overall, this is a highly professional SAT prep organization that genuinely aims to help students achieve strong score improvements, not just complete classes. I would strongly recommend them to anyone serious about SAT preparation.'],
+  ['Tanveer Ali', 'My nephew had a great experience here. The team was super supportive and professional, they really focused on making sure he understood the concepts instead of memorizing stuff. Regular practice helped boost his confidence and his scores. Communication was clear and it genuinely felt like they cared about his progress. I’d definitely recommend this place to any student looking for SAT or ACT prep.'],
+  ['Sahil Gupta', 'I had a good experience with this tutoring company. The tutors are patient and explain things in a way that’s easy to understand. The sessions felt personalized, which really helped with learning. I noticed an improvement over time and felt more confident with the subjects. Overall, a solid tutoring service and worth recommending.'],
+  ['Ekta Rathode', 'Very supportive and knowledgeable tutor. Teaching style is clear and easy to understand.'],
+];
+
+async function seedReviewsIfEmpty() {
+  try {
+    if ((await reviewsCollection.countDocuments()) > 0) return;
+    const now = new Date().toISOString();
+    await reviewsCollection.insertMany(
+      SEED_REVIEWS.map(([author, text], i) => ({
+        id: 'manual_seed_' + (i + 1),
+        source: 'manual',
+        author,
+        authorPhoto: '',
+        authorUrl: '',
+        rating: 5,
+        text,
+        relativeTime: '',
+        publishTime: '',
+        featured: i < 4,
+        order: i < 4 ? i : null,
+        hidden: false,
+        createdAt: now,
+        updatedAt: now,
+      }))
+    );
+    console.log('Seeded googleReviews with the existing written testimonials.');
+  } catch (err) {
+    console.error('Failed to seed reviews:', err.message);
+  }
+}
+
+// Pull the latest reviews from Google and upsert them. Admin choices
+// (featured, order, hidden) on existing reviews are never overwritten.
+async function syncGoogleReviews() {
+  if (!GOOGLE_PLACES_API_KEY || !GOOGLE_PLACE_ID) {
+    throw new Error('Google sync is not set up yet. Add GOOGLE_PLACES_API_KEY and GOOGLE_PLACE_ID to the server environment.');
+  }
+  const url = `https://places.googleapis.com/v1/places/${encodeURIComponent(GOOGLE_PLACE_ID)}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 8000);
+  let data;
+  try {
+    const res = await fetch(url, {
+      headers: {
+        'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+        'X-Goog-FieldMask': 'displayName,rating,userRatingCount,googleMapsUri,reviews',
+      },
+      signal: controller.signal,
+    });
+    data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      throw new Error(data?.error?.message || `Google returned HTTP ${res.status}`);
+    }
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const now = new Date().toISOString();
+  let added = 0;
+  for (const r of data.reviews || []) {
+    const id = 'google_' + crypto.createHash('sha1').update(r.name || `${r.authorAttribution?.displayName}|${r.publishTime}`).digest('hex').slice(0, 20);
+    const fresh = {
+      source: 'google',
+      author: r.authorAttribution?.displayName || 'Google user',
+      authorPhoto: r.authorAttribution?.photoUri || '',
+      authorUrl: r.authorAttribution?.uri || '',
+      rating: r.rating || 0,
+      text: r.originalText?.text || r.text?.text || '',
+      relativeTime: r.relativePublishTimeDescription || '',
+      publishTime: r.publishTime || '',
+      updatedAt: now,
+    };
+    const result = await reviewsCollection.updateOne(
+      { id },
+      {
+        $set: fresh,
+        $setOnInsert: { id, featured: false, order: null, hidden: (r.rating || 0) < REVIEW_MIN_AUTO_SHOW, createdAt: now },
+      },
+      { upsert: true }
+    );
+    if (result.upsertedCount) added += 1;
+  }
+
+  const summary = {
+    id: 'googleReviews',
+    lastSync: now,
+    lastError: '',
+    placeName: data.displayName?.text || '',
+    rating: data.rating ?? null,
+    total: data.userRatingCount ?? null,
+    mapsUrl: data.googleMapsUri || '',
+  };
+  await settingsCollection.updateOne({ id: 'googleReviews' }, { $set: summary }, { upsert: true });
+  return { added, fetched: (data.reviews || []).length, summary };
+}
+
+async function getReviewSettings() {
+  return (await settingsCollection.findOne({ id: 'googleReviews' }, { projection: { _id: 0 } })) || { id: 'googleReviews' };
+}
+
+// Featured reviews first (in the admin's order), then the rest, newest first.
+function sortReviews(list) {
+  return list.sort((a, b) => {
+    if (!!a.featured !== !!b.featured) return a.featured ? -1 : 1;
+    if (a.featured && b.featured) return (a.order ?? 999) - (b.order ?? 999);
+    return String(b.publishTime || b.createdAt).localeCompare(String(a.publishTime || a.createdAt));
+  });
+}
+
+let syncInFlight = null;
+async function maybeAutoSync() {
+  if (!GOOGLE_PLACES_API_KEY || !GOOGLE_PLACE_ID) return;
+  const settings = await getReviewSettings();
+  const last = settings.lastSync ? Date.parse(settings.lastSync) : 0;
+  const lastTry = settings.lastAttempt ? Date.parse(settings.lastAttempt) : 0;
+  if (Date.now() - Math.max(last, lastTry) < REVIEW_SYNC_INTERVAL_MS) return;
+  if (!syncInFlight) {
+    syncInFlight = (async () => {
+      await settingsCollection.updateOne({ id: 'googleReviews' }, { $set: { lastAttempt: new Date().toISOString() } }, { upsert: true });
+      try {
+        await syncGoogleReviews();
+      } catch (err) {
+        console.error('Google review sync failed:', err.message);
+        await settingsCollection.updateOne({ id: 'googleReviews' }, { $set: { lastError: err.message } }, { upsert: true });
+      }
+    })().finally(() => { syncInFlight = null; });
+  }
+  await syncInFlight;
+}
+
+// Public: the reviews shown on the website
+app.get('/api/google-reviews', async (_req, res) => {
+  try {
+    await maybeAutoSync();
+    const [list, settings] = await Promise.all([
+      reviewsCollection.find({ hidden: { $ne: true } }, { projection: { _id: 0 } }).toArray(),
+      getReviewSettings(),
+    ]);
+    res.set('Cache-Control', 'public, max-age=300, s-maxage=600');
+    res.json({
+      rating: settings.rating ?? null,
+      total: settings.total ?? null,
+      mapsUrl: settings.mapsUrl || '',
+      reviews: sortReviews(list).map(({ id, source, author, authorPhoto, authorUrl, rating, text, relativeTime, publishTime, featured }) => ({
+        id, source, author, authorPhoto, authorUrl, rating, text, relativeTime, publishTime, featured: !!featured,
+      })),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to load reviews' });
+  }
+});
+
+// Admin: every stored review, including hidden ones, plus sync status
+app.get('/api/admin/google-reviews', requireAuth, async (_req, res) => {
+  try {
+    const [list, settings] = await Promise.all([
+      reviewsCollection.find({}, { projection: { _id: 0 } }).toArray(),
+      getReviewSettings(),
+    ]);
+    res.json({
+      configured: !!(GOOGLE_PLACES_API_KEY && GOOGLE_PLACE_ID),
+      settings,
+      reviews: sortReviews(list),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to load reviews' });
+  }
+});
+
+// Admin: pull from Google right now
+app.post('/api/admin/google-reviews/sync', requireAuth, async (_req, res) => {
+  try {
+    const result = await syncGoogleReviews();
+    res.json(result);
+  } catch (err) {
+    await settingsCollection.updateOne({ id: 'googleReviews' }, { $set: { lastError: err.message, lastAttempt: new Date().toISOString() } }, { upsert: true }).catch(() => {});
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// Admin: add a review by hand (e.g. an older Google review the API doesn't return)
+app.post('/api/admin/google-reviews', requireAuth, async (req, res) => {
+  const { author, text, rating, relativeTime } = req.body || {};
+  if (!author || !text) return res.status(400).json({ error: 'Name and review text are required' });
+  const now = new Date().toISOString();
+  const review = {
+    id: 'manual_' + crypto.randomBytes(4).toString('hex') + '_' + Date.now(),
+    source: 'manual',
+    author: String(author).trim(),
+    authorPhoto: '',
+    authorUrl: '',
+    rating: Math.min(5, Math.max(1, Number(rating) || 5)),
+    text: String(text).trim(),
+    relativeTime: relativeTime ? String(relativeTime) : '',
+    publishTime: now,
+    featured: false,
+    order: null,
+    hidden: false,
+    createdAt: now,
+    updatedAt: now,
+  };
+  try {
+    await reviewsCollection.insertOne({ ...review });
+    res.status(201).json(review);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to save review' });
+  }
+});
+
+// Admin: save the featured list in one go. Body: { featured: [id, id, ...] } in display order
+app.put('/api/admin/google-reviews/featured', requireAuth, async (req, res) => {
+  const ids = Array.isArray(req.body?.featured) ? req.body.featured.map(String) : null;
+  if (!ids) return res.status(400).json({ error: 'featured must be a list of review ids' });
+  try {
+    await reviewsCollection.updateMany({ id: { $nin: ids } }, { $set: { featured: false, order: null } });
+    await Promise.all(ids.map((id, i) => reviewsCollection.updateOne({ id }, { $set: { featured: true, order: i, updatedAt: new Date().toISOString() } })));
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to save order' });
+  }
+});
+
+// Admin: show or hide one review
+app.put('/api/admin/google-reviews/:id', requireAuth, async (req, res) => {
+  const { hidden } = req.body || {};
+  if (typeof hidden !== 'boolean') return res.status(400).json({ error: 'hidden must be true or false' });
+  try {
+    const result = await reviewsCollection.updateOne({ id: req.params.id }, { $set: { hidden, updatedAt: new Date().toISOString() } });
+    if (!result.matchedCount) return res.status(404).json({ error: 'Review not found' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update review' });
+  }
+});
+
+// Admin: delete a hand-added review (Google ones would come back on the next sync, so hide those instead)
+app.delete('/api/admin/google-reviews/:id', requireAuth, async (req, res) => {
+  try {
+    const result = await reviewsCollection.deleteOne({ id: req.params.id, source: 'manual' });
+    if (!result.deletedCount) return res.status(404).json({ error: 'Only reviews added by hand can be deleted. Hide Google reviews instead.' });
+    res.json({ ok: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete review' });
   }
 });
 

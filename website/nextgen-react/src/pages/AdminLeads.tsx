@@ -1,3 +1,4 @@
+import { AdminGoogleReviews } from '../admin/AdminGoogleReviews';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -72,7 +73,7 @@ export function AdminLeads() {
   const [error, setError] = useState('');
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | LeadStatus | TutorRecruitmentStatus>('All');
-  const [activeTab, setActiveTab] = useState<'students' | 'tutors' | 'hirings' | 'blogs'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'tutors' | 'hirings' | 'blogs' | 'reviews'>('students');
 
   // Leads Modal State
   const [showAddModal, setShowAddModal] = useState(false);
@@ -519,7 +520,19 @@ export function AdminLeads() {
           >
             Manage Blogs
           </button>
+          <button 
+            type="button"
+            className={`admin-view-tab ${activeTab === 'reviews' ? 'active' : ''}`}
+            onClick={() => { setActiveTab('reviews'); setStatusFilter('All'); setSearch(''); }}
+          >
+            Google Reviews
+          </button>
         </div>
+
+        {activeTab === 'reviews' ? (
+          <AdminGoogleReviews onAuthError={() => navigate('/admin/login', { replace: true })} />
+        ) : (
+        <>
 
         <div className="admin-stats">
           <div className="admin-stat is-total">
@@ -888,6 +901,8 @@ export function AdminLeads() {
             </table>
           )}
         </div>
+        </>
+        )}
       </div>
 
       {/* ── Add Lead Modal ── */}

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Testimonials } from './components/Testimonials';
+import { GoogleReviews } from './components/GoogleReviews';
 import { Universities } from './components/Universities';
 import { ProgramsHub } from './components/ProgramsHub';
 import { CountUp } from './components/CountUp';
@@ -300,7 +301,7 @@ export default function App() {
               <span className="ss-eyebrow">Success stories</span>
               <h2>Real students. Real results.</h2>
             </div>
-            <a className="view-all-link" href="#testimonials">Read parent &amp; student reviews <span aria-hidden="true">→</span></a>
+            <a className="view-all-link" href="#reviews">Read parent &amp; student reviews <span aria-hidden="true">→</span></a>
           </div>
           <SuccessStories onBook={() => openConsultationModal('General')} />
           <h3 className="uni-strip-label">Our students have been accepted to top universities worldwide</h3>
@@ -312,7 +313,8 @@ export default function App() {
         <WhyFamilies onBook={() => openConsultationModal('General')} />
 
 
-        {/* What Our Students & Parents Say — Testimonials */}
+        {/* Google reviews (auto-synced), then video testimonials */}
+        <GoogleReviews />
         <Testimonials />
 
         <HowItWorks />

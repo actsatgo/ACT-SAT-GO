@@ -255,3 +255,66 @@ export async function deleteBlog(id: string): Promise<void> {
   const res = await authFetch(`/api/blogs/${id}`, { method: 'DELETE' });
   if (!res.ok) throw new Error('Failed to delete blog');
 }
+
+// ─── Google reviews ──────────────────────────────────────────────────────────
+export interface AdminReview {
+  id: string;
+  source: 'google' | 'manual';
+  author: string;
+  authorPhoto?: string;
+  rating: number;
+  text: string;
+  relativeTime?: string;
+  publishTime?: string;
+  featured: boolean;
+  order: number | null;
+  hidden: boolean;
+  createdAt: string;
+}
+
+export interface ReviewSettings {
+  lastSync?: string;
+  lastAttempt?: string;
+  lastError?: string;
+  rating?: number | null;
+  total?: number | null;
+  mapsUrl?: string;
+}
+
+async function errorFrom(res: Response, fallback: string): Promise<Error> {
+  const data = await res.json().catch(() => ({}));
+  return new Error(data.error || fallback);
+}
+
+export async function fetchAdminReviews(): Promise<{ configured: boolean; settings: ReviewSettings; reviews: AdminReview[] }> {
+  const res = await authFetch('/api/admin/google-reviews');
+  if (!res.ok) throw await errorFrom(res, 'Failed to load reviews');
+  return res.json();
+}
+
+export async function syncGoogleReviews(): Promise<{ added: number; fetched: number }> {
+  const res = await authFetch('/api/admin/google-reviews/sync', { method: 'POST' });
+  if (!res.ok) throw await errorFrom(res, 'Sync failed');
+  return res.json();
+}
+
+export async function saveFeaturedReviews(ids: string[]): Promise<void> {
+  const res = await authFetch('/api/admin/google-reviews/featured', { method: 'PUT', body: JSON.stringify({ featured: ids }) });
+  if (!res.ok) throw await errorFrom(res, 'Failed to save order');
+}
+
+export async function setReviewHidden(id: string, hidden: boolean): Promise<void> {
+  const res = await authFetch(`/api/admin/google-reviews/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify({ hidden }) });
+  if (!res.ok) throw await errorFrom(res, 'Failed to update review');
+}
+
+export async function addManualReview(data: { author: string; text: string; rating: number; relativeTime?: string }): Promise<AdminReview> {
+  const res = await authFetch('/api/admin/google-reviews', { method: 'POST', body: JSON.stringify(data) });
+  if (!res.ok) throw await errorFrom(res, 'Failed to add review');
+  return res.json();
+}
+
+export async function deleteManualReview(id: string): Promise<void> {
+  const res = await authFetch(`/api/admin/google-reviews/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!res.ok) throw await errorFrom(res, 'Failed to delete review');
+}
