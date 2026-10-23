@@ -336,7 +336,7 @@
 .about-tech-inner {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   gap: 48px;
 }
@@ -457,12 +457,17 @@
   display: block;
 }
 
-/* Right column — orbit diagram */
+/* Right column — orbit diagram.
+   The side labels sit ~14% outside the ring, so the column keeps room for
+   them on both sides instead of letting them run off the screen. */
 .about-tech-right {
   display: flex;
   flex-direction: column;
   flex: 1 1 520px;
-  max-width: 540px;
+  max-width: 700px;
+  padding: 0 80px;
+  box-sizing: border-box;
+  margin-inline: auto; /* centred when it wraps under the text on narrower laptops */
   gap: 16px;
 }
 
@@ -472,7 +477,6 @@
   aspect-ratio: 1 / 1;
   max-width: 540px;
   margin: 0 auto;
-  transform: translateX(140px);
 }
 
 /* Outer orbit ring */
@@ -649,9 +653,14 @@
     gap: 48px;
   }
 
-  .about-tech-left,
-  .about-tech-right {
+  .about-tech-left {
     max-width: 420px;
+  }
+
+  .about-tech-right {
+    width: 100%;
+    max-width: 540px;
+    padding: 0 72px;
   }
 
   .about-tech-description,
@@ -684,6 +693,10 @@
 
   .about-tech-orbit::before {
     display: none;
+  }
+
+  .about-tech-right {
+    padding: 0;
   }
 
   .about-tech-orbit-center {
