@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { fetchBlogs, type BlogPost } from '../admin/api';
@@ -91,7 +91,10 @@ const apText = (g: ApGuide) => `${g.title} ${g.category} ${g.summary} ${g.keywor
 
 export function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [exam, setExam] = useState<Exam | null>(null);
+  // The picked exam lives in the URL (?exam=sat) so each tab has its own shareable link.
+  const [params, setParams] = useSearchParams();
+  const exam = EXAMS.find((e) => e.toLowerCase() === params.get('exam')?.toLowerCase()) ?? null;
+  const setExam = (e: Exam | null) => setParams(e ? { exam: e.toLowerCase() } : {}, { replace: true, preventScrollReset: true });
   const [articleTag, setArticleTag] = useState('All');
   const [showAllArticles, setShowAllArticles] = useState(false);
   const [email, setEmail] = useState('');
@@ -196,6 +199,8 @@ export function ResourcesPage() {
     setExam(exam === e ? null : e);
     setArticleTag('All');
     setShowAllArticles(false);
+    // Keep the bar at the top of the screen as the content below it changes.
+    requestAnimationFrame(() => document.getElementById('library')?.scrollIntoView({ block: 'start' }));
   };
 
   return (
@@ -330,7 +335,7 @@ export function ResourcesPage() {
                     setExam(null);
                   }}
                 >
-                  Clear Search &amp; View All
+                  {exam === 'IB' && !searchQuery ? 'View All Resources' : 'Clear Search & View All'}
                 </button>
               </div>
             )}
@@ -339,7 +344,7 @@ export function ResourcesPage() {
             {testGuides.length > 0 && (
               <section id="sat-act-guides" className="lib-section" aria-labelledby="sat-act-guides-title">
                 <div className="lib-head">
-                  <h2 id="sat-act-guides-title">SAT &amp; ACT Test Guides</h2>
+                  <h2 id="sat-act-guides-title">{exam ? `${exam} Test Guide` : 'SAT & ACT Test Guides'}</h2>
                   <p>Free PDFs, no sign-up · updated {TEST_GUIDES_UPDATED}</p>
                 </div>
                 <div className="lib-feature-pair">
@@ -423,22 +428,24 @@ export function ResourcesPage() {
             {/* Guides & articles — static pages, prerendered for search and AI engines */}
             {searchedArticles.length > 0 && (
               <section id="articles" className="lib-section" aria-label="Articles">
-                <div className="lib-chips" role="group" aria-label="Filter articles by topic">
-                  {ARTICLE_TAGS.filter((t) => articleCount(t) > 0).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      className={`lib-chip${articleTag === t ? ' active' : ''}`}
-                      aria-pressed={articleTag === t}
-                      onClick={() => {
-                        setArticleTag(t);
-                        setShowAllArticles(false);
-                      }}
-                    >
-                      {t} <span>{articleCount(t)}</span>
-                    </button>
-                  ))}
-                </div>
+                {!exam && (
+                  <div className="lib-chips" role="group" aria-label="Filter articles by topic">
+                    {ARTICLE_TAGS.filter((t) => articleCount(t) > 0).map((t) => (
+                      <button
+                        key={t}
+                        type="button"
+                        className={`lib-chip${articleTag === t ? ' active' : ''}`}
+                        aria-pressed={articleTag === t}
+                        onClick={() => {
+                          setArticleTag(t);
+                          setShowAllArticles(false);
+                        }}
+                      >
+                        {t} <span>{articleCount(t)}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <ol className="lib-article-list">
                   {shownArticles.map((a, i) => (
                     <li key={a.slug}>
