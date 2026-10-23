@@ -119,12 +119,18 @@ export function ResourcesPage() {
       { replace: true, preventScrollReset: true },
     );
   const [apMenuOpen, setApMenuOpen] = useState(false);
+  // Clicking the AP tab pins its dropdown open, so moving the pointer away doesn't close it.
+  const [apMenuPinned, setApMenuPinned] = useState(false);
+  const closeApMenu = () => {
+    setApMenuOpen(false);
+    setApMenuPinned(false);
+  };
 
   // A tap anywhere outside the AP dropdown closes it.
   useEffect(() => {
     if (!apMenuOpen) return;
     const onDown = (e: PointerEvent) => {
-      if (!(e.target as Element).closest('.lib-exam-drop')) setApMenuOpen(false);
+      if (!(e.target as Element).closest('.lib-exam-drop')) closeApMenu();
     };
     document.addEventListener('pointerdown', onDown);
     return () => document.removeEventListener('pointerdown', onDown);
@@ -233,7 +239,7 @@ export function ResourcesPage() {
   );
 
   const pickExam = (e: Exam, area?: string) => {
-    setApMenuOpen(false);
+    closeApMenu();
     // Picking the tab that's already showing changes nothing.
     if (e === exam && (area ?? null) === (apArea?.id ?? null)) return;
     setExam(e, area);
@@ -338,15 +344,20 @@ export function ResourcesPage() {
                   className={`lib-exam-drop${apMenuOpen ? ' is-open' : ''}`}
                   // Hover opens it for mouse users; on touch a tap on the tab opens it instead
                   onPointerEnter={(ev) => ev.pointerType === 'mouse' && setApMenuOpen(true)}
-                  onPointerLeave={(ev) => ev.pointerType === 'mouse' && setApMenuOpen(false)}
-                  onKeyDown={(ev) => ev.key === 'Escape' && setApMenuOpen(false)}
+                  onPointerLeave={(ev) => ev.pointerType === 'mouse' && !apMenuPinned && setApMenuOpen(false)}
+                  onKeyDown={(ev) => ev.key === 'Escape' && closeApMenu()}
                 >
                   <button
                     type="button"
                     className={`lib-exam${exam === e ? ' active' : ''}`}
                     aria-expanded={apMenuOpen}
                     aria-haspopup="true"
-                    onClick={() => setApMenuOpen((v) => !v)}
+                    onClick={() => {
+                      // Selects all of AP (like the other tabs) and keeps the group list open
+                      pickExam('AP');
+                      setApMenuOpen(true);
+                      setApMenuPinned(true);
+                    }}
                   >
                     <span className="lib-exam-label">AP</span>
                     <svg className="lib-exam-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -375,7 +386,7 @@ export function ResourcesPage() {
                               return (
                                 <li key={a.slug}>
                                   {page ? (
-                                    <Link to={apSubjectPath(page.slug)} onClick={() => setApMenuOpen(false)}>
+                                    <Link to={apSubjectPath(page.slug)} onClick={closeApMenu}>
                                       {a.title}
                                     </Link>
                                   ) : (
