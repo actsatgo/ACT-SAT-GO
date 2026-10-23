@@ -781,6 +781,18 @@
   position: relative;
 }
 
+/* Thin lines between rows, and a stronger divider before the less-taken groups */
+.lib-exam-menu > li + li,
+.lib-exam-sub > li + li {
+  border-top: 1px solid #edf0f5;
+}
+
+.lib-exam-menu > li.lib-exam-menu-break {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 2px solid #dfe5ee;
+}
+
 .lib-exam-menu :is(button, a) {
   display: flex;
   justify-content: space-between;
@@ -803,9 +815,23 @@
 
 .lib-exam-menu button span {
   display: inline-flex;
+  align-items: center;
   gap: 10px;
   color: var(--muted);
-  font-weight: 700;
+}
+
+/* Subject count in a small circle */
+.lib-exam-menu button b {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #eef2f8;
+  color: var(--navy);
+  font-size: 12.5px;
+  font-weight: 800;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .lib-exam-menu button i {
@@ -815,8 +841,7 @@
 }
 
 /* Hover: the row turns navy and nudges right; its count turns gold */
-.lib-exam-menu > li:is(:hover, :focus-within) > button,
-.lib-exam-sub :is(button, a):is(:hover, :focus-visible) {
+.lib-exam-menu > li:is(:hover, :focus-within) > button {
   background: var(--navy);
   color: #fff;
   padding-left: 18px;
@@ -824,6 +849,11 @@
 
 .lib-exam-menu > li:is(:hover, :focus-within) > button span {
   color: var(--gold);
+}
+
+.lib-exam-menu > li:is(:hover, :focus-within) > button b {
+  background: var(--gold);
+  color: var(--navy);
 }
 
 .lib-exam-menu button.active {
@@ -841,9 +871,11 @@
   margin: 0;
   padding: 6px;
   list-style: none;
-  background: #fff;
-  border: 1px solid #e1e7f0;
-  border-radius: 14px;
+  /* A warm cream panel with a gold edge, so it reads differently from the group list */
+  background: #fffaf0;
+  border: 1px solid #f3e3bd;
+  border-left: 4px solid var(--gold);
+  border-radius: 6px 14px 14px 6px;
   box-shadow: 0 24px 50px -16px rgba(6, 26, 47, 0.35);
   opacity: 0;
   visibility: hidden;
@@ -851,9 +883,20 @@
   transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
 }
 
+.lib-exam-sub > li + li {
+  border-top-color: #f3e8cf;
+}
+
 .lib-exam-sub :is(button, a) {
+  border-radius: 8px;
   font-size: 14.5px;
   padding: 8px 14px;
+}
+
+.lib-exam-sub :is(button, a):is(:hover, :focus-visible) {
+  background: var(--gold);
+  color: var(--navy);
+  padding-left: 18px;
 }
 
 /* Bridges the gap between a group row and its panel */

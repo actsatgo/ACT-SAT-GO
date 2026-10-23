@@ -60,16 +60,23 @@ function matches(text: string, query: string): boolean {
   return words.every((w) => new RegExp(`\\b${escapeRegExp(w)}`, 'i').test(text));
 }
 
-// AP subject areas, in the order and wording College Board uses on its course list.
-const AP_GROUPS: { id: string; label: string; categories: ApGuideCategory[] }[] = [
-  { id: 'ap-arts', label: 'Arts', categories: ['Arts'] },
-  { id: 'ap-english', label: 'English', categories: ['English'] },
-  { id: 'ap-history', label: 'History and Social Sciences', categories: ['History & Social Sciences'] },
+// AP subject areas, most-taken first. Groups marked `more` sit below a divider in the AP dropdown.
+const AP_GROUPS: { id: string; label: string; categories: ApGuideCategory[]; more?: boolean }[] = [
   { id: 'ap-math', label: 'Math and Computer Science', categories: ['Math & Computer Science'] },
   { id: 'ap-sciences', label: 'Sciences', categories: ['Sciences'] },
-  { id: 'ap-languages', label: 'World Languages and Cultures', categories: ['World Languages'] },
-  { id: 'ap-capstone', label: 'Capstone and Career Kickstart', categories: ['Capstone', 'Career Kickstart'] },
+  { id: 'ap-history', label: 'History and Social Sciences', categories: ['History & Social Sciences'] },
+  { id: 'ap-english', label: 'English', categories: ['English'] },
+  { id: 'ap-arts', label: 'Arts', categories: ['Arts'], more: true },
+  { id: 'ap-languages', label: 'World Languages and Cultures', categories: ['World Languages'], more: true },
+  { id: 'ap-capstone', label: 'Capstone and Career Kickstart', categories: ['Capstone', 'Career Kickstart'], more: true },
 ];
+
+// Subjects listed first within their group; the rest keep their usual order.
+const AP_FIRST = ['AP Macroeconomics', 'AP Microeconomics', 'AP Psychology', 'AP Human Geography'];
+const apRank = (g: ApGuide) => (AP_FIRST.includes(g.title) ? AP_FIRST.indexOf(g.title) : AP_FIRST.length);
+/** The guides in an AP group, popular subjects first. */
+const guidesInGroup = (guides: ApGuide[], categories: ApGuideCategory[]) =>
+  guides.filter((g) => categories.includes(g.category)).sort((x, y) => apRank(x) - apRank(y));
 
 const ARTICLE_TAGS = ['All', 'SAT', 'ACT', 'College Admissions', 'AP'];
 
@@ -200,7 +207,7 @@ export function ResourcesPage() {
   );
   const apGroups = AP_GROUPS.map((group) => ({
     ...group,
-    guides: apGuides.filter((g) => group.categories.includes(g.category)),
+    guides: guidesInGroup(apGuides, group.categories),
   })).filter((group) => group.guides.length > 0);
 
   const searchedArticles = ARTICLES.filter(
@@ -345,18 +352,18 @@ export function ResourcesPage() {
                     </svg>
                   </button>
                   <ul className="lib-exam-menu">
-                    {AP_GROUPS.map((g) => {
-                      const subjects = AP_GUIDES.filter((a) => g.categories.includes(a.category));
+                    {AP_GROUPS.map((g, i) => {
+                      const subjects = guidesInGroup(AP_GUIDES, g.categories);
                       return (
-                        <li key={g.id}>
+                        <li key={g.id} className={g.more && !AP_GROUPS[i - 1]?.more ? 'lib-exam-menu-break' : undefined}>
                           <button
                             type="button"
                             className={apArea?.id === g.id ? 'active' : ''}
                             onClick={() => pickExam('AP', g.id)}
                           >
-                            {g.label}
+                            AP {g.label}
                             <span>
-                              {subjects.length} <i aria-hidden="true">›</i>
+                              <b>{subjects.length}</b> <i aria-hidden="true">›</i>
                             </span>
                           </button>
                           {/* Hovering a group opens its subjects to the right */}
