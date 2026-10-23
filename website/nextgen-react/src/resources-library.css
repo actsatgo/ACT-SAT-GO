@@ -274,80 +274,201 @@
 /* AP subject groups */
 .lib-ap-groups {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 36px 28px;
-  align-items: start;
+  gap: 32px;
 }
 
 .lib-ap-group {
-  border-top: 2px solid var(--navy);
   scroll-margin-top: 90px;
 }
 
 .lib-ap-group h3 {
-  margin: 0;
-  padding: 14px 8px;
-  font-size: 17px;
+  margin: 0 0 12px;
+  font-size: 18px;
   font-weight: 800;
   color: var(--navy);
 }
 
-.lib-ap-group ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+/* AP subjects as a comparison table */
+.lib-ap-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border: 1px solid #e3e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 26px -20px rgba(6, 26, 47, 0.35);
+  text-align: left;
 }
 
-.lib-ap-group li {
-  border-top: 1px solid var(--line);
+/* Fixed column widths keep every group's table lined up */
+.lib-ap-table {
+  table-layout: fixed;
 }
 
-.lib-ap-group a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 8px;
-  font-size: 13.5px;
+.lib-ap-table thead th:nth-child(1) { width: 38%; }
+.lib-ap-table thead th:nth-child(2) { width: 11%; }
+.lib-ap-table thead th:nth-child(3) { width: 14%; }
+.lib-ap-table thead th:nth-child(4) { width: 7%; }
+.lib-ap-table thead th:nth-child(5) { width: 10%; }
+.lib-ap-table thead th:nth-child(6) { width: 20%; }
+
+.lib-ap-table thead th {
+  padding: 12px 18px;
+  background: #f6f8fb;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lib-ap-table tbody :is(th, td) {
+  padding: 14px 18px;
+  border-top: 1px solid #edf0f5;
+  color: var(--navy);
+  font-size: 14px;
   font-weight: 700;
-  color: var(--ink);
-  transition: background 0.2s ease, color 0.2s ease;
+  vertical-align: middle;
 }
 
-.lib-ap-group a svg {
-  flex: none;
+.lib-ap-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.lib-ap-table tbody tr:hover {
+  background: #fffaf0;
+}
+
+.lib-ap-table tbody th {
+  overflow: hidden;
+}
+
+.lib-ap-table tbody th strong {
+  display: block;
+  font-size: 16px;
+}
+
+.lib-ap-table tbody th span {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lib-ap-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.lib-ap-open,
+.lib-ap-pdf {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  font-size: 13.5px;
+  font-weight: 800;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.lib-ap-open {
+  background: var(--gold);
+  color: var(--navy);
+  box-shadow: 0 3px 0 #d99a00;
+}
+
+.lib-ap-pdf {
+  margin-left: 8px;
+  border: 1.5px solid #d5dce6;
+  color: var(--navy);
+}
+
+.lib-ap-pdf svg {
   width: 15px;
   height: 15px;
-  color: #a3adbb;
-  transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.lib-ap-group a:hover {
-  background: white;
-  color: var(--gold-2);
+.lib-ap-open:hover,
+.lib-ap-pdf:hover {
+  transform: translateY(-1px);
 }
 
-.lib-ap-group a:hover svg {
-  color: var(--gold-2);
-  transform: translateX(3px);
+.lib-ap-pdf:hover {
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
 }
 
-.lib-ap-group a > span {
-  flex: 1;
-}
+/* Phones and tablets: each subject becomes a small card */
+@media (max-width: 860px) {
+  .lib-ap-table,
+  .lib-ap-table tbody,
+  .lib-ap-table tr {
+    display: block;
+  }
 
-/* Subjects with their own web guide page */
-.lib-ap-page {
-  flex: none;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(212, 160, 23, 0.14);
-  color: var(--gold-2);
-  font-size: 10.5px;
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  .lib-ap-table thead {
+    display: none;
+  }
+
+  .lib-ap-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 14px;
+    padding: 16px;
+    border-top: 1px solid #edf0f5;
+  }
+
+  .lib-ap-table tbody tr:first-child {
+    border-top: 0;
+  }
+
+  .lib-ap-table tbody :is(th, td) {
+    padding: 0;
+    border: 0;
+    font-size: 13.5px;
+  }
+
+  .lib-ap-table tbody th {
+    grid-column: 1 / -1;
+    width: auto;
+    max-width: none;
+    margin-bottom: 4px;
+  }
+
+  .lib-ap-table tbody th span {
+    white-space: normal;
+  }
+
+  .lib-ap-table td[data-label]::before {
+    content: attr(data-label) ': ';
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .lib-ap-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    text-align: left;
+  }
+
+  .lib-ap-open {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .lib-ap-pdf {
+    margin-left: 0;
+  }
 }
 
 /* Article chips + numbered list */
@@ -560,9 +681,6 @@
 }
 
 @media (max-width: 1200px) {
-  .lib-ap-groups {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 1024px) {
@@ -581,9 +699,6 @@
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .lib-ap-groups {
-    gap: 28px;
-  }
 
   .lib-chips {
     flex-wrap: nowrap;
@@ -613,9 +728,6 @@
 }
 
 @media (max-width: 600px) {
-  .lib-ap-groups {
-    grid-template-columns: minmax(0, 1fr);
-  }
 
   .lib-feature-card {
     flex-direction: column;

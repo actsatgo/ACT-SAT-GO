@@ -38,14 +38,6 @@ function IconDownload() {
   );
 }
 
-function IconChevron() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="9 6 15 12 9 18" />
-    </svg>
-  );
-}
-
 const POPULAR = ['SAT Prep', 'ACT Strategies', 'AP Guides', 'IB Guides', 'A Level', 'Study Tips'];
 
 // Words that describe the kind of resource rather than its topic ("SAT Prep" means SAT).
@@ -96,6 +88,12 @@ const ARTICLES_SHOWN = 8;
 
 
 const sizeLabel = (kb: number) => (kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
+
+/** "Thursday, May 6, 2027 (morning session)" -> "Thu, May 6" */
+const shortDate = (date: string) => {
+  const [day, monthDay] = date.split(', ');
+  return monthDay ? `${day.slice(0, 3)}, ${monthDay}` : date;
+};
 
 const apText = (g: ApGuide) => `${g.title} ${g.category} ${g.summary} ${g.keywords.join(' ')} AP guide`;
 
@@ -504,34 +502,56 @@ export function ResourcesPage() {
                 <div className="lib-ap-groups">
                   {apGroups.map((group) => (
                     <div key={group.id} id={group.id} className="lib-ap-group">
-                      <h3>{group.label}</h3>
-                      <ul>
-                        {group.guides.map((g) => {
-                          const page = AP_SUBJECT_BY_GUIDE[g.slug];
-                          return page ? (
-                          <li key={g.slug}>
-                            <Link to={apSubjectPath(page.slug)} title={g.summary}>
-                              <span>{g.title}</span>
-                              <em className="lib-ap-page">Full guide</em>
-                              <IconChevron />
-                            </Link>
-                          </li>
-                          ) : (
-                          <li key={g.slug}>
-                            <a
-                              href={apGuidePdf(g)}
-                              target="_blank"
-                              rel="noopener"
-                              title={g.summary}
-                              onClick={() => trackDownload(g.title, 'open')}
-                            >
-                              <span>{g.title}</span>
-                              <IconChevron />
-                            </a>
-                          </li>
-                          );
-                        })}
-                      </ul>
+                      {/* The group name is already the page heading when one area is picked */}
+                      {!apArea && <h3>{group.label}</h3>}
+                      <table className="lib-ap-table">
+                        <thead>
+                          <tr>
+                            <th scope="col">Subject</th>
+                            <th scope="col">2027 exam</th>
+                            <th scope="col">Length</th>
+                            <th scope="col">Units</th>
+                            <th scope="col">Score 5</th>
+                            <th scope="col">
+                              <span className="sr-only">Guide and PDF</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {group.guides.map((g) => {
+                            const page = AP_SUBJECT_BY_GUIDE[g.slug];
+                            return (
+                              <tr key={g.slug}>
+                                <th scope="row">
+                                  <strong>{g.title}</strong>
+                                  <span>{g.summary}</span>
+                                </th>
+                                <td data-label={page?.dateLabel ?? '2027 exam'}>{page ? shortDate(page.examDate) : '–'}</td>
+                                <td data-label="Length">{page?.length ?? '–'}</td>
+                                <td data-label="Units">{page?.units.length ?? '–'}</td>
+                                <td data-label="Score 5">{page?.scores?.fives ?? 'New'}</td>
+                                <td className="lib-ap-actions">
+                                  {page && (
+                                    <Link className="lib-ap-open" to={apSubjectPath(page.slug)}>
+                                      Open guide <span aria-hidden="true">→</span>
+                                    </Link>
+                                  )}
+                                  <a
+                                    className="lib-ap-pdf"
+                                    href={apGuidePdf(g)}
+                                    target="_blank"
+                                    rel="noopener"
+                                    aria-label={`Download the ${g.title} PDF guide`}
+                                    onClick={() => trackDownload(g.title, 'open')}
+                                  >
+                                    <IconDownload /> PDF
+                                  </a>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
                     </div>
                   ))}
                 </div>
