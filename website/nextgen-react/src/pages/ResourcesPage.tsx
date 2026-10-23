@@ -494,16 +494,11 @@ export function ResourcesPage() {
 
             {/* AP exam guides, grouped by subject area */}
             {apGroups.length > 0 && (
-              <section id="ap-guides" className="lib-section" aria-labelledby="ap-guides-title">
-                <div className="lib-head">
-                  <h2 id="ap-guides-title">{apArea ? `AP ${apArea.label} Guides` : 'AP Exam Guides'}</h2>
-                  <p>{apGuides.length} subjects · every unit explained, 10 practice questions each · free PDFs</p>
-                </div>
+              <section id="ap-guides" className="lib-section" aria-label="AP exam guides">
                 <div className="lib-ap-groups">
                   {apGroups.map((group) => (
                     <div key={group.id} id={group.id} className="lib-ap-group">
-                      {/* The group name is already the page heading when one area is picked */}
-                      {!apArea && <h3>{group.label}</h3>}
+                      <h3>{group.label}</h3>
                       <table className="lib-ap-table">
                         <thead>
                           <tr>
@@ -532,8 +527,8 @@ export function ResourcesPage() {
                                 <td data-label="Score 5">{page?.scores?.fives ?? 'New'}</td>
                                 <td className="lib-ap-actions">
                                   {page && (
-                                    <Link className="lib-ap-open" to={apSubjectPath(page.slug)}>
-                                      Open guide <span aria-hidden="true">→</span>
+                                    <Link className="btn btn-primary lib-ap-open" to={apSubjectPath(page.slug)}>
+                                      Open guide
                                     </Link>
                                   )}
                                   <a
@@ -544,7 +539,8 @@ export function ResourcesPage() {
                                     aria-label={`Download the ${g.title} PDF guide`}
                                     onClick={() => trackDownload(g.title, 'open')}
                                   >
-                                    <IconDownload /> PDF
+                                    <IconDownload />
+                                    <span>Download PDF</span>
                                   </a>
                                 </td>
                               </tr>

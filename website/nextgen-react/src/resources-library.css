@@ -281,11 +281,21 @@
   scroll-margin-top: 90px;
 }
 
+/* Group name: a navy band that sits on top of its table */
 .lib-ap-group h3 {
-  margin: 0 0 12px;
-  font-size: 18px;
+  margin: 0;
+  padding: 14px 20px;
+  border-radius: 16px 16px 0 0;
+  background: var(--navy);
+  color: #fff;
+  font-size: 17px;
   font-weight: 800;
-  color: var(--navy);
+  letter-spacing: 0.01em;
+}
+
+.lib-ap-group h3 + .lib-ap-table {
+  border-top: 0;
+  border-radius: 0 0 16px 16px;
 }
 
 /* AP subjects as a comparison table */
@@ -306,12 +316,12 @@
   table-layout: fixed;
 }
 
-.lib-ap-table thead th:nth-child(1) { width: 38%; }
+.lib-ap-table thead th:nth-child(1) { width: 34%; }
 .lib-ap-table thead th:nth-child(2) { width: 11%; }
 .lib-ap-table thead th:nth-child(3) { width: 14%; }
 .lib-ap-table thead th:nth-child(4) { width: 7%; }
 .lib-ap-table thead th:nth-child(5) { width: 10%; }
-.lib-ap-table thead th:nth-child(6) { width: 20%; }
+.lib-ap-table thead th:nth-child(6) { width: 24%; }
 
 .lib-ap-table thead th {
   padding: 12px 18px;
@@ -362,48 +372,60 @@
 }
 
 .lib-ap-actions {
-  text-align: right;
+  /* Left-aligned so the PDF button opens to the right without moving Open guide */
+  text-align: left;
   white-space: nowrap;
 }
 
-.lib-ap-open,
+/* Open guide: the site's pill button, in a compact size */
+:root .btn.btn-primary.lib-ap-open {
+  --pb-in: 4px;
+  --pb-bd: 28px;
+  min-height: 38px;
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+
+/* PDF: a round download icon that slides open into "Download PDF" on hover */
 .lib-ap-pdf {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 9px 14px;
-  border-radius: 10px;
+  vertical-align: middle;
+  height: 38px;
+  max-width: 38px;
+  margin-left: 8px;
+  padding: 0 11px;
+  overflow: hidden;
+  border: 1.5px solid #d5dce6;
+  border-radius: 999px;
+  color: var(--navy);
   font-size: 13.5px;
   font-weight: 800;
-  transition: transform 0.15s ease, background-color 0.15s ease;
-}
-
-.lib-ap-open {
-  background: var(--gold);
-  color: var(--navy);
-  box-shadow: 0 3px 0 #d99a00;
-}
-
-.lib-ap-pdf {
-  margin-left: 8px;
-  border: 1.5px solid #d5dce6;
-  color: var(--navy);
+  white-space: nowrap;
+  transition: max-width 0.35s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
 .lib-ap-pdf svg {
+  flex: none;
   width: 15px;
   height: 15px;
 }
 
-.lib-ap-open:hover,
-.lib-ap-pdf:hover {
-  transform: translateY(-1px);
+.lib-ap-pdf span {
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.lib-ap-pdf:hover {
+.lib-ap-pdf:is(:hover, :focus-visible) {
+  max-width: 160px;
   background: var(--navy);
   border-color: var(--navy);
   color: #fff;
+}
+
+.lib-ap-pdf:is(:hover, :focus-visible) span {
+  opacity: 1;
 }
 
 /* Phones and tablets: each subject becomes a small card */
@@ -461,13 +483,18 @@
     text-align: left;
   }
 
-  .lib-ap-open {
+  :root .btn.btn-primary.lib-ap-open {
     flex: 1;
-    justify-content: center;
   }
 
+  /* No hover on phones, so the PDF button shows its label */
   .lib-ap-pdf {
+    max-width: none;
     margin-left: 0;
+  }
+
+  .lib-ap-pdf span {
+    opacity: 1;
   }
 }
 
