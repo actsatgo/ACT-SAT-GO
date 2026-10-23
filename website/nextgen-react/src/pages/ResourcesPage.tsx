@@ -97,16 +97,31 @@ export function ResourcesPage() {
   // The picked exam lives in the URL (?exam=sat) so each tab has its own shareable link.
   const [params, setParams] = useSearchParams();
   const exam = EXAMS.find((e) => e.toLowerCase() === params.get('exam')?.toLowerCase()) ?? null;
-  const setExam = (e: Exam | null) =>
+  // An AP subject area picked from the AP tab's dropdown (?exam=ap&area=sciences).
+  const apArea = exam === 'AP' ? (AP_GROUPS.find((g) => g.id === `ap-${params.get('area')}`) ?? null) : null;
+  const setExam = (e: Exam | null, area?: string) =>
     setParams(
       (prev) => {
         const next = new URLSearchParams(prev);
         if (e) next.set('exam', e.toLowerCase());
         else next.delete('exam');
+        if (area) next.set('area', area.replace(/^ap-/, ''));
+        else next.delete('area');
         return next;
       },
       { replace: true, preventScrollReset: true },
     );
+  const [apMenuOpen, setApMenuOpen] = useState(false);
+
+  // A tap anywhere outside the AP dropdown closes it.
+  useEffect(() => {
+    if (!apMenuOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if (!(e.target as Element).closest('.lib-exam-drop')) setApMenuOpen(false);
+    };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [apMenuOpen]);
   const [articleTag, setArticleTag] = useState('All');
   const [showAllArticles, setShowAllArticles] = useState(false);
   const [email, setEmail] = useState('');
@@ -180,7 +195,7 @@ export function ResourcesPage() {
       matches(`${g.title} ${g.tag} ${g.summary} ${g.keywords.join(' ')} test guide`, searchQuery),
   );
   const apGuides = AP_GUIDES.filter((g) => (!exam || exam === 'AP') && matches(apText(g), searchQuery));
-  const apGroups = AP_GROUPS.map((group) => ({
+  const apGroups = AP_GROUPS.filter((group) => !apArea || group.id === apArea.id).map((group) => ({
     ...group,
     guides: apGuides.filter((g) => group.categories.includes(g.category)),
   })).filter((group) => group.guides.length > 0);
@@ -207,8 +222,9 @@ export function ResourcesPage() {
     [],
   );
 
-  const pickExam = (e: Exam) => {
-    setExam(exam === e ? null : e);
+  const pickExam = (e: Exam, area?: string) => {
+    setApMenuOpen(false);
+    setExam(exam === e && !area && e !== 'AP' ? null : e, area);
     setArticleTag('All');
     setShowAllArticles(false);
     // Keep the bar at the top of the screen as the content below it changes.
@@ -303,17 +319,63 @@ export function ResourcesPage() {
         <div className="shell lib-layout" id="library">
           {/* Exam bar: narrows the library to one exam; picking it again shows everything */}
           <nav className="lib-exams" aria-label="Filter the library by exam">
-            {EXAMS.map((e) => (
-              <button
-                key={e}
-                type="button"
-                className={`lib-exam${exam === e ? ' active' : ''}`}
-                aria-pressed={exam === e}
-                onClick={() => pickExam(e)}
-              >
-                <span className="lib-exam-label">{e}</span>
-              </button>
-            ))}
+            {EXAMS.map((e) =>
+              e === 'AP' ? (
+                <div
+                  key={e}
+                  className={`lib-exam-drop${apMenuOpen ? ' is-open' : ''}`}
+                  // Hover opens it for mouse users; on touch a tap on the tab opens it instead
+                  onPointerEnter={(ev) => ev.pointerType === 'mouse' && setApMenuOpen(true)}
+                  onPointerLeave={(ev) => ev.pointerType === 'mouse' && setApMenuOpen(false)}
+                  onKeyDown={(ev) => ev.key === 'Escape' && setApMenuOpen(false)}
+                >
+                  <button
+                    type="button"
+                    className={`lib-exam${exam === e ? ' active' : ''}`}
+                    aria-expanded={apMenuOpen}
+                    aria-haspopup="true"
+                    onClick={() => setApMenuOpen((v) => !v)}
+                  >
+                    <span className="lib-exam-label">AP</span>
+                    <svg className="lib-exam-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+                  <ul className="lib-exam-menu">
+                    <li>
+                      <button
+                        type="button"
+                        className={exam === 'AP' && !apArea ? 'active' : ''}
+                        onClick={() => pickExam('AP')}
+                      >
+                        All AP subjects <span>{AP_GUIDES.length}</span>
+                      </button>
+                    </li>
+                    {AP_GROUPS.map((g) => (
+                      <li key={g.id}>
+                        <button
+                          type="button"
+                          className={apArea?.id === g.id ? 'active' : ''}
+                          onClick={() => pickExam('AP', g.id)}
+                        >
+                          {g.label} <span>{AP_GUIDES.filter((a) => g.categories.includes(a.category)).length}</span>
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
+                <button
+                  key={e}
+                  type="button"
+                  className={`lib-exam${exam === e ? ' active' : ''}`}
+                  aria-pressed={exam === e}
+                  onClick={() => pickExam(e)}
+                >
+                  <span className="lib-exam-label">{e}</span>
+                </button>
+              ),
+            )}
           </nav>
 
           <div className="lib-main">
@@ -397,8 +459,8 @@ export function ResourcesPage() {
             {apGroups.length > 0 && (
               <section id="ap-guides" className="lib-section" aria-labelledby="ap-guides-title">
                 <div className="lib-head">
-                  <h2 id="ap-guides-title">AP Exam Guides</h2>
-                  <p>{AP_GUIDES.length} subjects · every unit explained, 10 practice questions each · free PDFs</p>
+                  <h2 id="ap-guides-title">{apArea ? `AP ${apArea.label} Guides` : 'AP Exam Guides'}</h2>
+                  <p>{apGuides.length} subjects · every unit explained, 10 practice questions each · free PDFs</p>
                 </div>
                 <div className="lib-ap-groups">
                   {apGroups.map((group) => (
