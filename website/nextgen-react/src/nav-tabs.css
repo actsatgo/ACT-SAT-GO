@@ -1,0 +1,103 @@
+/* ── Desktop nav: plain white bar ────────────────────────────────────
+   Text links split by thin grey lines. Hovering draws a navy underline
+   out from the middle of the word, and the current page is bold.
+   Loaded last so it overrides header.css, buttons.css and styles.css. */
+
+.site-header .nav-chevron {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-left: 6px;
+  transition: transform 0.25s ease;
+}
+
+@media (min-width: 1041px) {
+  .site-header .nav-links,
+  .site-header .nav-actions {
+    gap: 0;
+  }
+
+  .site-header .nav-actions {
+    gap: 18px;
+  }
+
+  .site-header .nav-links > a,
+  .site-header .nav-dropdown-toggle,
+  :root .site-header .btn.btn-secondary.nav-btn-free-test {
+    display: inline-flex;
+    align-items: center;
+    min-height: 22px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--navy);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .site-header .nav-links > a.nav-home {
+    padding-left: 0;
+  }
+
+  /* Thin grey line between neighbouring items */
+  .site-header .nav-links > a + a,
+  .site-header .nav-links > .nav-dropdown + a,
+  .site-header .nav-links > a + .nav-dropdown,
+  :root .site-header .btn.btn-secondary.nav-btn-free-test {
+    border-left: 1px solid #d5dce6;
+  }
+
+  .site-header .nav-links > a::after {
+    display: none;
+  }
+
+  .site-header .nav-links > a:hover,
+  .site-header .nav-dropdown-toggle:hover,
+  .site-header .nav-home:hover,
+  :root .site-header .btn.btn-secondary.nav-btn-free-test:is(:hover, :focus-visible) {
+    color: var(--navy);
+    background: none;
+    text-decoration: none;
+  }
+
+  .site-header .nav-label {
+    padding-bottom: 3px;
+    margin-bottom: -3px;
+    background: linear-gradient(var(--navy), var(--navy)) no-repeat 50% 100% / 0 2px;
+    transition: background-size 0.25s ease;
+  }
+
+  .site-header :is(a, button):is(:hover, :focus-visible) > .nav-label,
+  .site-header .nav-dropdown.is-open > .nav-dropdown-toggle > .nav-label {
+    background-size: 100% 2px;
+  }
+
+  .site-header .nav-home svg {
+    transition: transform 0.2s ease;
+  }
+
+  .site-header .nav-home:hover svg {
+    transform: translateY(-2px);
+  }
+
+  .site-header .nav-dropdown.is-open > .nav-dropdown-toggle > .nav-chevron {
+    transform: rotate(180deg);
+  }
+
+  .site-header .nav-links > a.is-current,
+  .site-header .nav-dropdown-toggle.is-current,
+  :root .site-header .btn.btn-secondary.nav-btn-free-test.is-current {
+    font-weight: 800;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-header .nav-label,
+  .site-header .nav-chevron,
+  .site-header .nav-home svg {
+    transition: none;
+  }
+}

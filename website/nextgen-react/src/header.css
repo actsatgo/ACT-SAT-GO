@@ -287,11 +287,11 @@
     justify-content: space-between;
   }
 
-  .site-header .nav-dropdown-toggle > span {
+  .site-header .nav-chevron {
     transition: transform 0.25s ease;
   }
 
-  .site-header .nav-dropdown.is-open > .nav-dropdown-toggle > span {
+  .site-header .nav-dropdown.is-open > .nav-dropdown-toggle > .nav-chevron {
     transform: rotate(180deg);
   }
 
