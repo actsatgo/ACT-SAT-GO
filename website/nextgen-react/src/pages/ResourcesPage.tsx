@@ -74,11 +74,14 @@ const AP_GROUPS: { id: string; label: string; categories: ApGuideCategory[] }[] 
 const ARTICLE_TAGS = ['All', 'SAT', 'ACT', 'College Admissions', 'AP'];
 
 /** Articles tagged "SAT & ACT" cover both tests, so they show under the SAT chip and the ACT chip. */
-const EXAMS = ['SAT', 'ACT', 'AP', 'IB', 'Others'] as const;
+const EXAMS = ['SAT', 'ACT', 'AP', 'IB', 'Articles', 'Others'] as const;
 type Exam = (typeof EXAMS)[number];
-/** "Others" holds what isn't tied to one exam: college admissions articles and the blog. */
-const articleInExam = (articleTag: string, exam: Exam | null) =>
-  !exam || (exam === 'Others' ? articleTag === 'College Admissions' : exam !== 'IB' && hasArticleTag(articleTag, exam));
+/** "Articles" lists every article; "Others" holds what isn't tied to one exam: admissions articles and the blog. */
+const articleInExam = (articleTag: string, exam: Exam | null) => {
+  if (!exam || exam === 'Articles') return true;
+  if (exam === 'Others') return articleTag === 'College Admissions';
+  return exam !== 'IB' && hasArticleTag(articleTag, exam);
+};
 
 const hasArticleTag = (articleTag: string, chip: string) =>
   chip === 'All' || articleTag === chip || (articleTag === 'SAT & ACT' && (chip === 'SAT' || chip === 'ACT'));
@@ -94,7 +97,16 @@ export function ResourcesPage() {
   // The picked exam lives in the URL (?exam=sat) so each tab has its own shareable link.
   const [params, setParams] = useSearchParams();
   const exam = EXAMS.find((e) => e.toLowerCase() === params.get('exam')?.toLowerCase()) ?? null;
-  const setExam = (e: Exam | null) => setParams(e ? { exam: e.toLowerCase() } : {}, { replace: true, preventScrollReset: true });
+  const setExam = (e: Exam | null) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (e) next.set('exam', e.toLowerCase());
+        else next.delete('exam');
+        return next;
+      },
+      { replace: true, preventScrollReset: true },
+    );
   const [articleTag, setArticleTag] = useState('All');
   const [showAllArticles, setShowAllArticles] = useState(false);
   const [email, setEmail] = useState('');
@@ -290,7 +302,11 @@ export function ResourcesPage() {
 
         <div className="shell lib-layout" id="library">
           {/* Exam bar: narrows the library to one exam; picking it again shows everything */}
-          <nav className="lib-exams" aria-label="Filter the library by exam">
+          {/* Preview only: ?bar=light shows the white version of the bar */}
+          <nav
+            className={`lib-exams${params.get('bar') === 'light' ? ' lib-exams--light' : ''}`}
+            aria-label="Filter the library by exam"
+          >
             {EXAMS.map((e) => (
               <button
                 key={e}
@@ -428,7 +444,7 @@ export function ResourcesPage() {
             {/* Guides & articles — static pages, prerendered for search and AI engines */}
             {searchedArticles.length > 0 && (
               <section id="articles" className="lib-section" aria-label="Articles">
-                {!exam && (
+                {(!exam || exam === 'Articles') && (
                   <div className="lib-chips" role="group" aria-label="Filter articles by topic">
                     {ARTICLE_TAGS.filter((t) => articleCount(t) > 0).map((t) => (
                       <button
