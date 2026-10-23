@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { useScrollReveal } from '../hooks/useScrollReveal';
@@ -29,10 +28,6 @@ export function AboutUsPage() {
         <section className="about-hero section-dark">
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell">
-            <nav className="about-breadcrumb" aria-label="Breadcrumb">
-              <Link to="/">Home</Link> &gt; <span>About Us</span>
-            </nav>
-
             <div className="about-hero-grid">
               <div className="about-hero-copy">
                 <h1 className="about-hero-title">
