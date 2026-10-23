@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { SlidingPills } from '../components/SlidingPills';
-import type { PillItem } from '../components/SlidingPills';
+import { BookOpen, GraduationCap, Newspaper, PenLine } from 'lucide-react';
 import { Footer } from '../components/Footer';
 import { fetchBlogs, type BlogPost } from '../admin/api';
 import { AP_GUIDES, apGuidePdf, type ApGuide, type ApGuideCategory } from '../data/apGuides';
@@ -73,10 +72,13 @@ const AP_GROUPS: { id: string; label: string; categories: ApGuideCategory[] }[] 
   { id: 'ap-capstone', label: 'Capstone and Career Kickstart', categories: ['Capstone', 'Career Kickstart'] },
 ];
 
-const ARTICLE_TAGS = ['All', 'SAT', 'ACT', 'SAT & ACT', 'College Admissions', 'AP'];
+const ARTICLE_TAGS = ['All', 'SAT', 'ACT', 'College Admissions', 'AP'];
+
+/** Articles tagged "SAT & ACT" cover both tests, so they show under the SAT chip and the ACT chip. */
+const hasArticleTag = (articleTag: string, chip: string) =>
+  chip === 'All' || articleTag === chip || (articleTag === 'SAT & ACT' && (chip === 'SAT' || chip === 'ACT'));
 const ARTICLES_SHOWN = 8;
 
-const SECTION_IDS = ['sat-act-guides', 'ap-guides', 'articles', 'blog'];
 
 const sizeLabel = (kb: number) => (kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
 
@@ -86,8 +88,6 @@ export function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [articleTag, setArticleTag] = useState('All');
   const [showAllArticles, setShowAllArticles] = useState(false);
-  const [activeSection, setActiveSection] = useState(SECTION_IDS[0]);
-  const [activeGroup, setActiveGroup] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
@@ -122,27 +122,6 @@ export function ResourcesPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
-
-  // Highlight the tab for the section (and AP subject group) currently on screen.
-  useEffect(() => {
-    if (!('IntersectionObserver' in window)) return;
-    const io = new IntersectionObserver(
-      (entries) => {
-        entries
-          .filter((e) => e.isIntersecting)
-          .forEach((e) => {
-            if (SECTION_IDS.includes(e.target.id)) setActiveSection(e.target.id);
-            else setActiveGroup(e.target.id);
-          });
-      },
-      { rootMargin: '-160px 0px -60% 0px' },
-    );
-    [...SECTION_IDS, ...AP_GROUPS.map((g) => g.id)].forEach((id) => {
-      const el = document.getElementById(id);
-      if (el) io.observe(el);
-    });
-    return () => io.disconnect();
-  }, [blogs.length, searchQuery]);
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,9 +163,8 @@ export function ResourcesPage() {
   })).filter((group) => group.guides.length > 0);
 
   const searchedArticles = ARTICLES.filter((a) => matches(`${a.title} ${a.tag} ${a.description}`, searchQuery));
-  const articleCount = (tag: string) =>
-    tag === 'All' ? searchedArticles.length : searchedArticles.filter((a) => a.tag === tag).length;
-  const articles = searchedArticles.filter((a) => articleTag === 'All' || a.tag === articleTag);
+  const articleCount = (tag: string) => searchedArticles.filter((a) => hasArticleTag(a.tag, tag)).length;
+  const articles = searchedArticles.filter((a) => hasArticleTag(a.tag, articleTag));
   const shownArticles = showAllArticles ? articles : articles.slice(0, ARTICLES_SHOWN);
 
   const filteredBlogs = blogs.filter((post) =>
@@ -204,13 +182,40 @@ export function ResourcesPage() {
     [],
   );
 
-  const libraryTabs: PillItem[] = [
-    { id: 'sat-act-guides', label: 'SAT & ACT guides', count: testGuides.length },
-    { id: 'ap-guides', label: 'AP exam guides', count: apGuides.length },
-    { id: 'articles', label: 'Articles', count: searchedArticles.length },
-    ...(filteredBlogs.length > 0 ? [{ id: 'blog', label: 'Blog', count: filteredBlogs.length }] : []),
-  ];
-  const apTabs: PillItem[] = apGroups.map((g) => ({ id: g.id, label: g.label, count: g.guides.length }));
+  const libraryCards = [
+    {
+      id: 'sat-act-guides',
+      icon: BookOpen,
+      title: 'SAT & ACT guides',
+      text: 'Two complete test guides: sections, scoring, a 12-week plan and practice.',
+      cta: `${testGuides.length} free PDFs`,
+      show: testGuides.length > 0,
+    },
+    {
+      id: 'ap-guides',
+      icon: GraduationCap,
+      title: 'AP exam guides',
+      text: 'Every AP subject, grouped by area, each with a full web guide and PDF.',
+      cta: `${apGuides.length} subjects`,
+      show: apGuides.length > 0,
+    },
+    {
+      id: 'articles',
+      icon: Newspaper,
+      title: 'Articles',
+      text: 'Straight answers on SAT, ACT, AP and college admissions.',
+      cta: `${searchedArticles.length} articles`,
+      show: searchedArticles.length > 0,
+    },
+    {
+      id: 'blog',
+      icon: PenLine,
+      title: 'Blog',
+      text: 'Study tips and news from our tutors.',
+      cta: `${filteredBlogs.length} posts`,
+      show: filteredBlogs.length > 0,
+    },
+  ].filter((c) => c.show);
 
   return (
     <>
@@ -298,20 +303,25 @@ export function ResourcesPage() {
         </section>
 
         <div className="shell lib-layout" id="library">
-          {/* Library tabs: a sliding pill bar that stays under the header */}
-          <div className="lib-tabs">
-            <div className="lib-tabs-inner">
-              <div className="lib-tabs-row">
-                <SlidingPills items={libraryTabs} active={activeSection} label="Resource library sections" />
-                <a className="lib-tabs-cta" href="/free-test">
-                  Free SAT practice test <span aria-hidden="true">→</span>
+          {/* Library cards: one per section, each jumps to its section */}
+          {libraryCards.length > 1 && (
+            <nav className={`lib-cards lib-cards--${libraryCards.length}`} aria-label="Resource library sections">
+              {libraryCards.map(({ id, icon: Icon, title, text, cta }) => (
+                <a key={id} className="lib-card" href={`#${id}`}>
+                  <span className="lib-card-icon" aria-hidden="true">
+                    <Icon size={22} strokeWidth={2} />
+                  </span>
+                  <span className="lib-card-body">
+                    <strong>{title}</strong>
+                    <small>{text}</small>
+                    <em>
+                      {cta} <span aria-hidden="true">→</span>
+                    </em>
+                  </span>
                 </a>
-              </div>
-              {activeSection === 'ap-guides' && apTabs.length > 1 && (
-                <SlidingPills items={apTabs} active={activeGroup} label="AP subject areas" small />
-              )}
-            </div>
-          </div>
+              ))}
+            </nav>
+          )}
 
           <div className="lib-main">
             {searchQuery && (
@@ -421,11 +431,7 @@ export function ResourcesPage() {
 
             {/* Guides & articles — static pages, prerendered for search and AI engines */}
             {searchedArticles.length > 0 && (
-              <section id="articles" className="lib-section" aria-labelledby="articles-title">
-                <div className="lib-head">
-                  <h2 id="articles-title">Articles</h2>
-                  <p>Straight answers to the questions parents and students ask most</p>
-                </div>
+              <section id="articles" className="lib-section" aria-label="Articles">
                 <div className="lib-chips" role="group" aria-label="Filter articles by topic">
                   {ARTICLE_TAGS.filter((t) => articleCount(t) > 0).map((t) => (
                     <button
