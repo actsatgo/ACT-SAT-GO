@@ -634,6 +634,8 @@
 .lib-exams {
   display: flex;
   align-items: stretch;
+  /* Runs the full width of the window, with a small gap at each edge */
+  margin: 0 calc(50% - 50vw + 16px);
   background: #fff;
   border: 1px solid #e3e8f0;
   border-radius: 14px;
