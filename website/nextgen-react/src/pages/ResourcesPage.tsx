@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Header } from '../components/Header';
-import { BookOpen, GraduationCap, Newspaper, PenLine } from 'lucide-react';
 import { Footer } from '../components/Footer';
 import { fetchBlogs, type BlogPost } from '../admin/api';
 import { AP_GUIDES, apGuidePdf, type ApGuide, type ApGuideCategory } from '../data/apGuides';
@@ -75,6 +74,12 @@ const AP_GROUPS: { id: string; label: string; categories: ApGuideCategory[] }[] 
 const ARTICLE_TAGS = ['All', 'SAT', 'ACT', 'College Admissions', 'AP'];
 
 /** Articles tagged "SAT & ACT" cover both tests, so they show under the SAT chip and the ACT chip. */
+const EXAMS = ['SAT', 'ACT', 'AP', 'IB', 'Others'] as const;
+type Exam = (typeof EXAMS)[number];
+/** "Others" holds what isn't tied to one exam: college admissions articles and the blog. */
+const articleInExam = (articleTag: string, exam: Exam | null) =>
+  !exam || (exam === 'Others' ? articleTag === 'College Admissions' : exam !== 'IB' && hasArticleTag(articleTag, exam));
+
 const hasArticleTag = (articleTag: string, chip: string) =>
   chip === 'All' || articleTag === chip || (articleTag === 'SAT & ACT' && (chip === 'SAT' || chip === 'ACT'));
 const ARTICLES_SHOWN = 8;
@@ -86,6 +91,7 @@ const apText = (g: ApGuide) => `${g.title} ${g.category} ${g.summary} ${g.keywor
 
 export function ResourcesPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [exam, setExam] = useState<Exam | null>(null);
   const [articleTag, setArticleTag] = useState('All');
   const [showAllArticles, setShowAllArticles] = useState(false);
   const [email, setEmail] = useState('');
@@ -153,22 +159,26 @@ export function ResourcesPage() {
   };
 
   // Filtering
-  const testGuides = TEST_GUIDES.filter((g) =>
-    matches(`${g.title} ${g.tag} ${g.summary} ${g.keywords.join(' ')} test guide`, searchQuery),
+  const testGuides = TEST_GUIDES.filter(
+    (g) =>
+      (!exam || g.slug.startsWith(exam.toLowerCase())) &&
+      matches(`${g.title} ${g.tag} ${g.summary} ${g.keywords.join(' ')} test guide`, searchQuery),
   );
-  const apGuides = AP_GUIDES.filter((g) => matches(apText(g), searchQuery));
+  const apGuides = AP_GUIDES.filter((g) => (!exam || exam === 'AP') && matches(apText(g), searchQuery));
   const apGroups = AP_GROUPS.map((group) => ({
     ...group,
     guides: apGuides.filter((g) => group.categories.includes(g.category)),
   })).filter((group) => group.guides.length > 0);
 
-  const searchedArticles = ARTICLES.filter((a) => matches(`${a.title} ${a.tag} ${a.description}`, searchQuery));
+  const searchedArticles = ARTICLES.filter(
+    (a) => articleInExam(a.tag, exam) && matches(`${a.title} ${a.tag} ${a.description}`, searchQuery),
+  );
   const articleCount = (tag: string) => searchedArticles.filter((a) => hasArticleTag(a.tag, tag)).length;
   const articles = searchedArticles.filter((a) => hasArticleTag(a.tag, articleTag));
   const shownArticles = showAllArticles ? articles : articles.slice(0, ARTICLES_SHOWN);
 
   const filteredBlogs = blogs.filter((post) =>
-    matches(`${post.title} ${post.text} ${post.tag} ${post.tags.join(' ')}`, searchQuery),
+    (!exam || exam === 'Others') && matches(`${post.title} ${post.text} ${post.tag} ${post.tags.join(' ')}`, searchQuery),
   );
 
   const hasResults = testGuides.length + apGuides.length + searchedArticles.length + filteredBlogs.length > 0;
@@ -182,40 +192,11 @@ export function ResourcesPage() {
     [],
   );
 
-  const libraryCards = [
-    {
-      id: 'sat-act-guides',
-      icon: BookOpen,
-      title: 'SAT & ACT guides',
-      text: 'Two complete test guides: sections, scoring, a 12-week plan and practice.',
-      cta: `${testGuides.length} free PDFs`,
-      show: testGuides.length > 0,
-    },
-    {
-      id: 'ap-guides',
-      icon: GraduationCap,
-      title: 'AP exam guides',
-      text: 'Every AP subject, grouped by area, each with a full web guide and PDF.',
-      cta: `${apGuides.length} subjects`,
-      show: apGuides.length > 0,
-    },
-    {
-      id: 'articles',
-      icon: Newspaper,
-      title: 'Articles',
-      text: 'Straight answers on SAT, ACT, AP and college admissions.',
-      cta: `${searchedArticles.length} articles`,
-      show: searchedArticles.length > 0,
-    },
-    {
-      id: 'blog',
-      icon: PenLine,
-      title: 'Blog',
-      text: 'Study tips and news from our tutors.',
-      cta: `${filteredBlogs.length} posts`,
-      show: filteredBlogs.length > 0,
-    },
-  ].filter((c) => c.show);
+  const pickExam = (e: Exam) => {
+    setExam(exam === e ? null : e);
+    setArticleTag('All');
+    setShowAllArticles(false);
+  };
 
   return (
     <>
@@ -303,25 +284,20 @@ export function ResourcesPage() {
         </section>
 
         <div className="shell lib-layout" id="library">
-          {/* Library cards: one per section, each jumps to its section */}
-          {libraryCards.length > 1 && (
-            <nav className={`lib-cards lib-cards--${libraryCards.length}`} aria-label="Resource library sections">
-              {libraryCards.map(({ id, icon: Icon, title, text, cta }) => (
-                <a key={id} className="lib-card" href={`#${id}`}>
-                  <span className="lib-card-icon" aria-hidden="true">
-                    <Icon size={22} strokeWidth={2} />
-                  </span>
-                  <span className="lib-card-body">
-                    <strong>{title}</strong>
-                    <small>{text}</small>
-                    <em>
-                      {cta} <span aria-hidden="true">→</span>
-                    </em>
-                  </span>
-                </a>
-              ))}
-            </nav>
-          )}
+          {/* Exam bar: narrows the library to one exam; picking it again shows everything */}
+          <nav className="lib-exams" aria-label="Filter the library by exam">
+            {EXAMS.map((e) => (
+              <button
+                key={e}
+                type="button"
+                className={`lib-exam${exam === e ? ' active' : ''}`}
+                aria-pressed={exam === e}
+                onClick={() => pickExam(e)}
+              >
+                <span className="lib-exam-label">{e}</span>
+              </button>
+            ))}
+          </nav>
 
           <div className="lib-main">
             {searchQuery && (
@@ -336,9 +312,24 @@ export function ResourcesPage() {
             {/* Empty state when search yields nothing */}
             {!hasResults && (
               <div className="search-empty-state">
-                <h3>No match found</h3>
-                <p>We couldn't find any guides or articles matching "{searchQuery}".</p>
-                <button className="clear-search-btn" onClick={clearSearch}>
+                {exam === 'IB' && !searchQuery ? (
+                  <>
+                    <h3>IB guides are coming soon</h3>
+                    <p>We're writing them now. Meanwhile, browse our SAT, ACT and AP guides.</p>
+                  </>
+                ) : (
+                  <>
+                    <h3>No match found</h3>
+                    <p>We couldn't find any guides or articles matching "{searchQuery}".</p>
+                  </>
+                )}
+                <button
+                  className="clear-search-btn"
+                  onClick={() => {
+                    clearSearch();
+                    setExam(null);
+                  }}
+                >
                   Clear Search &amp; View All
                 </button>
               </div>
