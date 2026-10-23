@@ -631,36 +631,21 @@
 }
 
 /* ── Exam bar: SAT | ACT | AP | IB | Articles | Others ─────────── */
-/* A navy band; the hovered exam lifts out of it as a white 3D tile. */
+/* A raised white band; the hovered exam lifts slightly as a yellow tile. */
 .lib-exams {
-  --bar-bg: var(--navy);
-  --bar-text: #ffffff;
-  --bar-line: rgba(255, 255, 255, 0.2);
-  --bar-pick: var(--gold);
-  --tile-bg: #ffffff;
-  --tile-text: var(--navy);
   display: flex;
   align-items: stretch;
   /* Runs the full width of the window, with a small gap at each edge */
   margin: 0 calc(50% - 50vw + 16px);
   min-height: 76px;
   padding: 6px;
-  background: var(--bar-bg);
-  border: 1px solid var(--bar-bg);
+  background: linear-gradient(180deg, #ffffff, #f6f8fb);
+  border: 1px solid #e1e7f0;
   border-radius: 16px;
-  box-shadow: 0 18px 40px -22px rgba(6, 26, 47, 0.6);
-}
-
-/* Light version: white band, the hovered exam lifts out as a blue tile */
-.lib-exams--light {
-  --bar-bg: #ffffff;
-  --bar-text: var(--navy);
-  --bar-line: #d5dce6;
-  --bar-pick: #1d5fd1;
-  --tile-bg: #1d5fd1;
-  --tile-text: #ffffff;
-  border-color: #e3e8f0;
-  box-shadow: 0 14px 34px -24px rgba(6, 26, 47, 0.45);
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 4px 0 #dde3ec,
+    0 16px 30px -14px rgba(6, 26, 47, 0.35);
 }
 
 .lib-exam {
@@ -670,7 +655,7 @@
   border: 0;
   border-radius: 12px;
   background: none;
-  color: var(--bar-text);
+  color: var(--navy);
   font: inherit;
   font-size: 19px;
   font-weight: 800;
@@ -691,7 +676,7 @@
   bottom: 24%;
   left: 0;
   width: 1px;
-  background: var(--bar-line);
+  background: #d5dce6;
   transition: opacity 0.2s ease;
 }
 
@@ -702,23 +687,23 @@
 
 .lib-exam:is(:hover, :focus-visible) {
   z-index: 1;
-  background: var(--tile-bg);
-  color: var(--tile-text);
-  transform: translateY(-6px) scale(1.05);
+  background: linear-gradient(180deg, #ffc93c, #ffb400);
+  color: var(--navy);
+  transform: translateY(-2px);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.6) inset,
-    0 6px 0 -1px rgba(6, 26, 47, 0.18),
-    0 18px 30px -10px rgba(6, 26, 47, 0.45);
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 3px 0 #d99a00,
+    0 10px 18px -10px rgba(6, 26, 47, 0.4);
 }
 
 .lib-exam-label {
   padding-bottom: 6px;
-  background: linear-gradient(var(--bar-pick), var(--bar-pick)) no-repeat 50% 100% / 0 3px;
+  background: linear-gradient(var(--gold), var(--gold)) no-repeat 50% 100% / 0 3px;
   transition: background-size 0.25s ease;
 }
 
 .lib-exam.active {
-  color: var(--bar-pick);
+  color: #b77900;
 }
 
 .lib-exam.active .lib-exam-label {
@@ -726,7 +711,11 @@
 }
 
 .lib-exam.active:is(:hover, :focus-visible) {
-  color: var(--tile-text);
+  color: var(--navy);
+}
+
+.lib-exam.active:is(:hover, :focus-visible) .lib-exam-label {
+  background-image: linear-gradient(var(--navy), var(--navy));
 }
 
 @media (prefers-reduced-motion: reduce) {

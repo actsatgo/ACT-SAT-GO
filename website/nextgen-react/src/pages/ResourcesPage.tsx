@@ -302,11 +302,7 @@ export function ResourcesPage() {
 
         <div className="shell lib-layout" id="library">
           {/* Exam bar: narrows the library to one exam; picking it again shows everything */}
-          {/* Preview only: ?bar=light shows the white version of the bar */}
-          <nav
-            className={`lib-exams${params.get('bar') === 'light' ? ' lib-exams--light' : ''}`}
-            aria-label="Filter the library by exam"
-          >
+          <nav className="lib-exams" aria-label="Filter the library by exam">
             {EXAMS.map((e) => (
               <button
                 key={e}
