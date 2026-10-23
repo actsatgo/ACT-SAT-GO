@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import type { FocusEvent, PointerEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Brand } from './Brand';
 import { APP_LOGIN_URL } from '../config';
@@ -14,10 +13,7 @@ const PROGRAM_LINKS: { to?: string; href?: string; label: string }[] = [
   { to: '/future-programs', label: 'Future Programs' },
 ];
 
-// Desktop nav: a white pill slides behind the menu items. It rests on the current
-// page and follows the pointer (or keyboard focus) as a translucent "ghost".
-const PILL_QUERY = '(min-width: 1041px)';
-
+// Which menu item the current page belongs to (shown in bold on desktop).
 function activeItem(path: string) {
   if (path === '/') return 'home';
   if (path.startsWith('/about-us')) return 'about';
@@ -28,8 +24,6 @@ function activeItem(path: string) {
   if (path.startsWith('/consultation')) return 'book';
   return null;
 }
-
-interface Glide { x: number; y: number; w: number; h: number; ghost: boolean; cta: boolean; instant: boolean }
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -56,56 +50,9 @@ export function Header() {
     return () => document.body.classList.remove('nav-locked');
   }, [open]);
 
-  const navRef = useRef<HTMLElement>(null);
   const { pathname } = useLocation();
-  const [glide, setGlide] = useState<Glide | null>(null);
-
-  const moveTo = useCallback((el: Element | null, ghost: boolean) => {
-    const nav = navRef.current;
-    if (!nav || !el || !window.matchMedia(PILL_QUERY).matches) return setGlide(null);
-    const n = nav.getBoundingClientRect();
-    const r = el.getBoundingClientRect();
-    setGlide((g) => ({
-      x: r.left - n.left,
-      y: r.top - n.top,
-      w: r.width,
-      h: r.height,
-      ghost,
-      cta: (el as HTMLElement).dataset.glide === 'book',
-      instant: !g,
-    }));
-  }, []);
-
-  const rest = useCallback(() => {
-    const key = activeItem(pathname);
-    moveTo(key ? navRef.current?.querySelector(`[data-glide="${key}"]`) ?? null : null, false);
-  }, [moveTo, pathname]);
-
-  // Re-measure when the page, the window or the bar's size changes (it slims on scroll).
-  useEffect(() => {
-    rest();
-    const nav = navRef.current;
-    if (!nav) return;
-    const ro = new ResizeObserver(() => rest());
-    // The nav itself animates its height when the bar slims, so it is watched too.
-    [nav, ...nav.querySelectorAll('.nav-links, .nav-actions')].forEach((el) => ro.observe(el));
-    window.addEventListener('resize', rest);
-    return () => {
-      ro.disconnect();
-      window.removeEventListener('resize', rest);
-    };
-  }, [rest]);
-
-  const onPillPointer = (e: PointerEvent) => {
-    if (e.pointerType !== 'mouse') return;
-    const item = (e.target as Element).closest('[data-glide]');
-    if (item) moveTo(item, true);
-    else rest();
-  };
-  const onPillFocus = (e: FocusEvent) => {
-    const item = (e.target as Element).closest('[data-glide]');
-    if (item && (e.target as Element).matches(':focus-visible')) moveTo(item, true);
-  };
+  const current = activeItem(pathname);
+  const cur = (key: string) => (current === key ? { className: 'is-current', 'aria-current': 'page' as const } : {});
 
   const close = () => {
     setOpen(false);
@@ -114,20 +61,7 @@ export function Header() {
 
   return (
     <header className={`site-header${compact ? ' is-compact' : ''}`}>
-      <nav
-        ref={navRef}
-        className={`nav shell${open ? ' is-open' : ''}`}
-        aria-label="Primary navigation"
-        onPointerOver={onPillPointer}
-        onPointerLeave={rest}
-        onFocus={onPillFocus}
-        onBlur={rest}
-      >
-        <span
-          className={`nav-glider${glide ? ' is-on' : ''}${glide?.ghost ? ' is-ghost' : ''}${glide?.cta ? ' is-cta' : ''}`}
-          aria-hidden="true"
-          style={glide ? { width: glide.w, height: glide.h, transform: `translate(${glide.x}px, ${glide.y}px)`, transition: glide.instant ? 'none' : undefined } : undefined}
-        />
+      <nav className={`nav shell${open ? ' is-open' : ''}`} aria-label="Primary navigation">
         <Brand onNavigate={close} />
         {/* Phones and tablets: the main action stays in the top bar next to the menu */}
         <Link to="/consultation" className="btn btn-primary nav-btn-book nav-book-mobile" onClick={close}>Book Free Session</Link>
@@ -141,7 +75,7 @@ export function Header() {
           <span></span><span></span><span></span>
         </button>
         <div className="nav-links" data-nav>
-          <a href="/#home" onClick={close} className="nav-home" aria-label="Home" data-glide="home">
+          <a href="/#home" onClick={close} className={`nav-home${current === 'home' ? ' is-current' : ''}`} aria-label="Home">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M3 11.5 12 4l9 7.5" />
               <path d="M5.5 9.5V20h13V9.5" />
@@ -150,7 +84,7 @@ export function Header() {
             <span className="nav-home-label">Home</span>
           </a>
 
-          <Link to="/about-us" onClick={close} data-glide="about">About Us</Link>
+          <Link to="/about-us" onClick={close} {...cur('about')}><span className="nav-label">About Us</span></Link>
 
           <div
             className={`nav-dropdown${programsOpen ? ' is-open' : ''}`}
@@ -160,12 +94,14 @@ export function Header() {
           >
             <button
               type="button"
-              className="nav-dropdown-toggle"
-              data-glide="programs"
+              className={`nav-dropdown-toggle${current === 'programs' ? ' is-current' : ''}`}
               aria-expanded={programsOpen}
               onClick={() => setProgramsOpen((v) => !v)}
             >
-              Programs <span aria-hidden="true">▾</span>
+              <span className="nav-label">Programs</span>
+              <svg className="nav-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
             </button>
             <div className="nav-dropdown-menu" role="menu">
               {PROGRAM_LINKS.map((p) => (
@@ -178,11 +114,11 @@ export function Header() {
             </div>
           </div>
 
-          <Link to="/resources" onClick={close} data-glide="resources">Resources</Link>
+          <Link to="/resources" onClick={close} {...cur('resources')}><span className="nav-label">Resources</span></Link>
 
-          <Link to="/careers" onClick={close} data-glide="careers">Careers</Link>
+          <Link to="/careers" onClick={close} {...cur('careers')}><span className="nav-label">Careers</span></Link>
 
-          <a href={APP_LOGIN_URL} onClick={close} data-glide="login">Login</a>
+          <a href={APP_LOGIN_URL} onClick={close}><span className="nav-label">Login</span></a>
 
           {/* Mobile-only actions inside the drawer */}
           <div className="nav-links-mobile-actions">
@@ -230,10 +166,10 @@ export function Header() {
           </div>
         </div>
         <div className="nav-actions">
-          <Link to="/free-test" className="btn btn-secondary nav-btn-free-test" data-glide="free-test">
-            Free Practice Test
+          <Link to="/free-test" className={`btn btn-secondary nav-btn-free-test${current === 'free-test' ? ' is-current' : ''}`}>
+            <span className="nav-label">Free Practice Test</span>
           </Link>
-          <Link to="/consultation" className="btn btn-primary nav-btn-book" data-glide="book">Book Free Session</Link>
+          <Link to="/consultation" className="btn btn-primary nav-btn-book">Book Free Session</Link>
         </div>
       </nav>
     </header>

@@ -20,7 +20,7 @@ import './header.css';
 import './hero.css';
 import './hub-orbit.css';
 import './hover.css';
-import './nav-pill.css';
+import './nav-tabs.css';
 
 initAnalytics();
 
