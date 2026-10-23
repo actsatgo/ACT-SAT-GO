@@ -25,13 +25,13 @@
 .resources-hero {
   position: relative;
   overflow: hidden;
-  padding: 12px 0 60px;
+  padding: 44px 0 60px;
 }
 
 .resources-hero-grid {
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
-  gap: 48px;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
   align-items: center;
 }
 
@@ -172,7 +172,8 @@
 }
 
 .resources-hero-photo {
-  max-width: 95%;
+  width: 100%;
+  max-width: 640px;
   height: auto;
   object-fit: contain;
   filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4));
@@ -766,7 +767,7 @@
     margin-top: 20px;
   }
   .resources-hero-photo {
-    max-width: 70%;
+    max-width: 88%;
   }
   .newsletter-main-row {
     grid-template-columns: 1fr;

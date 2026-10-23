@@ -221,13 +221,8 @@ export function ResourcesPage() {
         <section className="resources-hero section-dark">
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell">
-            <p className="resources-breadcrumb">
-              <a href="/">Home</a> <span aria-hidden="true">›</span> <span>Resources</span>
-            </p>
-
             <div className="resources-hero-grid">
               <div className="resources-hero-copy">
-                <span className="eyebrow">RESOURCES &amp; BLOG</span>
                 <h1>
                   Knowledge that<br />
                   <span>Empowers Progress</span>
@@ -294,6 +289,8 @@ export function ResourcesPage() {
                   src={heroImg}
                   alt="Knowledge and education concept: Graduation cap, rocket and icons orbiting lightbulb"
                   className="resources-hero-photo"
+                  width={1050}
+                  height={957}
                 />
               </div>
             </div>
