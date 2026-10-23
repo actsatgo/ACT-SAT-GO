@@ -73,7 +73,11 @@ const AP_GROUPS: { id: string; label: string; categories: ApGuideCategory[] }[] 
   { id: 'ap-capstone', label: 'Capstone and Career Kickstart', categories: ['Capstone', 'Career Kickstart'] },
 ];
 
-const ARTICLE_TAGS = ['All', 'SAT', 'ACT', 'SAT & ACT', 'College Admissions', 'AP'];
+const ARTICLE_TAGS = ['All', 'SAT', 'ACT', 'College Admissions', 'AP'];
+
+/** Articles tagged "SAT & ACT" cover both tests, so they show under the SAT chip and the ACT chip. */
+const hasArticleTag = (articleTag: string, chip: string) =>
+  chip === 'All' || articleTag === chip || (articleTag === 'SAT & ACT' && (chip === 'SAT' || chip === 'ACT'));
 const ARTICLES_SHOWN = 8;
 
 const SECTION_IDS = ['sat-act-guides', 'ap-guides', 'articles', 'blog'];
@@ -184,9 +188,8 @@ export function ResourcesPage() {
   })).filter((group) => group.guides.length > 0);
 
   const searchedArticles = ARTICLES.filter((a) => matches(`${a.title} ${a.tag} ${a.description}`, searchQuery));
-  const articleCount = (tag: string) =>
-    tag === 'All' ? searchedArticles.length : searchedArticles.filter((a) => a.tag === tag).length;
-  const articles = searchedArticles.filter((a) => articleTag === 'All' || a.tag === articleTag);
+  const articleCount = (tag: string) => searchedArticles.filter((a) => hasArticleTag(a.tag, tag)).length;
+  const articles = searchedArticles.filter((a) => hasArticleTag(a.tag, articleTag));
   const shownArticles = showAllArticles ? articles : articles.slice(0, ARTICLES_SHOWN);
 
   const filteredBlogs = blogs.filter((post) =>
@@ -421,11 +424,7 @@ export function ResourcesPage() {
 
             {/* Guides & articles — static pages, prerendered for search and AI engines */}
             {searchedArticles.length > 0 && (
-              <section id="articles" className="lib-section" aria-labelledby="articles-title">
-                <div className="lib-head">
-                  <h2 id="articles-title">Articles</h2>
-                  <p>Straight answers to the questions parents and students ask most</p>
-                </div>
+              <section id="articles" className="lib-section" aria-label="Articles">
                 <div className="lib-chips" role="group" aria-label="Filter articles by topic">
                   {ARTICLE_TAGS.filter((t) => articleCount(t) > 0).map((t) => (
                     <button
