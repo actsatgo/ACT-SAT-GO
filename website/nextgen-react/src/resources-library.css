@@ -680,12 +680,13 @@
   transition: opacity 0.2s ease;
 }
 
-.lib-exams > :is(:hover, :focus-visible, .is-open)::before,
-.lib-exams > :is(:hover, :focus-visible, .is-open) + *::before {
+.lib-exams > :is(:hover, :focus-visible, .is-open, .active, :has(> .active))::before,
+.lib-exams > :is(:hover, :focus-visible, .is-open, .active, :has(> .active)) + *::before {
   opacity: 0;
 }
 
-.lib-exam:is(:hover, :focus-visible) {
+.lib-exam:is(:hover, :focus-visible),
+.lib-exam.active {
   z-index: 1;
   background: linear-gradient(180deg, #ffc93c, #ffb400);
   color: var(--navy);
@@ -703,19 +704,7 @@
 }
 
 .lib-exam.active {
-  color: #b77900;
-}
-
-.lib-exam.active .lib-exam-label {
-  background-size: 100% 3px;
-}
-
-.lib-exam.active:is(:hover, :focus-visible) {
   color: var(--navy);
-}
-
-.lib-exam.active:is(:hover, :focus-visible) .lib-exam-label {
-  background-image: linear-gradient(var(--navy), var(--navy));
 }
 
 /* AP tab: opens a dropdown of AP subject areas */
@@ -788,9 +777,14 @@
   transform: translate(-50%, 0);
 }
 
-.lib-exam-menu button {
+.lib-exam-menu > li {
+  position: relative;
+}
+
+.lib-exam-menu :is(button, a) {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 24px;
   width: 100%;
   padding: 10px 14px;
@@ -802,21 +796,88 @@
   font-size: 15px;
   font-weight: 600;
   text-align: left;
+  text-decoration: none;
   cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, padding 0.15s ease;
 }
 
 .lib-exam-menu button span {
+  display: inline-flex;
+  gap: 10px;
   color: var(--muted);
   font-weight: 700;
 }
 
-.lib-exam-menu button:is(:hover, :focus-visible) {
-  background: #fff4d6;
+.lib-exam-menu button i {
+  font-style: normal;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Hover: the row turns navy and nudges right; its count turns gold */
+.lib-exam-menu > li:is(:hover, :focus-within) > button,
+.lib-exam-sub :is(button, a):is(:hover, :focus-visible) {
+  background: var(--navy);
+  color: #fff;
+  padding-left: 18px;
+}
+
+.lib-exam-menu > li:is(:hover, :focus-within) > button span {
+  color: var(--gold);
 }
 
 .lib-exam-menu button.active {
-  color: #b77900;
+  box-shadow: inset 3px 0 0 var(--gold);
   font-weight: 800;
+}
+
+/* Subjects of the hovered group, in a panel to the right */
+.lib-exam-sub {
+  position: absolute;
+  top: -6px;
+  left: calc(100% + 12px);
+  width: max-content;
+  min-width: 260px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #e1e7f0;
+  border-radius: 14px;
+  box-shadow: 0 24px 50px -16px rgba(6, 26, 47, 0.35);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+}
+
+.lib-exam-sub :is(button, a) {
+  font-size: 14.5px;
+  padding: 8px 14px;
+}
+
+/* Bridges the gap between a group row and its panel */
+.lib-exam-menu > li:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  width: 14px;
+}
+
+.lib-exam-menu > li:is(:hover, :focus-within) > .lib-exam-sub {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+/* Phones have no room for a side panel: tapping a group shows its guides */
+@media (hover: none), (max-width: 860px) {
+  .lib-exam-sub,
+  .lib-exam-menu > li::after {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -194,8 +194,11 @@ export function ResourcesPage() {
       (!exam || g.slug.startsWith(exam.toLowerCase())) &&
       matches(`${g.title} ${g.tag} ${g.summary} ${g.keywords.join(' ')} test guide`, searchQuery),
   );
-  const apGuides = AP_GUIDES.filter((g) => (!exam || exam === 'AP') && matches(apText(g), searchQuery));
-  const apGroups = AP_GROUPS.filter((group) => !apArea || group.id === apArea.id).map((group) => ({
+  const apGuides = AP_GUIDES.filter(
+    (g) =>
+      (!exam || exam === 'AP') && (!apArea || apArea.categories.includes(g.category)) && matches(apText(g), searchQuery),
+  );
+  const apGroups = AP_GROUPS.map((group) => ({
     ...group,
     guides: apGuides.filter((g) => group.categories.includes(g.category)),
   })).filter((group) => group.guides.length > 0);
@@ -342,26 +345,42 @@ export function ResourcesPage() {
                     </svg>
                   </button>
                   <ul className="lib-exam-menu">
-                    <li>
-                      <button
-                        type="button"
-                        className={exam === 'AP' && !apArea ? 'active' : ''}
-                        onClick={() => pickExam('AP')}
-                      >
-                        All AP subjects <span>{AP_GUIDES.length}</span>
-                      </button>
-                    </li>
-                    {AP_GROUPS.map((g) => (
-                      <li key={g.id}>
-                        <button
-                          type="button"
-                          className={apArea?.id === g.id ? 'active' : ''}
-                          onClick={() => pickExam('AP', g.id)}
-                        >
-                          {g.label} <span>{AP_GUIDES.filter((a) => g.categories.includes(a.category)).length}</span>
-                        </button>
-                      </li>
-                    ))}
+                    {AP_GROUPS.map((g) => {
+                      const subjects = AP_GUIDES.filter((a) => g.categories.includes(a.category));
+                      return (
+                        <li key={g.id}>
+                          <button
+                            type="button"
+                            className={apArea?.id === g.id ? 'active' : ''}
+                            onClick={() => pickExam('AP', g.id)}
+                          >
+                            {g.label}
+                            <span>
+                              {subjects.length} <i aria-hidden="true">›</i>
+                            </span>
+                          </button>
+                          {/* Hovering a group opens its subjects to the right */}
+                          <ul className="lib-exam-sub">
+                            {subjects.map((a) => {
+                              const page = AP_SUBJECT_BY_GUIDE[a.slug];
+                              return (
+                                <li key={a.slug}>
+                                  {page ? (
+                                    <Link to={apSubjectPath(page.slug)} onClick={() => setApMenuOpen(false)}>
+                                      {a.title}
+                                    </Link>
+                                  ) : (
+                                    <button type="button" onClick={() => pickExam('AP', g.id)}>
+                                      {a.title}
+                                    </button>
+                                  )}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               ) : (
