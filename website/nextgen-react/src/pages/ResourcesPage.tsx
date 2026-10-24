@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
@@ -237,15 +237,6 @@ export function ResourcesPage() {
 
   const hasResults = testGuides.length + apGuides.length + searchedArticles.length + filteredBlogs.length > 0;
 
-  const counts = useMemo(
-    () => [
-      { n: TEST_GUIDES.length, label: 'SAT & ACT guides' },
-      { n: AP_GUIDES.length, label: 'AP exam guides' },
-      { n: ARTICLES.length, label: 'expert articles' },
-    ],
-    [],
-  );
-
   const pickExam = (e: Exam, area?: string) => {
     closeApMenu();
     // Picking the tab that's already showing changes nothing.
@@ -311,20 +302,6 @@ export function ResourcesPage() {
                       {pill}
                     </button>
                   ))}
-                </div>
-
-                {/* Library counts */}
-                <div className="lib-stats">
-                  {counts.map((c) => (
-                    <div key={c.label}>
-                      <strong>{c.n}</strong>
-                      <span>{c.label}</span>
-                    </div>
-                  ))}
-                  <div>
-                    <strong>$0</strong>
-                    <span>free, no sign-up</span>
-                  </div>
                 </div>
               </div>
 
@@ -580,7 +557,7 @@ export function ResourcesPage() {
                           setShowAllArticles(false);
                         }}
                       >
-                        {t} <span>{articleCount(t)}</span>
+                        {t}
                       </button>
                     ))}
                   </div>

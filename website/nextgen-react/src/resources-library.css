@@ -16,32 +16,6 @@
   color: var(--muted);
 }
 
-/* Hero counts */
-.lib-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 30px;
-  margin-top: 28px;
-}
-
-.lib-stats div {
-  display: flex;
-  flex-direction: column;
-}
-
-.lib-stats strong {
-  color: var(--gold);
-  font-size: 26px;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.lib-stats span {
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 13px;
-  font-weight: 700;
-}
-
 /* Layout */
 .lib-layout {
   display: grid;
@@ -527,11 +501,6 @@
   color: #c0c9d6;
 }
 
-.lib-chip span {
-  margin-left: 4px;
-  color: var(--muted);
-}
-
 .lib-chip.active {
   color: #1d4fb8;
   text-decoration: underline;
@@ -837,11 +806,6 @@
   .lib-cta-actions {
     width: 100%;
   }
-
-  .lib-stats {
-    justify-content: center;
-    gap: 22px;
-  }
 }
 
 @media (max-width: 600px) {
@@ -852,10 +816,6 @@
 
   .lib-feature-card img {
     width: 90px;
-  }
-
-  .lib-stats strong {
-    font-size: 22px;
   }
 }
 
