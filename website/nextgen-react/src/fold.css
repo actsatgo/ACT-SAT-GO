@@ -36,3 +36,25 @@
     mask-composite: intersect;
   }
 }
+
+/* SAT, ACT & AP: no stretching to the window height, so the hero starts right
+   under the header instead of floating in empty space on tall screens */
+@media (min-width: 1041px) {
+  .prog-hero.sat-page.fold-hero,
+  .prog-hero.ap-page.fold-hero {
+    min-height: 0;
+    align-content: start;
+    padding-top: 12px;
+    padding-bottom: 44px;
+  }
+}
+
+@media (min-width: 1041px) {
+  .prog-hero.ap-page.fold-hero {
+    padding-top: 20px;
+  }
+
+  .prog-hero.ap-page .prog-hero-grid {
+    align-items: start;
+  }
+}

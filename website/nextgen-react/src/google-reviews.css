@@ -249,3 +249,190 @@
     display: none;
   }
 }
+
+/* ── Video testimonials: same endless strip, on the navy section ───── */
+.testimonials {
+  padding: 64px 0 56px;
+  overflow: hidden;
+}
+
+.vt-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.vt-head h2 {
+  margin: 0 0 8px;
+  color: #ffffff;
+  font-size: clamp(28px, 3.4vw, 42px);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.vt-head p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 15.5px;
+  font-weight: 500;
+}
+
+.vt-link {
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 15px;
+  text-decoration: none;
+  border-bottom: 2px solid var(--gold);
+  padding-bottom: 2px;
+  transition: color 0.2s ease;
+}
+
+.vt-link:hover {
+  color: var(--gold);
+}
+
+.vt-marquee {
+  position: relative;
+  z-index: 2;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 64px, #000 calc(100% - 64px), transparent 100%);
+}
+
+.vt-track {
+  display: flex;
+  align-items: stretch;
+  width: max-content;
+  padding: 10px 0 18px;
+  animation: gr-scroll linear infinite;
+}
+
+.vt-marquee:hover .vt-track,
+.vt-marquee:focus-within .vt-track,
+.vt-marquee.is-held .vt-track {
+  animation-play-state: paused;
+}
+
+.vt-slot {
+  display: flex;
+  padding-right: 18px;
+}
+
+.vt-card {
+  display: flex;
+  flex-direction: column;
+  width: 250px;
+  padding: 12px 12px 16px;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 18px 40px -26px rgba(0, 0, 0, 0.6);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.vt-card:hover {
+  transform: translateY(-5px);
+  border-color: var(--gold);
+  box-shadow: 0 26px 48px -26px rgba(0, 0, 0, 0.7);
+}
+
+.vt-card .video-wrapper {
+  padding-bottom: 120%;
+  margin-bottom: 12px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+/* The videos are vertical Shorts: YouTube's 4:3 thumbnail pads them with
+   black side bars. Zoom so the middle (the actual video) fills the card. */
+.vt-card .video-thumb {
+  background-size: 245% auto;
+  background-position: 50% 40%;
+}
+
+.vt-card:hover .video-play-btn {
+  transform: scale(1.08);
+  background: var(--gold-2);
+  border-color: var(--gold-2);
+}
+
+.vt-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.65);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+.vt-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+.vt-name {
+  margin: 0 0 2px;
+  padding: 0 4px;
+  color: var(--navy);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.vt-details {
+  margin: 0 0 6px;
+  padding: 0 4px;
+  color: var(--gold-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.vt-quote {
+  margin: 0;
+  padding: 0 4px;
+  color: #475569;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+  .testimonials {
+    padding: 48px 0 40px;
+  }
+
+  .vt-head {
+    align-items: flex-start;
+  }
+
+  .vt-card {
+    width: 220px;
+  }
+
+  .vt-marquee {
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vt-marquee {
+    overflow-x: auto;
+  }
+
+  .vt-track {
+    animation: none;
+  }
+
+  .vt-slot[aria-hidden='true'] {
+    display: none;
+  }
+}

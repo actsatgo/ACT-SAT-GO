@@ -1465,3 +1465,10 @@
     animation: none !important;
   }
 }
+
+.prog-hero-copy h1 sup {
+  font-size: 0.42em;
+  vertical-align: super;
+  line-height: 0;
+  margin-left: 0.04em;
+}

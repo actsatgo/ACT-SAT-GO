@@ -8,7 +8,16 @@ import { Footer } from '../components/Footer';
 import { FaqSection } from '../components/FaqSection';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import type { ProgramPageData } from '../data/programs';
-import apHeroImg from '../assets/img/ap-hero-photo.webp';
+import apHeroImg from '../assets/img/ap-hero-backdrop.webp';
+
+// White cards that float over the AP hero scene, each on its own timing.
+// Positions are in units of the image (see .ap-hero-card in styles.css).
+const AP_HERO_CARDS = [
+  { key: 'plans', lines: ['Personalized', 'Study Plans'], color: '#1c6fe0', icon: <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" /></> },
+  { key: 'video', lines: ['In-Depth', 'Video Lessons'], color: '#12a150', icon: <><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M10 8l4 2-4 2z" /><path d="M8 20h8M12 16v4" /></> },
+  { key: 'tests', lines: ['Full-Length', 'Practice Tests'], color: '#6d3fe0', icon: <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></> },
+  { key: 'track', lines: ['Real-Time', 'Performance Tracking'], color: '#f5a400', icon: <><path d="M4 20V14M9 20V10M14 20V12M19 20V7" /><path d="M4 10l5-4 4 3 6-5" /></> },
+];
 import satHeroImg from '../assets/img/sat-hero.webp';
 import highlightsImg from '../assets/img/highlights-girl-cutout.webp';
 import highlightsActImg from '../assets/img/highlights-act-cutout.webp';
@@ -256,51 +265,6 @@ const DREAM_SCORES: Record<string, { label: string; total: string; sections: [st
   AP: { label: 'SCORE', total: '5', sections: [['Calculus BC', '5'], ['Biology', '5'], ['Physics 1', '5']] },
 };
 
-const AP_HERO_SUBJECTS = [
-  {
-    name: 'AP Calculus',
-    color: '#1c6fe0',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="5" y="3" width="14" height="18" rx="2" />
-        <rect x="8" y="6" width="8" height="3" rx="0.5" />
-        <path d="M8.5 13h.01M12 13h.01M15.5 13h.01M8.5 16.5h.01M12 16.5h.01M15.5 16.5h.01" strokeWidth="2.6" />
-      </svg>
-    ),
-  },
-  {
-    name: 'AP Biology',
-    color: '#14a38b',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15" />
-        <path d="M4 20 14 10" />
-      </svg>
-    ),
-  },
-  {
-    name: 'AP Physics',
-    color: '#7c3aed',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-        <circle cx="12" cy="12" r="1.6" fill="currentColor" />
-        <ellipse cx="12" cy="12" rx="9.5" ry="4" />
-        <ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(60 12 12)" />
-        <ellipse cx="12" cy="12" rx="9.5" ry="4" transform="rotate(120 12 12)" />
-      </svg>
-    ),
-  },
-  {
-    name: 'AP English',
-    color: '#f5891f',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 5.5C5.5 4.5 9 4.5 12 6.5c3-2 6.5-2 9-1V19c-2.5-1-6-1-9 1-3-2-6.5-2-9-1Z" />
-        <path d="M12 6.5V20" />
-      </svg>
-    ),
-  },
-];
 
 function countUp(el: HTMLElement, to: number, from: number, ms: number, delay: number) {
   let start = 0;
@@ -403,12 +367,37 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
         <section className={`prog-hero section-dark fold-hero${(isSat || isAct) ? ' sat-page' : ''}${isAp ? ' ap-page' : ''}`}>
           <span className="orb orb-gold" aria-hidden="true" />
           <span className="orb orb-ring" aria-hidden="true" />
+          {isAp && (
+            <div className="ap-hero-scene">
+              <img
+                className="ap-hero-backdrop"
+                src={apHeroImg}
+                width={1303}
+                height={793}
+                alt="Student studying at a desk with SAT, ACT and AP books"
+                fetchPriority="high"
+              />
+              {AP_HERO_CARDS.map((c) => (
+                <div key={c.key} className={`ap-hero-card is-${c.key}`} style={{ '--card-color': c.color } as React.CSSProperties}>
+                  <span className="ap-hero-card-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{c.icon}</svg>
+                  </span>
+                  <span className="ap-hero-card-text">
+                    {c.lines[0]}<br />{c.lines[1]}
+                    <i aria-hidden="true" />
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="shell prog-hero-grid">
             <div className="prog-hero-copy">
               <h1>
-                {data.heroTitle.map((run, i) =>
-                  run.gold ? <span key={i}>{run.text}</span> : <span key={i} className="plain">{run.text}</span>,
-                )}
+                {data.heroTitle.map((run, i) => {
+                  // ® sits up as a superscript instead of full size beside the word
+                  const text = run.text.split('®').flatMap((part, j) => (j ? [<sup key={j}>®</sup>, part] : [part]));
+                  return run.gold ? <span key={i}>{text}</span> : <span key={i} className="plain">{text}</span>;
+                })}
               </h1>
               <p className="hero-text">{data.heroText}</p>
 
@@ -433,24 +422,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
             </div>
 
             {isAp ? (
-              <div className="prog-hero-art ap-hero-art ap-hero-photo-wrap">
-                <img
-                  className="ap-hero-photo"
-                  src={apHeroImg}
-                  width={1300}
-                  height={774}
-                  alt="Student studying for AP exams"
-                  fetchPriority="high"
-                />
-                <ul className="ap-hero-subjects" aria-label="AP subjects we teach">
-                  {AP_HERO_SUBJECTS.map((sub) => (
-                    <li key={sub.name}>
-                      <span className="ap-subject-icon" style={{ background: sub.color }} aria-hidden="true">{sub.icon}</span>
-                      {sub.name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              <div className="ap-hero-spacer" aria-hidden="true" />
             ) : (isSat || isAct) ? (
               <div className="hero-art" aria-hidden="true">
                 <div className="sat-hero-img" style={{ backgroundImage: `url(${satHeroImg})` }} />

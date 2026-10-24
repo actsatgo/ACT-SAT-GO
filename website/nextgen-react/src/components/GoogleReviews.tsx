@@ -136,7 +136,7 @@ export function GoogleReviews() {
         </div>
         <div className="gr-actions">
           <a className="gr-link" href={allReviewsUrl} target="_blank" rel="noopener noreferrer">See all reviews <span aria-hidden="true">→</span></a>
-          <a className="btn btn-primary gr-write" href={SITE.googleReviewUrl} target="_blank" rel="noopener noreferrer">Write a Review</a>
+          <a className="gr-link" href={SITE.googleReviewUrl} target="_blank" rel="noopener noreferrer">Write a Review <span aria-hidden="true">→</span></a>
         </div>
       </div>
 
