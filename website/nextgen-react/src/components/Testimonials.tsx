@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { SITE } from '../site';
 
 type Testimonial = { name: string; quote: string; details?: string; videoId?: string };
 
@@ -68,9 +67,6 @@ export function Testimonials() {
           <h2 id="testimonials-title">Student &amp; Parent Testimonials</h2>
           <p>Hear it straight from the families we work with.</p>
         </div>
-        <a className="vt-link" href={SITE.socials.youtube} target="_blank" rel="noopener noreferrer">
-          Watch all on YouTube <span aria-hidden="true">→</span>
-        </a>
       </div>
 
       <div className={`vt-marquee${held ? ' is-held' : ''}`}>
