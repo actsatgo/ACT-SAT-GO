@@ -404,7 +404,6 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
           <span className="orb orb-ring" aria-hidden="true" />
           <div className="shell prog-hero-grid">
             <div className="prog-hero-copy">
-              <span className="eyebrow-hero">{data.heroEyebrow}</span>
               <h1>
                 {data.heroTitle.map((run, i) =>
                   run.gold ? <span key={i}>{run.text}</span> : <span key={i} className="plain">{run.text}</span>,

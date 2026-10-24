@@ -56,7 +56,6 @@ export interface Stat {
 export interface ProgramPageData {
   slug: string;
   exam: string;
-  heroEyebrow: string;
   /** Hero headline split into plain/highlighted runs. */
   heroTitle: { text: string; gold?: boolean }[];
   heroText: string;
@@ -97,7 +96,6 @@ const SHARED_STATS: Stat[] = [
 export const ACT_PAGE: ProgramPageData = {
   slug: 'act',
   exam: 'ACT',
-  heroEyebrow: 'ACT® Preparation',
   heroTitle: [
     { text: 'Ace the ' },
     { text: 'ACT.', gold: true },
@@ -278,7 +276,6 @@ export const ACT_PAGE: ProgramPageData = {
 export const SAT_PAGE: ProgramPageData = {
   slug: 'sat',
   exam: 'SAT',
-  heroEyebrow: 'Master the SAT. Get Your Best Score.',
   heroTitle: [
     { text: 'SAT', gold: true },
     { text: '\nPreparation' },
@@ -440,7 +437,6 @@ export const SAT_PAGE: ProgramPageData = {
 export const AP_PAGE: ProgramPageData = {
   slug: 'ap',
   exam: 'AP',
-  heroEyebrow: 'AP® Preparation',
   heroTitle: [
     { text: 'Master ' },
     { text: 'AP®.', gold: true },
