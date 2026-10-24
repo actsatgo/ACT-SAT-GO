@@ -9,6 +9,7 @@ import img7 from '../assets/img/7.webp';
 import img8 from '../assets/img/8.webp';
 import langImg from '../assets/img/10.webp';
 import heroImg from '../assets/img/4.webp';
+import { StatsBand } from '../components/StatsBand';
 
 const CONSULT_HREF = '/consultation';
 
@@ -140,7 +141,7 @@ export function FutureProgramsPage() {
 
       <main>
         {/* Hero */}
-        <section className="future-hero section-dark">
+        <section className="future-hero section-dark fold-hero">
           <span className="orb orb-gold" aria-hidden="true" />
           <span className="orb orb-ring" aria-hidden="true" />
           <div className="shell">
@@ -172,6 +173,8 @@ export function FutureProgramsPage() {
             </div>
           </div>
         </section>
+
+        <StatsBand />
 
         {/* Explore programs */}
         <section className="future-explore shell">

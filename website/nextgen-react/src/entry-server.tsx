@@ -15,6 +15,7 @@ export function headTags(meta: PageMeta): string {
 export { SITE } from './site';
 export { ARTICLES } from './data/articles';
 export { AP_SUBJECTS } from './data/apSubjects';
+export { TEST_GUIDE_PAGES } from './data/testGuidePages';
 
 /** Renders one route to static HTML (used by scripts/prerender.mjs at build time). */
 export async function render(url: string): Promise<string> {

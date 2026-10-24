@@ -228,22 +228,41 @@
   align-items: center;
 }
 
+/* The student photo sits in a gold arch. The photos end at the elbows and
+   waist, so the frame gives those edges a clean line, while the head rises
+   above the top of the arch. */
 .highlights-photo {
+  --arch-w: 300px;
+  --arch-h: 300px;
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  height: 100%;
-  min-height: 260px;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 360px;
+}
+
+.highlights-photo::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: var(--arch-w);
+  height: var(--arch-h);
+  transform: translateX(-50%);
+  border-radius: calc(var(--arch-w) / 2) calc(var(--arch-w) / 2) 24px 24px;
+  background: linear-gradient(180deg, #ffd36b, #ffb400);
+  box-shadow: 0 24px 40px -24px rgba(6, 26, 47, 0.45);
 }
 
 .highlights-photo img {
+  position: relative;
   display: block;
-  width: auto;
-  max-width: 100%;
-  height: 100%;
-  max-height: 340px;
-  object-fit: contain;
-  filter: drop-shadow(0 20px 24px rgba(6, 26, 47, 0.22));
+  width: var(--arch-w);
+  height: 360px;
+  object-fit: cover;
+  object-position: top;
+  /* Clip the sides and bottom to the arch, but let the head rise above it */
+  clip-path: inset(-200px 0 0 0 round 0 0 24px 24px);
 }
 
 @media (max-width: 900px) {
@@ -251,11 +270,13 @@
     grid-template-columns: 1fr;
   }
   .highlights-photo {
+    --arch-w: 240px;
+    --arch-h: 240px;
     order: -1;
-    min-height: 240px;
+    min-height: 290px;
   }
   .highlights-photo img {
-    max-height: 280px;
+    height: 290px;
   }
 }
 

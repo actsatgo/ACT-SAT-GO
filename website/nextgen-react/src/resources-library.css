@@ -16,32 +16,6 @@
   color: var(--muted);
 }
 
-/* Hero counts */
-.lib-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 30px;
-  margin-top: 28px;
-}
-
-.lib-stats div {
-  display: flex;
-  flex-direction: column;
-}
-
-.lib-stats strong {
-  color: var(--gold);
-  font-size: 26px;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.lib-stats span {
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 13px;
-  font-weight: 700;
-}
-
 /* Layout */
 .lib-layout {
   display: grid;
@@ -232,6 +206,19 @@
   color: var(--navy);
 }
 
+.lib-feature-card h3 a {
+  color: inherit;
+}
+
+.lib-feature-card h3 a:hover {
+  color: var(--gold-2);
+}
+
+/* Room for the PDF button to slide open without moving Open guide */
+.lib-feature-foot .lib-ap-actions {
+  min-width: 300px;
+}
+
 .lib-feature-card p {
   margin: 0 0 14px;
   font-size: 13.5px;
@@ -245,30 +232,6 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
-}
-
-.lib-download {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 8px 18px;
-  border-radius: 40px;
-  background: var(--gold);
-  color: var(--navy);
-  font-size: 13.5px;
-  font-weight: 800;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.lib-download svg {
-  width: 16px;
-  height: 16px;
-}
-
-.lib-download:hover {
-  background: var(--navy);
-  color: var(--gold);
 }
 
 /* AP subject groups */
@@ -498,15 +461,14 @@
   }
 }
 
-/* Article chips + numbered list */
+/* Article topic filters: plain text links, the active one in blue with an underline */
 .lib-chips {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
-/* Article filters are quiet text links with an orange underline on the active one */
 .lib-chip {
   padding: 4px 0;
   border: 0;
@@ -519,7 +481,7 @@
 }
 
 .lib-chip:hover {
-  color: var(--navy);
+  color: #1d4fb8;
 }
 
 .lib-chip + .lib-chip::before {
@@ -528,67 +490,151 @@
   color: #c0c9d6;
 }
 
-.lib-chip span {
-  margin-left: 4px;
-  color: var(--muted);
-}
-
 .lib-chip.active {
-  color: var(--navy);
+  color: #1d4fb8;
   text-decoration: underline;
-  text-decoration-color: var(--gold);
+  text-decoration-color: #a9c4f5;
   text-decoration-thickness: 3px;
   text-underline-offset: 7px;
 }
 
-.lib-chip.active span {
-  color: #b77900;
-}
-
-.lib-article-list {
+/* Article cards: colour stripe, tag and icon by topic */
+.lib-article-cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 32px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.lib-article-list li {
+.lib-article-card {
+  --acc: #a9c4f5;
+  --acc-bg: #e7eefc;
+  --acc-ink: #1d4fb8;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e3e8f0;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px -20px rgba(6, 26, 47, 0.35);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.lib-article-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--acc);
+}
+
+.lib-article-card:is(:hover, :focus-within) {
+  transform: translateY(-4px);
+  border-color: var(--acc);
+  box-shadow:
+    0 0 0 3px rgba(47, 111, 224, 0.12),
+    0 20px 34px -18px rgba(6, 26, 47, 0.45);
+}
+
+.lib-article-top {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 4px;
-  border-bottom: 1px solid var(--line);
+  justify-content: space-between;
 }
 
-.lib-article-list li > div {
-  flex: 1;
-  min-width: 0;
-}
-
-.lib-article-list a {
-  display: block;
-  font-size: 15.5px;
+.lib-article-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--acc-bg);
+  color: var(--acc-ink);
+  font-size: 11.5px;
   font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lib-article-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--acc-bg);
+  color: var(--acc-ink);
+}
+
+.lib-article-card h3 {
+  margin: 14px 0 8px;
+  font-size: 18px;
   line-height: 1.35;
+}
+
+.lib-article-card h3 a {
   color: var(--navy);
 }
 
-.lib-article-list a:hover {
-  color: var(--gold-2);
+/* The whole card opens the article; the arrow sits above as its own link */
+.lib-article-card h3 a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
-.lib-num {
-  min-width: 32px;
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--line);
+.lib-article-card p {
+  display: -webkit-box;
+  margin: 0 0 18px;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 13.5px;
+  line-height: 1.55;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
-.lib-arrow {
-  color: var(--gold-2);
+.lib-article-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  color: #7a889b;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+/* Round arrow in place of a Read button: turns blue and nudges on hover */
+.lib-article-go {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--acc-bg);
+  color: var(--acc-ink);
+  position: relative;
+  z-index: 2;
+  font-size: 17px;
   font-weight: 800;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.lib-article-card:is(:hover, :focus-within) .lib-article-go {
+  background: #2f6fe0;
+  color: #ffffff;
+  transform: translateX(4px);
 }
 
 .lib-more {
@@ -708,6 +754,9 @@
 }
 
 @media (max-width: 1200px) {
+  .lib-article-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1024px) {
@@ -722,7 +771,7 @@
 
 @media (max-width: 768px) {
   .lib-feature-pair,
-  .lib-article-list {
+  .lib-article-cards {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -730,7 +779,6 @@
   .lib-chips {
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding-bottom: 4px;
     scrollbar-width: none;
   }
 
@@ -747,11 +795,6 @@
   .lib-cta-actions {
     width: 100%;
   }
-
-  .lib-stats {
-    justify-content: center;
-    gap: 22px;
-  }
 }
 
 @media (max-width: 600px) {
@@ -762,10 +805,6 @@
 
   .lib-feature-card img {
     width: 90px;
-  }
-
-  .lib-stats strong {
-    font-size: 22px;
   }
 }
 

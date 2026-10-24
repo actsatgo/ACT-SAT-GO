@@ -1,11 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
 import { fetchBlogs, type BlogPost } from '../admin/api';
 import { AP_GUIDES, apGuidePdf, type ApGuide, type ApGuideCategory } from '../data/apGuides';
 import { TEST_GUIDES, TEST_GUIDES_UPDATED, testGuideCover, testGuidePdf } from '../data/testGuides';
-import { ARTICLES, articlePath } from '../data/articles';
+import { TEST_GUIDE_PAGE_BY_GUIDE, testGuidePagePath } from '../data/testGuidePages';
+import { BookOpen, GraduationCap, Landmark, NotebookPen, Scale } from 'lucide-react';
+import { ARTICLES, articlePath, formatArticleShortDate, readMinutes } from '../data/articles';
 import { AP_SUBJECT_BY_GUIDE, apSubjectPath } from '../data/apSubjects';
 import { QUERY_API_BASE } from '../config';
 import { CONSULT_PATH, PRIMARY_CTA } from '../site';
@@ -17,6 +19,7 @@ import blogStudyHabitsImg from '../assets/img/6.webp';
 import blogSatDiffImg from '../assets/img/7.webp';
 import blogCollegeEssayImg from '../assets/img/8.webp';
 import blogApWorthImg from '../assets/img/9.webp';
+import { StatsBand } from '../components/StatsBand';
 
 // Custom icons
 function IconSearch() {
@@ -84,7 +87,16 @@ const articleInExam = (articleTag: string, exam: Exam | null) => {
 
 const hasArticleTag = (articleTag: string, chip: string) =>
   chip === 'All' || articleTag === chip || (articleTag === 'SAT & ACT' && (chip === 'SAT' || chip === 'ACT'));
-const ARTICLES_SHOWN = 8;
+const ARTICLES_SHOWN = 9;
+
+/** Each article topic's colour (a CSS class) and icon on the article cards. */
+const ARTICLE_TOPICS: Record<string, { cls: string; Icon: typeof BookOpen }> = {
+  SAT: { cls: 'topic-sat', Icon: BookOpen },
+  ACT: { cls: 'topic-act', Icon: NotebookPen },
+  AP: { cls: 'topic-ap', Icon: GraduationCap },
+  'SAT & ACT': { cls: 'topic-both', Icon: Scale },
+  'College Admissions': { cls: 'topic-admissions', Icon: Landmark },
+};
 
 
 const sizeLabel = (kb: number) => (kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
@@ -227,15 +239,6 @@ export function ResourcesPage() {
 
   const hasResults = testGuides.length + apGuides.length + searchedArticles.length + filteredBlogs.length > 0;
 
-  const counts = useMemo(
-    () => [
-      { n: TEST_GUIDES.length, label: 'SAT & ACT guides' },
-      { n: AP_GUIDES.length, label: 'AP exam guides' },
-      { n: ARTICLES.length, label: 'expert articles' },
-    ],
-    [],
-  );
-
   const pickExam = (e: Exam, area?: string) => {
     closeApMenu();
     // Picking the tab that's already showing changes nothing.
@@ -253,7 +256,7 @@ export function ResourcesPage() {
 
       <main>
         {/* Hero */}
-        <section className="resources-hero section-dark">
+        <section className="resources-hero section-dark fold-hero">
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell">
             <div className="resources-hero-grid">
@@ -302,20 +305,6 @@ export function ResourcesPage() {
                     </button>
                   ))}
                 </div>
-
-                {/* Library counts */}
-                <div className="lib-stats">
-                  {counts.map((c) => (
-                    <div key={c.label}>
-                      <strong>{c.n}</strong>
-                      <span>{c.label}</span>
-                    </div>
-                  ))}
-                  <div>
-                    <strong>$0</strong>
-                    <span>free, no sign-up</span>
-                  </div>
-                </div>
               </div>
 
               {/* Hero Image */}
@@ -331,6 +320,8 @@ export function ResourcesPage() {
             </div>
           </div>
         </section>
+
+        <StatsBand />
 
         <div className="shell lib-layout" id="library">
           {/* Exam bar: narrows the library to one exam */}
@@ -461,28 +452,38 @@ export function ResourcesPage() {
                 <div className="lib-feature-pair">
                   {testGuides.map((g) => {
                     const pdf = testGuidePdf(g);
+                    const page = TEST_GUIDE_PAGE_BY_GUIDE[g.slug];
+                    const pagePath = testGuidePagePath(page.slug);
                     return (
                       <article key={g.slug} className="lib-feature-card">
-                        <a
-                          href={pdf}
-                          target="_blank"
-                          rel="noopener"
-                          aria-label={`Open the ${g.title} test guide PDF in a new tab`}
-                          onClick={() => trackDownload(g.title, 'open')}
-                        >
+                        <Link to={pagePath} aria-label={`Open the ${g.title} exam guide`}>
                           <img src={testGuideCover(g)} alt={`${g.title} test guide cover`} width={110} height={142} loading="lazy" />
-                        </a>
+                        </Link>
                         <div>
                           <span className="lib-tag">{g.tag}</span>
-                          <h3>{g.title} Test Guide</h3>
+                          <h3>
+                            <Link to={pagePath}>{g.title} Test Guide</Link>
+                          </h3>
                           <p>{g.summary}</p>
                           <div className="lib-feature-foot">
                             <span className="lib-meta">
                               PDF · {g.pages} pages · {sizeLabel(g.sizeKb)}
                             </span>
-                            <a className="lib-download" href={pdf} download onClick={() => trackDownload(g.title, 'download')}>
-                              <IconDownload /> Download
-                            </a>
+                            <div className="lib-ap-actions">
+                              <Link className="btn btn-primary lib-ap-open" to={pagePath}>
+                                Open guide
+                              </Link>
+                              <a
+                                className="lib-ap-pdf"
+                                href={pdf}
+                                download
+                                aria-label={`Download the ${g.title} PDF guide`}
+                                onClick={() => trackDownload(g.title, 'download')}
+                              >
+                                <IconDownload />
+                                <span>Download PDF</span>
+                              </a>
+                            </div>
                           </div>
                         </div>
                       </article>
@@ -570,25 +571,38 @@ export function ResourcesPage() {
                           setShowAllArticles(false);
                         }}
                       >
-                        {t} <span>{articleCount(t)}</span>
+                        {t}
                       </button>
                     ))}
                   </div>
                 )}
-                <ol className="lib-article-list">
-                  {shownArticles.map((a, i) => (
-                    <li key={a.slug}>
-                      <span className="lib-num" aria-hidden="true">
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
-                      <div>
-                        <span className="lib-tag">{a.tag}</span>
-                        <Link to={articlePath(a.slug)}>{a.title}</Link>
-                      </div>
-                      <span className="lib-arrow" aria-hidden="true">→</span>
-                    </li>
-                  ))}
-                </ol>
+                <ul className="lib-article-cards">
+                  {shownArticles.map((a) => {
+                    const topic = ARTICLE_TOPICS[a.tag] ?? ARTICLE_TOPICS.SAT;
+                    return (
+                      <li key={a.slug} className={`lib-article-card ${topic.cls}`}>
+                        <div className="lib-article-top">
+                          <span className="lib-article-tag">{a.tag}</span>
+                          <span className="lib-article-icon" aria-hidden="true">
+                            <topic.Icon size={20} strokeWidth={2} />
+                          </span>
+                        </div>
+                        <h3>
+                          <Link to={articlePath(a.slug)}>{a.title}</Link>
+                        </h3>
+                        <p>{a.description}</p>
+                        <div className="lib-article-foot">
+                          <span>
+                            {readMinutes(a)} min read · {formatArticleShortDate(a.updated)}
+                          </span>
+                          <Link to={articlePath(a.slug)} className="lib-article-go" aria-hidden="true" tabIndex={-1}>
+                            →
+                          </Link>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
                 {articles.length > ARTICLES_SHOWN && (
                   <div className="lib-more">
                     <button type="button" className="lib-more-btn" onClick={() => setShowAllArticles((s) => !s)}>
