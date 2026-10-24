@@ -371,9 +371,11 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
           <div className="shell prog-hero-grid">
             <div className="prog-hero-copy">
               <h1>
-                {data.heroTitle.map((run, i) =>
-                  run.gold ? <span key={i}>{run.text}</span> : <span key={i} className="plain">{run.text}</span>,
-                )}
+                {data.heroTitle.map((run, i) => {
+                  // ® sits up as a superscript instead of full size beside the word
+                  const text = run.text.split('®').flatMap((part, j) => (j ? [<sup key={j}>®</sup>, part] : [part]));
+                  return run.gold ? <span key={i}>{text}</span> : <span key={i} className="plain">{text}</span>;
+                })}
               </h1>
               <p className="hero-text">{data.heroText}</p>
 

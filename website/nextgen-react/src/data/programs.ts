@@ -440,8 +440,8 @@ export const AP_PAGE: ProgramPageData = {
   heroTitle: [
     { text: 'Master ' },
     { text: 'AP®.', gold: true },
-    { text: '\nScore Higher. ' },
-    { text: 'Stand Out.', gold: true },
+    { text: '\nScore Higher.' },
+    { text: '\nStand Out.', gold: true },
   ],
   heroText:
     "Expert-led coaching, smart strategies, and personalized support to help you earn top AP scores and college credit while you're still in high school.",
