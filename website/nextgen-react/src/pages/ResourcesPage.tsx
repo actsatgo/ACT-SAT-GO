@@ -597,7 +597,6 @@ export function ResourcesPage() {
                           </span>
                         </div>
                         <h3>
-                          {/* The link stretches over the whole card */}
                           <Link to={articlePath(a.slug)}>{a.title}</Link>
                         </h3>
                         <p>{a.description}</p>
@@ -605,9 +604,9 @@ export function ResourcesPage() {
                           <span>
                             {readMinutes(a)} min read · {formatArticleShortDate(a.updated)}
                           </span>
-                          <span className="lib-article-go" aria-hidden="true">
+                          <Link to={articlePath(a.slug)} className="lib-article-go" aria-hidden="true" tabIndex={-1}>
                             →
-                          </span>
+                          </Link>
                         </div>
                       </li>
                     );
