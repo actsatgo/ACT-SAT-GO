@@ -9,6 +9,15 @@ import { FaqSection } from '../components/FaqSection';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import type { ProgramPageData } from '../data/programs';
 import apHeroImg from '../assets/img/ap-hero-backdrop.webp';
+
+// White cards that float over the AP hero scene, each on its own timing.
+// Positions are in units of the image (see .ap-hero-card in styles.css).
+const AP_HERO_CARDS = [
+  { key: 'plans', lines: ['Personalized', 'Study Plans'], color: '#1c6fe0', icon: <><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1.5" /></> },
+  { key: 'video', lines: ['In-Depth', 'Video Lessons'], color: '#12a150', icon: <><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M10 8l4 2-4 2z" /><path d="M8 20h8M12 16v4" /></> },
+  { key: 'tests', lines: ['Full-Length', 'Practice Tests'], color: '#6d3fe0', icon: <><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h4" /></> },
+  { key: 'track', lines: ['Real-Time', 'Performance Tracking'], color: '#f5a400', icon: <><path d="M4 20V14M9 20V10M14 20V12M19 20V7" /><path d="M4 10l5-4 4 3 6-5" /></> },
+];
 import satHeroImg from '../assets/img/sat-hero.webp';
 import highlightsImg from '../assets/img/highlights-girl-cutout.webp';
 import highlightsActImg from '../assets/img/highlights-act-cutout.webp';
@@ -359,14 +368,27 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
           <span className="orb orb-gold" aria-hidden="true" />
           <span className="orb orb-ring" aria-hidden="true" />
           {isAp && (
-            <img
-              className="ap-hero-backdrop"
-              src={apHeroImg}
-              width={1303}
-              height={793}
-              alt="Student studying at a desk with SAT, ACT and AP books"
-              fetchPriority="high"
-            />
+            <div className="ap-hero-scene">
+              <img
+                className="ap-hero-backdrop"
+                src={apHeroImg}
+                width={1303}
+                height={793}
+                alt="Student studying at a desk with SAT, ACT and AP books"
+                fetchPriority="high"
+              />
+              {AP_HERO_CARDS.map((c) => (
+                <div key={c.key} className={`ap-hero-card is-${c.key}`} style={{ '--card-color': c.color } as React.CSSProperties}>
+                  <span className="ap-hero-card-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{c.icon}</svg>
+                  </span>
+                  <span className="ap-hero-card-text">
+                    {c.lines[0]}<br />{c.lines[1]}
+                    <i aria-hidden="true" />
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
           <div className="shell prog-hero-grid">
             <div className="prog-hero-copy">
