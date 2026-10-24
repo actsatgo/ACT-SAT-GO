@@ -2389,19 +2389,6 @@ h1 span,
   line-height: 1;
 }
 
-/* Eyebrow for ACT Prep */
-.eyebrow-hero {
-  margin: 0 0 20px;
-  color: var(--gold);
-  font-size: 13px;
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  display: inline-block;
-  border-bottom: 2px solid var(--gold);
-  padding-bottom: 4px;
-}
-
 /* Hero features grid (4 columns layout under subtitle) */
 .hero-bullets-grid {
   display: grid;

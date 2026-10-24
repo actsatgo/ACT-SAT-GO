@@ -6,6 +6,7 @@ import { useScrollReveal } from '../hooks/useScrollReveal';
 import abImg from '../assets/img/ab-b.webp';
 import abOrbitImg from '../assets/img/ab.webp';
 import promiseRocketImg from '../assets/img/promise-rocket.webp';
+import { StatsBand } from '../components/StatsBand';
 
 
 
@@ -25,7 +26,7 @@ export function AboutUsPage() {
 
       <main>
         {/* Hero Section */}
-        <section className="about-hero section-dark">
+        <section className="about-hero section-dark fold-hero">
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell">
             <div className="about-hero-grid">
@@ -72,6 +73,8 @@ export function AboutUsPage() {
             </div>
           </div>
         </section>
+
+        <StatsBand />
 
         {/* ── Personalized Learning Journeys Section ── */}
         <section className="about-plj-section">

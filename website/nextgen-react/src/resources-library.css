@@ -16,32 +16,6 @@
   color: var(--muted);
 }
 
-/* Hero counts */
-.lib-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 30px;
-  margin-top: 28px;
-}
-
-.lib-stats div {
-  display: flex;
-  flex-direction: column;
-}
-
-.lib-stats strong {
-  color: var(--gold);
-  font-size: 26px;
-  font-weight: 800;
-  line-height: 1.1;
-}
-
-.lib-stats span {
-  color: rgba(255, 255, 255, 0.65);
-  font-size: 13px;
-  font-weight: 700;
-}
-
 /* Layout */
 .lib-layout {
   display: grid;
@@ -232,6 +206,19 @@
   color: var(--navy);
 }
 
+.lib-feature-card h3 a {
+  color: inherit;
+}
+
+.lib-feature-card h3 a:hover {
+  color: var(--gold-2);
+}
+
+/* Room for the PDF button to slide open without moving Open guide */
+.lib-feature-foot .lib-ap-actions {
+  min-width: 300px;
+}
+
 .lib-feature-card p {
   margin: 0 0 14px;
   font-size: 13.5px;
@@ -247,118 +234,241 @@
   gap: 10px;
 }
 
-.lib-download {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 8px 18px;
-  border-radius: 40px;
-  background: var(--gold);
-  color: var(--navy);
-  font-size: 13.5px;
-  font-weight: 800;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.lib-download svg {
-  width: 16px;
-  height: 16px;
-}
-
-.lib-download:hover {
-  background: var(--navy);
-  color: var(--gold);
-}
-
 /* AP subject groups */
 .lib-ap-groups {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 36px 28px;
-  align-items: start;
+  gap: 32px;
 }
 
 .lib-ap-group {
-  border-top: 2px solid var(--navy);
   scroll-margin-top: 90px;
 }
 
+/* Group name: a navy band that sits on top of its table */
 .lib-ap-group h3 {
   margin: 0;
-  padding: 14px 8px;
+  padding: 14px 20px;
+  border-radius: 16px 16px 0 0;
+  background: var(--navy);
+  color: #fff;
   font-size: 17px;
   font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.lib-ap-group h3 + .lib-ap-table {
+  border-top: 0;
+  border-radius: 0 0 16px 16px;
+}
+
+/* AP subjects as a comparison table */
+.lib-ap-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border: 1px solid #e3e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 26px -20px rgba(6, 26, 47, 0.35);
+  text-align: left;
+}
+
+/* Fixed column widths keep every group's table lined up; the subject column takes the rest */
+.lib-ap-table {
+  table-layout: fixed;
+}
+
+.lib-ap-table thead th:nth-child(2) { width: 11%; }
+.lib-ap-table thead th:nth-child(3) { width: 14%; }
+.lib-ap-table thead th:nth-child(4) { width: 7%; }
+.lib-ap-table thead th:nth-child(5) { width: 10%; }
+.lib-ap-table thead th:nth-child(6) { width: 350px; } /* room for Open guide plus the opened PDF button */
+
+.lib-ap-table thead th {
+  padding: 12px 18px;
+  background: #f6f8fb;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.lib-ap-table tbody :is(th, td) {
+  padding: 14px 18px;
+  border-top: 1px solid #edf0f5;
   color: var(--navy);
-}
-
-.lib-ap-group ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.lib-ap-group li {
-  border-top: 1px solid var(--line);
-}
-
-.lib-ap-group a {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 8px;
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--ink);
-  transition: background 0.2s ease, color 0.2s ease;
+  vertical-align: middle;
 }
 
-.lib-ap-group a svg {
+.lib-ap-table tbody tr {
+  transition: background-color 0.15s ease;
+}
+
+.lib-ap-table tbody tr:hover {
+  background: #fffaf0;
+}
+
+.lib-ap-table tbody th {
+  overflow: hidden;
+}
+
+.lib-ap-table tbody th strong {
+  display: block;
+  font-size: 16px;
+}
+
+.lib-ap-table tbody th span {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lib-ap-actions {
+  /* Left-aligned so the PDF button opens to the right without moving Open guide */
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Open guide: the site's pill button at the header button's size.
+   The extra .lib-ap-actions outranks buttons.css, which loads later. */
+:root .lib-ap-actions .btn.btn-primary.lib-ap-open {
+  --pb-in: 5px;
+  --pb-bd: 28px;
+  min-height: 38px;
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+/* PDF: a round download icon that slides open into "Download PDF" on hover */
+.lib-ap-pdf {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  height: 38px;
+  max-width: 38px;
+  margin-left: 8px;
+  padding: 0 11px;
+  overflow: hidden;
+  border: 1.5px solid #d5dce6;
+  border-radius: 999px;
+  color: var(--navy);
+  font-size: 13.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  transition: max-width 0.35s ease, background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.lib-ap-pdf svg {
   flex: none;
   width: 15px;
   height: 15px;
-  color: #a3adbb;
-  transition: transform 0.2s ease, color 0.2s ease;
 }
 
-.lib-ap-group a:hover {
-  background: white;
-  color: var(--gold-2);
+.lib-ap-pdf span {
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
-.lib-ap-group a:hover svg {
-  color: var(--gold-2);
-  transform: translateX(3px);
+.lib-ap-pdf:is(:hover, :focus-visible) {
+  max-width: 160px;
+  background: var(--navy);
+  border-color: var(--navy);
+  color: #fff;
 }
 
-.lib-ap-group a > span {
-  flex: 1;
+.lib-ap-pdf:is(:hover, :focus-visible) span {
+  opacity: 1;
 }
 
-/* Subjects with their own web guide page */
-.lib-ap-page {
-  flex: none;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(212, 160, 23, 0.14);
-  color: var(--gold-2);
-  font-size: 10.5px;
-  font-style: normal;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+/* Phones and tablets: each subject becomes a small card */
+@media (max-width: 860px) {
+  .lib-ap-table,
+  .lib-ap-table tbody,
+  .lib-ap-table tr {
+    display: block;
+  }
+
+  .lib-ap-table thead {
+    display: none;
+  }
+
+  .lib-ap-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 14px;
+    padding: 16px;
+    border-top: 1px solid #edf0f5;
+  }
+
+  .lib-ap-table tbody tr:first-child {
+    border-top: 0;
+  }
+
+  .lib-ap-table tbody :is(th, td) {
+    padding: 0;
+    border: 0;
+    font-size: 13.5px;
+  }
+
+  .lib-ap-table tbody th {
+    grid-column: 1 / -1;
+    width: auto;
+    max-width: none;
+    margin-bottom: 4px;
+  }
+
+  .lib-ap-table tbody th span {
+    white-space: normal;
+  }
+
+  .lib-ap-table td[data-label]::before {
+    content: attr(data-label) ': ';
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  .lib-ap-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    text-align: left;
+  }
+
+  :root .lib-ap-actions .btn.btn-primary.lib-ap-open {
+    flex: 1;
+  }
+
+  /* No hover on phones, so the PDF button shows its label */
+  .lib-ap-pdf {
+    max-width: none;
+    margin-left: 0;
+  }
+
+  .lib-ap-pdf span {
+    opacity: 1;
+  }
 }
 
-/* Article chips + numbered list */
+/* Article topic filters: plain text links, the active one in blue with an underline */
 .lib-chips {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
-/* Article filters are quiet text links with an orange underline on the active one */
 .lib-chip {
   padding: 4px 0;
   border: 0;
@@ -371,7 +481,7 @@
 }
 
 .lib-chip:hover {
-  color: var(--navy);
+  color: #1d4fb8;
 }
 
 .lib-chip + .lib-chip::before {
@@ -380,67 +490,151 @@
   color: #c0c9d6;
 }
 
-.lib-chip span {
-  margin-left: 4px;
-  color: var(--muted);
-}
-
 .lib-chip.active {
-  color: var(--navy);
+  color: #1d4fb8;
   text-decoration: underline;
-  text-decoration-color: var(--gold);
+  text-decoration-color: #a9c4f5;
   text-decoration-thickness: 3px;
   text-underline-offset: 7px;
 }
 
-.lib-chip.active span {
-  color: #b77900;
-}
-
-.lib-article-list {
+/* Article cards: colour stripe, tag and icon by topic */
+.lib-article-cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 32px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.lib-article-list li {
+.lib-article-card {
+  --acc: #a9c4f5;
+  --acc-bg: #e7eefc;
+  --acc-ink: #1d4fb8;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e3e8f0;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px -20px rgba(6, 26, 47, 0.35);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.lib-article-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--acc);
+}
+
+.lib-article-card:is(:hover, :focus-within) {
+  transform: translateY(-4px);
+  border-color: var(--acc);
+  box-shadow:
+    0 0 0 3px rgba(47, 111, 224, 0.12),
+    0 20px 34px -18px rgba(6, 26, 47, 0.45);
+}
+
+.lib-article-top {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 4px;
-  border-bottom: 1px solid var(--line);
+  justify-content: space-between;
 }
 
-.lib-article-list li > div {
-  flex: 1;
-  min-width: 0;
-}
-
-.lib-article-list a {
-  display: block;
-  font-size: 15.5px;
+.lib-article-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--acc-bg);
+  color: var(--acc-ink);
+  font-size: 11.5px;
   font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lib-article-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--acc-bg);
+  color: var(--acc-ink);
+}
+
+.lib-article-card h3 {
+  margin: 14px 0 8px;
+  font-size: 18px;
   line-height: 1.35;
+}
+
+.lib-article-card h3 a {
   color: var(--navy);
 }
 
-.lib-article-list a:hover {
-  color: var(--gold-2);
+/* The whole card opens the article; the arrow sits above as its own link */
+.lib-article-card h3 a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
 }
 
-.lib-num {
-  min-width: 32px;
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--line);
+.lib-article-card p {
+  display: -webkit-box;
+  margin: 0 0 18px;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 13.5px;
+  line-height: 1.55;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
-.lib-arrow {
-  color: var(--gold-2);
+.lib-article-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  color: #7a889b;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+/* Round arrow in place of a Read button: turns blue and nudges on hover */
+.lib-article-go {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--acc-bg);
+  color: var(--acc-ink);
+  position: relative;
+  z-index: 2;
+  font-size: 17px;
   font-weight: 800;
+  text-decoration: none;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.lib-article-card:is(:hover, :focus-within) .lib-article-go {
+  background: #2f6fe0;
+  color: #ffffff;
+  transform: translateX(4px);
 }
 
 .lib-more {
@@ -560,7 +754,7 @@
 }
 
 @media (max-width: 1200px) {
-  .lib-ap-groups {
+  .lib-article-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
@@ -577,18 +771,14 @@
 
 @media (max-width: 768px) {
   .lib-feature-pair,
-  .lib-article-list {
+  .lib-article-cards {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .lib-ap-groups {
-    gap: 28px;
-  }
 
   .lib-chips {
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding-bottom: 4px;
     scrollbar-width: none;
   }
 
@@ -605,17 +795,9 @@
   .lib-cta-actions {
     width: 100%;
   }
-
-  .lib-stats {
-    justify-content: center;
-    gap: 22px;
-  }
 }
 
 @media (max-width: 600px) {
-  .lib-ap-groups {
-    grid-template-columns: minmax(0, 1fr);
-  }
 
   .lib-feature-card {
     flex-direction: column;
@@ -624,100 +806,326 @@
   .lib-feature-card img {
     width: 90px;
   }
-
-  .lib-stats strong {
-    font-size: 22px;
-  }
 }
 
-/* ── Library cards: one per section, each jumps to its section ─── */
-.lib-cards {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-}
-
-.lib-cards--4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.lib-card {
+/* ── Exam bar: SAT | ACT | AP | IB | Articles | Others ─────────── */
+/* A raised white band; the hovered exam lifts slightly as a yellow tile. */
+.lib-exams {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
-  padding: 22px;
-  background: #fff;
-  border: 1px solid #e3e8f0;
+  align-items: stretch;
+  /* Runs the full width of the window, with a small gap at each edge */
+  margin: 0 calc(50% - 50vw + 16px);
+  min-height: 76px;
+  padding: 6px;
+  background: linear-gradient(180deg, #ffffff, #f6f8fb);
+  border: 1px solid #e1e7f0;
   border-radius: 16px;
-  box-shadow: 0 10px 26px -18px rgba(6, 26, 47, 0.35);
-  color: var(--navy);
-  text-decoration: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 4px 0 #dde3ec,
+    0 16px 30px -14px rgba(6, 26, 47, 0.35);
 }
 
-.lib-card:hover,
-.lib-card:focus-visible {
-  border-color: #fc9b0a;
-  box-shadow: 0 0 0 3px rgba(252, 155, 10, 0.15), 0 14px 30px -18px rgba(6, 26, 47, 0.4);
-  transform: translateY(-2px);
-}
-
-.lib-card-icon {
-  flex: none;
-  width: 46px;
-  height: 46px;
+.lib-exam {
+  position: relative;
+  flex: 1;
+  padding: 0 10px;
+  border: 0;
   border-radius: 12px;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    transform 0.25s cubic-bezier(0.3, 1.3, 0.5, 1),
+    background-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.25s ease;
+}
+
+/* Vertical separators, hidden on either side of the lifted tile */
+.lib-exams > * + *::before {
+  content: '';
+  position: absolute;
+  top: 24%;
+  bottom: 24%;
+  left: 0;
+  width: 1px;
+  background: #d5dce6;
+  transition: opacity 0.2s ease;
+}
+
+.lib-exams > :is(:hover, :focus-visible, .is-open, .active, :has(> .active))::before,
+.lib-exams > :is(:hover, :focus-visible, .is-open, .active, :has(> .active)) + *::before {
+  opacity: 0;
+}
+
+.lib-exam:is(:hover, :focus-visible),
+.lib-exam.active {
+  z-index: 1;
+  background: linear-gradient(180deg, #ffc93c, #ffb400);
+  color: var(--navy);
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 3px 0 #d99a00,
+    0 10px 18px -10px rgba(6, 26, 47, 0.4);
+}
+
+.lib-exam-label {
+  padding-bottom: 6px;
+  background: linear-gradient(var(--gold), var(--gold)) no-repeat 50% 100% / 0 3px;
+  transition: background-size 0.25s ease;
+}
+
+.lib-exam.active {
+  color: var(--navy);
+}
+
+/* AP tab: opens a dropdown of AP subject areas */
+.lib-exam-drop {
+  position: relative;
+  flex: 1;
+  display: flex;
+}
+
+.lib-exam-drop > .lib-exam {
+  width: 100%;
+}
+
+.lib-exam-drop.is-open > .lib-exam {
+  z-index: 1;
+  background: linear-gradient(180deg, #ffc93c, #ffb400);
+  color: var(--navy);
+  transform: translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 3px 0 #d99a00,
+    0 10px 18px -10px rgba(6, 26, 47, 0.4);
+}
+
+.lib-exam-chevron {
+  width: 16px;
+  height: 16px;
+  margin-left: 6px;
+  vertical-align: -2px;
+  transition: transform 0.25s ease;
+}
+
+.lib-exam-drop.is-open .lib-exam-chevron {
+  transform: rotate(180deg);
+}
+
+/* Bridges the gap so the pointer can travel from the tab to the menu */
+.lib-exam-drop.is-open::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  height: 14px;
+}
+
+.lib-exam-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  z-index: 30;
+  width: max-content;
+  min-width: 300px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #e1e7f0;
+  border-radius: 14px;
+  box-shadow: 0 24px 50px -16px rgba(6, 26, 47, 0.35);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -6px);
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+.lib-exam-drop.is-open .lib-exam-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.lib-exam-menu > li {
+  position: relative;
+}
+
+/* Thin lines between rows, and a stronger divider before the less-taken groups */
+.lib-exam-menu > li + li,
+.lib-exam-sub > li + li {
+  border-top: 1px solid #edf0f5;
+}
+
+.lib-exam-menu > li.lib-exam-menu-break {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 2px solid #dfe5ee;
+}
+
+.lib-exam-menu :is(button, a) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, padding 0.15s ease;
+}
+
+.lib-exam-menu button span {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+}
+
+/* Subject count in a small circle */
+.lib-exam-menu button b {
   display: grid;
   place-items: center;
-  background: #fff3dc;
-  color: #b77900;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #eef2f8;
+  color: var(--navy);
+  font-size: 12.5px;
+  font-weight: 800;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-.lib-card-body strong {
-  display: block;
-  font-size: 17px;
-}
-
-.lib-card-body small {
-  display: block;
-  margin-top: 4px;
-  color: #64748b;
-  font-size: 13.5px;
-  line-height: 1.45;
-}
-
-.lib-card-body em {
-  display: block;
-  margin-top: 10px;
-  color: #b77900;
-  font-size: 13px;
+.lib-exam-menu button i {
   font-style: normal;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* Hover: the row turns navy and nudges right; its count turns gold */
+.lib-exam-menu > li:is(:hover, :focus-within) > button {
+  background: var(--navy);
+  color: #fff;
+  padding-left: 18px;
+}
+
+.lib-exam-menu > li:is(:hover, :focus-within) > button span {
+  color: var(--gold);
+}
+
+.lib-exam-menu > li:is(:hover, :focus-within) > button b {
+  background: var(--gold);
+  color: var(--navy);
+}
+
+.lib-exam-menu button.active {
+  box-shadow: inset 3px 0 0 var(--gold);
   font-weight: 800;
 }
 
-@media (max-width: 1100px) {
-  .lib-cards--4 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+/* Subjects of the hovered group, in a panel to the right */
+.lib-exam-sub {
+  position: absolute;
+  top: -6px;
+  left: calc(100% + 12px);
+  width: max-content;
+  min-width: 260px;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  /* A warm cream panel with a gold edge, so it reads differently from the group list */
+  background: #fffaf0;
+  border: 1px solid #f3e3bd;
+  border-left: 4px solid var(--gold);
+  border-radius: 6px 14px 14px 6px;
+  box-shadow: 0 24px 50px -16px rgba(6, 26, 47, 0.35);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(-6px);
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+}
+
+.lib-exam-sub > li + li {
+  border-top-color: #f3e8cf;
+}
+
+.lib-exam-sub :is(button, a) {
+  border-radius: 8px;
+  font-size: 14.5px;
+  padding: 8px 14px;
+}
+
+.lib-exam-sub :is(button, a):is(:hover, :focus-visible) {
+  background: var(--gold);
+  color: var(--navy);
+  padding-left: 18px;
+}
+
+/* Bridges the gap between a group row and its panel */
+.lib-exam-menu > li:hover::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 100%;
+  width: 14px;
+}
+
+.lib-exam-menu > li:is(:hover, :focus-within) > .lib-exam-sub {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(0);
+}
+
+/* Phones have no room for a side panel: tapping a group shows its guides */
+@media (hover: none), (max-width: 860px) {
+  .lib-exam-sub,
+  .lib-exam-menu > li::after {
+    display: none;
   }
 }
 
-@media (max-width: 860px) {
-  .lib-cards,
-  .lib-cards--4 {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 10px;
+@media (prefers-reduced-motion: reduce) {
+  .lib-exam:is(:hover, :focus-visible) {
+    transform: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .lib-exams {
+    min-height: 56px;
+    padding: 4px;
   }
 
-  .lib-card {
-    padding: 14px 16px;
-    align-items: center;
+  .lib-exam {
+    padding: 0 2px;
+    font-size: 13px;
+    letter-spacing: 0;
   }
 
-  .lib-card-body small {
-    display: none;
+  .lib-exam-chevron {
+    width: 12px;
+    height: 12px;
+    margin-left: 2px;
   }
 
-  .lib-card-body em {
-    margin-top: 2px;
+  .lib-exam-menu {
+    min-width: 260px;
   }
 }

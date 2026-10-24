@@ -22,6 +22,7 @@ import './hero.css';
 import './hub-orbit.css';
 import './hover.css';
 import './nav-tabs.css';
+import './fold.css';
 
 initAnalytics();
 
