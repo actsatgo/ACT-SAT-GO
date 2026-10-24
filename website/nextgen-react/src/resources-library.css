@@ -206,6 +206,19 @@
   color: var(--navy);
 }
 
+.lib-feature-card h3 a {
+  color: inherit;
+}
+
+.lib-feature-card h3 a:hover {
+  color: var(--gold-2);
+}
+
+/* Room for the PDF button to slide open without moving Open guide */
+.lib-feature-foot .lib-ap-actions {
+  min-width: 300px;
+}
+
 .lib-feature-card p {
   margin: 0 0 14px;
   font-size: 13.5px;
@@ -219,30 +232,6 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
-}
-
-.lib-download {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 40px;
-  padding: 8px 18px;
-  border-radius: 40px;
-  background: var(--gold);
-  color: var(--navy);
-  font-size: 13.5px;
-  font-weight: 800;
-  transition: background 0.2s ease, color 0.2s ease;
-}
-
-.lib-download svg {
-  width: 16px;
-  height: 16px;
-}
-
-.lib-download:hover {
-  background: var(--navy);
-  color: var(--gold);
 }
 
 /* AP subject groups */

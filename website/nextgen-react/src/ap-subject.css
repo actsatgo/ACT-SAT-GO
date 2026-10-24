@@ -752,3 +752,160 @@
     color: var(--navy);
   }
 }
+
+/* ── SAT and ACT guide pages (/sat/exam-guide, /act/exam-guide) ── */
+.tg-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 20px 0 6px;
+}
+
+.tg-stats div {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+}
+
+.tg-stats dt {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.tg-stats dd {
+  margin: 2px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
+.tg .aps-unit-num {
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.tg .aps-unit-weight {
+  flex: none;
+  white-space: nowrap;
+}
+
+.tg-table td.tg-strong {
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.tg-note {
+  margin-top: 10px;
+}
+
+.tg-resources {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tg-resources li {
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: white;
+}
+
+.tg-resources h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--navy);
+}
+
+.tg-free {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e6f6ef;
+  color: #12825a;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.tg-where {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1d4fb8;
+}
+
+.tg-resources p {
+  margin: 6px 0 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.tg .aps-q u {
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 768px) {
+  .tg-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tg-resources {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Stack guide tables into one card per row */
+  .article-table.tg-table thead {
+    display: none;
+  }
+
+  .article-table.tg-table,
+  .article-table.tg-table tbody,
+  .article-table.tg-table tr,
+  .article-table.tg-table th,
+  .article-table.tg-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .article-table.tg-table {
+    border: 1px solid #dde4ee;
+    border-radius: 12px;
+  }
+
+  .article-table.tg-table tr + tr {
+    border-top: 1px solid #dde4ee;
+  }
+
+  .article-table.tg-table th,
+  .article-table.tg-table td {
+    border: 0;
+    padding: 6px 16px;
+    white-space: normal;
+  }
+
+  .article-table.tg-table th {
+    padding-top: 14px;
+    font-size: 15px;
+  }
+
+  .article-table.tg-table td:last-child {
+    padding-bottom: 14px;
+  }
+
+  .article-table.tg-table td[data-label]::before {
+    content: attr(data-label) ': ';
+    font-weight: 800;
+    color: var(--navy);
+  }
+}

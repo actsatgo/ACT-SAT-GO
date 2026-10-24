@@ -4,6 +4,7 @@ import { SAT_PAGE, ACT_PAGE, AP_PAGE, type ProgramPageData } from './data/progra
 import { PAGES } from './seo';
 import { ARTICLE_BY_SLUG } from './data/articles';
 import { AP_SUBJECT_BY_SLUG, apSubjectFaq } from './data/apSubjects';
+import { TEST_GUIDE_PAGES, testGuidePagePath } from './data/testGuidePages';
 
 // Schema.org structured data (JSON-LD) for every page in the sitemap, per the
 // "Schema Markup (JSON-LD) Implementation Guide". One @graph per page, written
@@ -276,6 +277,33 @@ function graphFor(path: string): Json[] | null {
             ],
           },
           faqPageFor(path, apSubjectFaq(apSubject)),
+        ];
+      }
+      const testGuide = TEST_GUIDE_PAGES.find((g) => testGuidePagePath(g.slug) === path);
+      if (testGuide) {
+        return [
+          webPage('WebPage', path, testGuide.metaTitle, testGuide.description),
+          {
+            '@type': 'Article',
+            '@id': `${url(path)}#article`,
+            headline: `${testGuide.name} Exam Guide`,
+            description: testGuide.description,
+            dateModified: testGuide.updated,
+            author: { '@id': ORG_ID },
+            publisher: { '@id': ORG_ID },
+            mainEntityOfPage: { '@id': `${url(path)}#webpage` },
+            image: `${SITE.url}/og-image.jpg`,
+            inLanguage: 'en-US',
+          },
+          {
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: url('/') },
+              { '@type': 'ListItem', position: 2, name: 'Resources', item: url('/resources') },
+              { '@type': 'ListItem', position: 3, name: `${testGuide.name} Exam Guide`, item: url(path) },
+            ],
+          },
+          faqPageFor(path, testGuide.faq),
         ];
       }
       const simple = SIMPLE[path];

@@ -5,6 +5,7 @@ import { Footer } from '../components/Footer';
 import { fetchBlogs, type BlogPost } from '../admin/api';
 import { AP_GUIDES, apGuidePdf, type ApGuide, type ApGuideCategory } from '../data/apGuides';
 import { TEST_GUIDES, TEST_GUIDES_UPDATED, testGuideCover, testGuidePdf } from '../data/testGuides';
+import { TEST_GUIDE_PAGE_BY_GUIDE, testGuidePagePath } from '../data/testGuidePages';
 import { BookOpen, GraduationCap, Landmark, NotebookPen, Scale } from 'lucide-react';
 import { ARTICLES, articlePath, formatArticleShortDate, readMinutes } from '../data/articles';
 import { AP_SUBJECT_BY_GUIDE, apSubjectPath } from '../data/apSubjects';
@@ -451,28 +452,38 @@ export function ResourcesPage() {
                 <div className="lib-feature-pair">
                   {testGuides.map((g) => {
                     const pdf = testGuidePdf(g);
+                    const page = TEST_GUIDE_PAGE_BY_GUIDE[g.slug];
+                    const pagePath = testGuidePagePath(page.slug);
                     return (
                       <article key={g.slug} className="lib-feature-card">
-                        <a
-                          href={pdf}
-                          target="_blank"
-                          rel="noopener"
-                          aria-label={`Open the ${g.title} test guide PDF in a new tab`}
-                          onClick={() => trackDownload(g.title, 'open')}
-                        >
+                        <Link to={pagePath} aria-label={`Open the ${g.title} exam guide`}>
                           <img src={testGuideCover(g)} alt={`${g.title} test guide cover`} width={110} height={142} loading="lazy" />
-                        </a>
+                        </Link>
                         <div>
                           <span className="lib-tag">{g.tag}</span>
-                          <h3>{g.title} Test Guide</h3>
+                          <h3>
+                            <Link to={pagePath}>{g.title} Test Guide</Link>
+                          </h3>
                           <p>{g.summary}</p>
                           <div className="lib-feature-foot">
                             <span className="lib-meta">
                               PDF · {g.pages} pages · {sizeLabel(g.sizeKb)}
                             </span>
-                            <a className="lib-download" href={pdf} download onClick={() => trackDownload(g.title, 'download')}>
-                              <IconDownload /> Download
-                            </a>
+                            <div className="lib-ap-actions">
+                              <Link className="btn btn-primary lib-ap-open" to={pagePath}>
+                                Open guide
+                              </Link>
+                              <a
+                                className="lib-ap-pdf"
+                                href={pdf}
+                                download
+                                aria-label={`Download the ${g.title} PDF guide`}
+                                onClick={() => trackDownload(g.title, 'download')}
+                              >
+                                <IconDownload />
+                                <span>Download PDF</span>
+                              </a>
+                            </div>
                           </div>
                         </div>
                       </article>

@@ -39,6 +39,13 @@ const program = (key: 'SAT_PAGE' | 'ACT_PAGE' | 'AP_PAGE') =>
     )),
   );
 
+const testGuide = (key: 'SAT_GUIDE' | 'ACT_GUIDE') =>
+  page(() =>
+    Promise.all([import('./pages/TestGuidePage'), import('./data/testGuidePages')]).then(([m, d]) => () => (
+      <m.TestGuidePage g={d[key]} />
+    )),
+  );
+
 const policy = (slug: string) =>
   page(() => import('./pages/PolicyPage').then((m) => () => <m.PolicyPage slug={slug} />));
 
@@ -46,6 +53,8 @@ const Home = page(() => import('./App').then((m) => m.default));
 const Sat = program('SAT_PAGE');
 const Act = program('ACT_PAGE');
 const Ap = program('AP_PAGE');
+const SatGuide = testGuide('SAT_GUIDE');
+const ActGuide = testGuide('ACT_GUIDE');
 const FuturePrograms = page(() => import('./pages/FutureProgramsPage').then((m) => m.FutureProgramsPage));
 const K12 = page(() => import('./pages/K12TutoringPage').then((m) => m.K12TutoringPage));
 const About = page(() => import('./pages/AboutUsPage').then((m) => m.AboutUsPage));
@@ -67,6 +76,8 @@ export const ROUTES: AppRoute[] = [
   r('/', Home),
   r('/sat', Sat),
   r('/act', Act),
+  r('/sat/exam-guide', SatGuide),
+  r('/act/exam-guide', ActGuide),
   r('/ap', Ap),
   r('/ap/:subject', ApSubject),
   r('/future-programs', FuturePrograms),
