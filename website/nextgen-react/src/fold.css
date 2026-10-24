@@ -43,6 +43,7 @@
   .prog-hero.sat-page.fold-hero {
     min-height: 0;
     align-content: start;
-    padding-top: 36px;
+    padding-top: 12px;
+    padding-bottom: 44px;
   }
 }
