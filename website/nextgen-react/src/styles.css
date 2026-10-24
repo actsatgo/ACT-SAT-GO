@@ -4318,28 +4318,55 @@ html, body {
   transform: rotate(45deg) translate(-2px, -2px);
 }
 
-/* AP hero: cut-out desk scene blended into the navy hero, same float as SAT */
+/* AP hero: the whole scene, edges feathered into the navy, with the subject
+   tabs floating on their own like the SAT hero's cards */
+.prog-hero.ap-page .prog-hero-grid {
+  grid-template-columns: 0.9fr 1.1fr;
+}
+
 .ap-hero-art.ap-hero-photo-wrap {
-  width: calc(100% + 40px);
+  position: relative;
+  width: 100%;
   max-width: none;
   min-height: 0;
-  margin-right: -40px;
+}
+
+/* Wide screens have room past the content edge: let the scene grow into it */
+@media (min-width: 1600px) {
+  .ap-hero-art.ap-hero-photo-wrap {
+    width: calc(100% + 80px);
+    margin-right: -80px;
+  }
 }
 
 .ap-hero-photo {
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 26px 42px rgba(0, 0, 0, 0.45));
   animation: satHeroFloat 6.5s ease-in-out infinite;
 }
 
+.ap-hero-tab {
+  position: absolute;
+  height: auto;
+  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.35));
+  animation: floatY 6s ease-in-out infinite;
+  transition: transform 0.3s ease;
+}
+
+.ap-hero-tab.is-calculus { left: 65.4%; top: 7.7%;  width: 20.6%; }
+.ap-hero-tab.is-biology  { left: 67.1%; top: 17.8%; width: 21.5%; animation-delay: 1.5s; }
+.ap-hero-tab.is-physics  { left: 70.5%; top: 27.8%; width: 20.9%; animation-delay: 3s; }
+.ap-hero-tab.is-english  { left: 72.5%; top: 39.3%; width: 21.5%; animation-delay: 4.5s; }
+
 @media (max-width: 1040px) {
+  .prog-hero.ap-page .prog-hero-grid { grid-template-columns: 1fr; }
   .ap-hero-art.ap-hero-photo-wrap { width: 100%; margin-right: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ap-hero-photo { animation: none; }
+  .ap-hero-photo,
+  .ap-hero-tab { animation: none; }
 }
 
 .prog-hero.ap-page .orb-ring { display: none; }
