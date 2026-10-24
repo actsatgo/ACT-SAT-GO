@@ -15,6 +15,7 @@ import './admin.css';
 import './careers.css';
 import './free-test.css';
 import './growth.css';
+import './google-reviews.css';
 import './buttons.css';
 import './header.css';
 import './hero.css';
