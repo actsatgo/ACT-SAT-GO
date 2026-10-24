@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
+import { SITE } from '../site';
 
 type Testimonial = { name: string; quote: string; details?: string; videoId?: string };
 
@@ -11,26 +12,37 @@ const VIDEO_TESTIMONIALS: Testimonial[] = [
   { name: 'Mary', videoId: 'YNSQmcPqfCc', quote: 'My honest review after working with ACT SAT GO.', details: 'SAT Prep Student' },
 ];
 
-const AUTO_ADVANCE_MS = 4000;
+// Seconds each card takes to scroll past; the whole loop scales with the count.
+const SECONDS_PER_CARD = 6;
 
-function VideoTestimonial({ videoId, name }: { videoId: string; name: string }) {
+function VideoTestimonial({ videoId, name, onPlay }: { videoId: string; name: string; onPlay: (playing: boolean) => void }) {
   const [playing, setPlaying] = useState(false);
+
+  const toggle = (on: boolean) => {
+    setPlaying(on);
+    onPlay(on);
+  };
 
   return (
     <div className="video-wrapper">
       {playing ? (
-        <iframe
-          src={`https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0&autoplay=1`}
-          title={name}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-          allowFullScreen
-        ></iframe>
+        <>
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0&autoplay=1`}
+            title={name}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            allowFullScreen
+          ></iframe>
+          <button type="button" className="vt-close" onClick={() => toggle(false)} aria-label={`Close video: ${name}`}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M6 6l12 12M18 6 6 18" /></svg>
+          </button>
+        </>
       ) : (
         <button
           type="button"
           className="video-thumb"
           style={{ backgroundImage: `url(https://img.youtube.com/vi/${videoId}/hqdefault.jpg)` }}
-          onClick={() => setPlaying(true)}
+          onClick={() => toggle(true)}
           aria-label={`Play video: ${name}`}
         >
           <span className="video-play-btn" aria-hidden="true">
@@ -42,127 +54,46 @@ function VideoTestimonial({ videoId, name }: { videoId: string; name: string }) 
   );
 }
 
+// Same endless strip as the Google reviews above: two copies of the list slide
+// left forever. Hover pauses it, and it stays still while a video is playing.
 export function Testimonials() {
-  const [active, setActive] = useState(0);
-  const trackRef = useRef<HTMLDivElement>(null);
-
+  const [held, setHeld] = useState(0);
   const list = VIDEO_TESTIMONIALS;
-
-  const scrollToIndex = (i: number) => {
-    const clamped = Math.max(0, Math.min(list.length - 1, i));
-    const el = trackRef.current;
-    const card = el?.children[clamped] as HTMLElement | undefined;
-    // Scroll the track only, so the page itself never jumps.
-    if (el && card) el.scrollTo({ left: card.offsetLeft - el.offsetLeft, behavior: 'smooth' });
-    setActive(clamped);
-  };
-
-  // Auto-advance every few seconds while the section is on screen. Pauses on
-  // hover or keyboard focus, stops once a video is playing, and loops back to
-  // the start after the last full view.
-  const [paused, setPaused] = useState(false);
-  const [onScreen, setOnScreen] = useState(false);
-  const sectionRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const node = sectionRef.current;
-    if (!node || typeof IntersectionObserver === 'undefined') return;
-    const io = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting), { threshold: 0.35 });
-    io.observe(node);
-    return () => io.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (paused || !onScreen) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const id = window.setInterval(() => {
-      const el = trackRef.current;
-      if (!el || el.querySelector('iframe')) return;
-      const first = el.children[0] as HTMLElement | undefined;
-      const perView = first ? Math.max(1, Math.round(el.clientWidth / first.offsetWidth)) : 1;
-      const lastStart = Math.max(0, list.length - perView);
-      scrollToIndex(active >= lastStart ? 0 : active + 1);
-    }, AUTO_ADVANCE_MS);
-    return () => window.clearInterval(id);
-  });
-
-  const handleScroll = () => {
-    const el = trackRef.current;
-    if (!el) return;
-    let closest = 0;
-    let minDist = Infinity;
-    Array.from(el.children).forEach((child, i) => {
-      const dist = Math.abs((child as HTMLElement).offsetLeft - el.scrollLeft);
-      if (dist < minDist) {
-        minDist = dist;
-        closest = i;
-      }
-    });
-    setActive(closest);
-  };
+  const duration = `${Math.max(30, list.length * SECONDS_PER_CARD)}s`;
 
   return (
-    <section className="testimonials section-dark" id="testimonials" ref={sectionRef}>
-      <div className="shell">
-        <div className="section-heading inverse">
-          <h2>Student &amp; Parent Testimonials</h2>
+    <section className="testimonials section-dark" id="testimonials" aria-labelledby="testimonials-title">
+      <div className="shell vt-head">
+        <div>
+          <h2 id="testimonials-title">Student &amp; Parent Testimonials</h2>
+          <p>Hear it straight from the families we work with.</p>
         </div>
+        <a className="vt-link" href={SITE.socials.youtube} target="_blank" rel="noopener noreferrer">
+          Watch all on YouTube <span aria-hidden="true">→</span>
+        </a>
+      </div>
 
-        <div
-          className="testimonial-carousel"
-          onMouseEnter={() => setPaused(true)}
-          onMouseLeave={() => setPaused(false)}
-          onFocus={() => setPaused(true)}
-          onBlur={() => setPaused(false)}
-          onTouchStart={() => setPaused(true)}
-        >
-          <button
-            className="testimonial-arrow prev"
-            type="button"
-            onClick={() => scrollToIndex(active - 1)}
-            disabled={active === 0}
-            aria-label="Previous testimonial"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 6l-6 6 6 6" /></svg>
-          </button>
-
-          <div className="testimonial-slider" ref={trackRef} onScroll={handleScroll}>
-            {list.map((t) => (
-              <article key={t.name} className="video-card">
-                {t.videoId && <VideoTestimonial videoId={t.videoId} name={t.name} />}
-                <h3 className="testimonial-name">{t.name}</h3>
-                {t.details && <p className="testimonial-details">{t.details}</p>}
-                <p className="testimonial-quote">{t.quote}</p>
-              </article>
-            ))}
-          </div>
-
-          <button
-            className="testimonial-arrow next"
-            type="button"
-            onClick={() => scrollToIndex(active + 1)}
-            disabled={active === list.length - 1}
-            aria-label="Next testimonial"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 6l6 6-6 6" /></svg>
-          </button>
+      <div className={`vt-marquee${held ? ' is-held' : ''}`}>
+        <div className="vt-track" style={{ animationDuration: duration }}>
+          {[0, 1].map((copy) =>
+            list.map((t) => (
+              <div className="vt-slot" key={`${copy}-${t.name}`} aria-hidden={copy === 1 ? true : undefined}>
+                <article className="vt-card">
+                  {t.videoId && (
+                    <VideoTestimonial
+                      videoId={t.videoId}
+                      name={t.name}
+                      onPlay={(on) => setHeld((n) => Math.max(0, n + (on ? 1 : -1)))}
+                    />
+                  )}
+                  <h3 className="vt-name">{t.name}</h3>
+                  {t.details && <p className="vt-details">{t.details}</p>}
+                  <p className="vt-quote">{t.quote}</p>
+                </article>
+              </div>
+            ))
+          )}
         </div>
-
-        <div className="testimonial-dots" role="tablist" aria-label="Testimonial slides">
-          {list.map((t, i) => (
-            <button
-              key={t.name}
-              type="button"
-              role="tab"
-              aria-selected={i === active}
-              aria-label={`Go to testimonial ${i + 1}`}
-              className={i === active ? 'active' : undefined}
-              onClick={() => scrollToIndex(i)}
-            />
-          ))}
-        </div>
-
-
       </div>
     </section>
   );
