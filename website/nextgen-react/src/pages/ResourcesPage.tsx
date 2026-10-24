@@ -18,6 +18,7 @@ import blogStudyHabitsImg from '../assets/img/6.webp';
 import blogSatDiffImg from '../assets/img/7.webp';
 import blogCollegeEssayImg from '../assets/img/8.webp';
 import blogApWorthImg from '../assets/img/9.webp';
+import { StatsBand } from '../components/StatsBand';
 
 // Custom icons
 function IconSearch() {
@@ -254,7 +255,7 @@ export function ResourcesPage() {
 
       <main>
         {/* Hero */}
-        <section className="resources-hero section-dark">
+        <section className="resources-hero section-dark fold-hero">
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell">
             <div className="resources-hero-grid">
@@ -318,6 +319,8 @@ export function ResourcesPage() {
             </div>
           </div>
         </section>
+
+        <StatsBand />
 
         <div className="shell lib-layout" id="library">
           {/* Exam bar: narrows the library to one exam */}

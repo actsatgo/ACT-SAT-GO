@@ -10,6 +10,7 @@ import k12HeroImg from '../assets/img/k12-hero.webp';
 import k12ElementaryImg from '../assets/img/k12-elementary.webp';
 import k12MiddleImg from '../assets/img/k12-middle.webp';
 import k12HighImg from '../assets/img/k12-high.webp';
+import { StatsBand } from '../components/StatsBand';
 
 const CONSULT_HREF = '/consultation';
 
@@ -234,7 +235,7 @@ export function K12TutoringPage() {
 
       <main>
         {/* Hero */}
-        <section className="k12-hero section-dark">
+        <section className="k12-hero section-dark fold-hero">
           <img
             className="k12-hero-bg"
             src={k12HeroImg}
@@ -274,6 +275,8 @@ export function K12TutoringPage() {
 
           </div>
         </section>
+
+        <StatsBand />
 
         {/* Grade levels */}
         <section className="k12-grades shell">

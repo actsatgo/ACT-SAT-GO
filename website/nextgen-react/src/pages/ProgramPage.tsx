@@ -13,6 +13,7 @@ import satHeroImg from '../assets/img/sat-hero.webp';
 import highlightsImg from '../assets/img/highlights-girl-cutout.webp';
 import highlightsActImg from '../assets/img/highlights-act-cutout.webp';
 import highlightsApImg from '../assets/img/highlights-ap-cutout.webp';
+import { StatsBand } from '../components/StatsBand';
 
 
 function getHighlightIcon(label: string, value: string) {
@@ -399,7 +400,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
 
       <main>
         {/* Hero */}
-        <section className={`prog-hero section-dark${(isSat || isAct) ? ' sat-page' : ''}${isAp ? ' ap-page' : ''}`}>
+        <section className={`prog-hero section-dark fold-hero${(isSat || isAct) ? ' sat-page' : ''}${isAp ? ' ap-page' : ''}`}>
           <span className="orb orb-gold" aria-hidden="true" />
           <span className="orb orb-ring" aria-hidden="true" />
           <div className="shell prog-hero-grid">
@@ -511,6 +512,8 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
             )}
           </div>
         </section>
+
+        <StatsBand />
 
         {/* Highlights band */}
         <section className="prog-highlights shell" aria-label={`${data.exam} highlights`}>

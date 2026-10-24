@@ -1,0 +1,38 @@
+/* ── First screen: hero + stats bar fill the window ─────────────────────
+   On desktop each page's hero stretches so the white stats bar under it
+   lands on the bottom edge of the first screen, with no gap below. */
+@media (min-width: 1041px) {
+  .fold-hero {
+    /* Window height minus the header (76px) and the part of the stats bar
+       that hangs below the hero, plus a small gap under the bar */
+    --fold-offset: 116px;
+    display: grid;
+    align-content: center;
+    box-sizing: border-box;
+    min-height: calc(100svh - var(--fold-offset));
+    padding-bottom: 64px;
+  }
+
+  .fold-hero > .shell {
+    width: min(1440px, calc(100% - 36px));
+  }
+
+  .fold-hero + .stats-band {
+    margin-top: -36px;
+  }
+}
+
+/* K-12: the taller hero would crop the photo's sides; show it whole,
+   standing on the bottom edge */
+@media (min-width: 1041px) {
+  .k12-hero.fold-hero .k12-hero-bg {
+    width: 62%;
+    object-fit: contain;
+    object-position: right bottom;
+    /* Fade the photo's top edge too, so its dark backdrop blends in */
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 9%), linear-gradient(180deg, transparent 22%, #000 40%);
+    -webkit-mask-composite: source-in;
+    mask-image: linear-gradient(90deg, transparent 0%, #000 9%), linear-gradient(180deg, transparent 22%, #000 40%);
+    mask-composite: intersect;
+  }
+}
