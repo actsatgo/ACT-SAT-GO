@@ -4318,55 +4318,63 @@ html, body {
   transform: rotate(45deg) translate(-2px, -2px);
 }
 
-/* AP hero: the whole scene, edges feathered into the navy, with the subject
-   tabs floating on their own like the SAT hero's cards */
-.prog-hero.ap-page .prog-hero-grid {
-  grid-template-columns: 0.9fr 1.1fr;
-}
-
-.ap-hero-art.ap-hero-photo-wrap {
+/* AP hero: the desk scene is a backdrop on the right of the navy hero,
+   faded into it on every edge, with the copy over the empty navy on the left */
+.prog-hero.ap-page {
   position: relative;
-  width: 100%;
-  max-width: none;
-  min-height: 0;
 }
 
-/* Wide screens have room past the content edge: let the scene grow into it */
-@media (min-width: 1600px) {
-  .ap-hero-art.ap-hero-photo-wrap {
-    width: calc(100% + 80px);
-    margin-right: -80px;
+.ap-hero-backdrop {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  height: 100%;
+  width: auto;
+  max-width: 58%;
+  object-fit: cover;
+  object-position: right center;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 22%), linear-gradient(180deg, transparent 0, #000 10%, #000 84%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(90deg, transparent 0, #000 22%), linear-gradient(180deg, transparent 0, #000 10%, #000 84%, transparent 100%);
+  mask-composite: intersect;
+  animation: apBackdropFloat 7s ease-in-out infinite;
+}
+
+@keyframes apBackdropFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+.prog-hero.ap-page .prog-hero-grid {
+  grid-template-columns: 0.95fr 1.05fr;
+}
+
+.ap-hero-spacer {
+  min-height: 460px;
+}
+
+@media (max-width: 1040px) {
+  .prog-hero.ap-page { display: flex; flex-direction: column; }
+  .prog-hero.ap-page > .shell { order: 1; }
+  .prog-hero.ap-page .prog-hero-grid { grid-template-columns: 1fr; }
+  .ap-hero-spacer { display: none; }
+  .ap-hero-backdrop {
+    position: static;
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    margin-top: -8px;
+    order: 2;
+    -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
+    mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
   }
 }
 
-.ap-hero-photo {
-  display: block;
-  width: 100%;
-  height: auto;
-  animation: satHeroFloat 6.5s ease-in-out infinite;
-}
-
-.ap-hero-tab {
-  position: absolute;
-  height: auto;
-  filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.35));
-  animation: floatY 6s ease-in-out infinite;
-  transition: transform 0.3s ease;
-}
-
-.ap-hero-tab.is-calculus { left: 65.4%; top: 7.7%;  width: 20.6%; }
-.ap-hero-tab.is-biology  { left: 67.1%; top: 17.8%; width: 21.5%; animation-delay: 1.5s; }
-.ap-hero-tab.is-physics  { left: 70.5%; top: 27.8%; width: 20.9%; animation-delay: 3s; }
-.ap-hero-tab.is-english  { left: 72.5%; top: 39.3%; width: 21.5%; animation-delay: 4.5s; }
-
-@media (max-width: 1040px) {
-  .prog-hero.ap-page .prog-hero-grid { grid-template-columns: 1fr; }
-  .ap-hero-art.ap-hero-photo-wrap { width: 100%; margin-right: 0; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .ap-hero-photo,
-  .ap-hero-tab { animation: none; }
+  .ap-hero-backdrop { animation: none; }
 }
 
 .prog-hero.ap-page .orb-ring { display: none; }

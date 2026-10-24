@@ -8,19 +8,7 @@ import { Footer } from '../components/Footer';
 import { FaqSection } from '../components/FaqSection';
 import { useScrollReveal } from '../hooks/useScrollReveal';
 import type { ProgramPageData } from '../data/programs';
-import apHeroImg from '../assets/img/ap-hero-courses.webp';
-import apTabCalculus from '../assets/img/ap-tab-calculus.webp';
-import apTabBiology from '../assets/img/ap-tab-biology.webp';
-import apTabPhysics from '../assets/img/ap-tab-physics.webp';
-import apTabEnglish from '../assets/img/ap-tab-english.webp';
-
-// Subject tabs float over the AP hero scene, in the spots they were painted in
-const AP_HERO_TABS = [
-  { src: apTabCalculus, name: 'AP Calculus', cls: 'is-calculus' },
-  { src: apTabBiology, name: 'AP Biology', cls: 'is-biology' },
-  { src: apTabPhysics, name: 'AP Physics', cls: 'is-physics' },
-  { src: apTabEnglish, name: 'AP English', cls: 'is-english' },
-];
+import apHeroImg from '../assets/img/ap-hero-backdrop.webp';
 import satHeroImg from '../assets/img/sat-hero.webp';
 import highlightsImg from '../assets/img/highlights-girl-cutout.webp';
 import highlightsActImg from '../assets/img/highlights-act-cutout.webp';
@@ -370,6 +358,16 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
         <section className={`prog-hero section-dark fold-hero${(isSat || isAct) ? ' sat-page' : ''}${isAp ? ' ap-page' : ''}`}>
           <span className="orb orb-gold" aria-hidden="true" />
           <span className="orb orb-ring" aria-hidden="true" />
+          {isAp && (
+            <img
+              className="ap-hero-backdrop"
+              src={apHeroImg}
+              width={1303}
+              height={793}
+              alt="Student studying at a desk with SAT, ACT and AP books"
+              fetchPriority="high"
+            />
+          )}
           <div className="shell prog-hero-grid">
             <div className="prog-hero-copy">
               <h1>
@@ -400,19 +398,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
             </div>
 
             {isAp ? (
-              <div className="prog-hero-art ap-hero-art ap-hero-photo-wrap">
-                <img
-                  className="ap-hero-photo"
-                  src={apHeroImg}
-                  width={1400}
-                  height={788}
-                  alt="Student exploring AP courses: Calculus, Biology, Physics and English"
-                  fetchPriority="high"
-                />
-                {AP_HERO_TABS.map((t) => (
-                  <img key={t.cls} className={`ap-hero-tab ${t.cls}`} src={t.src} alt="" aria-hidden="true" width={350} height={155} />
-                ))}
-              </div>
+              <div className="ap-hero-spacer" aria-hidden="true" />
             ) : (isSat || isAct) ? (
               <div className="hero-art" aria-hidden="true">
                 <div className="sat-hero-img" style={{ backgroundImage: `url(${satHeroImg})` }} />
