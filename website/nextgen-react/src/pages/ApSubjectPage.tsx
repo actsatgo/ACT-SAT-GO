@@ -5,7 +5,6 @@ import { FaqSection } from '../components/FaqSection';
 import { NotFoundPage } from './NotFoundPage';
 import { AP_SUBJECTS, AP_SUBJECT_BY_SLUG, apSubjectFaq, apSubjectPath } from '../data/apSubjects';
 import { AP_GUIDES, apGuideCover, apGuidePdf } from '../data/apGuides';
-import { formatArticleDate } from '../data/articles';
 import { CONSULT_PATH, PRIMARY_CTA } from '../site';
 import { trackDownload } from '../lib/analytics';
 
@@ -78,15 +77,8 @@ export function ApSubjectPage() {
         <section className="aps-hero section-dark">
           <span className="orb orb-gold" aria-hidden="true" />
           <div className="shell">
-            <nav className="resources-breadcrumb" aria-label="Breadcrumb">
-              <Link to="/">Home</Link> <span aria-hidden="true">›</span> <Link to="/resources">Resources</Link>{' '}
-              <span aria-hidden="true">›</span> <Link to="/resources#ap-guides">AP Exam Guides</Link>{' '}
-              <span aria-hidden="true">›</span> <span>{s.name}</span>
-            </nav>
-
             <div className="aps-hero-grid">
               <div>
-                <span className="aps-eyebrow">FREE AP EXAM GUIDE · UPDATED {formatArticleDate(s.updated).toUpperCase()}</span>
                 <h1>
                   {s.name} <span>Exam Guide</span>
                 </h1>
@@ -112,9 +104,6 @@ export function ApSubjectPage() {
                 onClick={() => trackDownload(guide.title, 'open')}
               >
                 <img src={apGuideCover(guide)} alt={`${s.name} exam guide cover`} width={360} height={466} />
-                <span>
-                  PDF · {guide.pages} pages · no sign-up
-                </span>
               </a>
             </div>
 
