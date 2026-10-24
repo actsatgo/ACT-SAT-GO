@@ -5,7 +5,8 @@ import { Footer } from '../components/Footer';
 import { fetchBlogs, type BlogPost } from '../admin/api';
 import { AP_GUIDES, apGuidePdf, type ApGuide, type ApGuideCategory } from '../data/apGuides';
 import { TEST_GUIDES, TEST_GUIDES_UPDATED, testGuideCover, testGuidePdf } from '../data/testGuides';
-import { ARTICLES, articlePath } from '../data/articles';
+import { BookOpen, GraduationCap, Landmark, NotebookPen, Scale } from 'lucide-react';
+import { ARTICLES, articlePath, formatArticleShortDate, readMinutes } from '../data/articles';
 import { AP_SUBJECT_BY_GUIDE, apSubjectPath } from '../data/apSubjects';
 import { QUERY_API_BASE } from '../config';
 import { CONSULT_PATH, PRIMARY_CTA } from '../site';
@@ -84,7 +85,16 @@ const articleInExam = (articleTag: string, exam: Exam | null) => {
 
 const hasArticleTag = (articleTag: string, chip: string) =>
   chip === 'All' || articleTag === chip || (articleTag === 'SAT & ACT' && (chip === 'SAT' || chip === 'ACT'));
-const ARTICLES_SHOWN = 8;
+const ARTICLES_SHOWN = 9;
+
+/** Each article topic's colour (a CSS class) and icon on the article cards. */
+const ARTICLE_TOPICS: Record<string, { cls: string; Icon: typeof BookOpen }> = {
+  SAT: { cls: 'topic-sat', Icon: BookOpen },
+  ACT: { cls: 'topic-act', Icon: NotebookPen },
+  AP: { cls: 'topic-ap', Icon: GraduationCap },
+  'SAT & ACT': { cls: 'topic-both', Icon: Scale },
+  'College Admissions': { cls: 'topic-admissions', Icon: Landmark },
+};
 
 
 const sizeLabel = (kb: number) => (kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`);
@@ -575,20 +585,34 @@ export function ResourcesPage() {
                     ))}
                   </div>
                 )}
-                <ol className="lib-article-list">
-                  {shownArticles.map((a, i) => (
-                    <li key={a.slug}>
-                      <span className="lib-num" aria-hidden="true">
-                        {String(i + 1).padStart(2, '0')}
-                      </span>
-                      <div>
-                        <span className="lib-tag">{a.tag}</span>
-                        <Link to={articlePath(a.slug)}>{a.title}</Link>
-                      </div>
-                      <span className="lib-arrow" aria-hidden="true">→</span>
-                    </li>
-                  ))}
-                </ol>
+                <ul className="lib-article-cards">
+                  {shownArticles.map((a) => {
+                    const topic = ARTICLE_TOPICS[a.tag] ?? ARTICLE_TOPICS.SAT;
+                    return (
+                      <li key={a.slug} className={`lib-article-card ${topic.cls}`}>
+                        <div className="lib-article-top">
+                          <span className="lib-article-tag">{a.tag}</span>
+                          <span className="lib-article-icon" aria-hidden="true">
+                            <topic.Icon size={20} strokeWidth={2} />
+                          </span>
+                        </div>
+                        <h3>
+                          {/* The link stretches over the whole card */}
+                          <Link to={articlePath(a.slug)}>{a.title}</Link>
+                        </h3>
+                        <p>{a.description}</p>
+                        <div className="lib-article-foot">
+                          <span>
+                            {readMinutes(a)} min read · {formatArticleShortDate(a.updated)}
+                          </span>
+                          <span className="lib-article-go" aria-hidden="true">
+                            →
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
                 {articles.length > ARTICLES_SHOWN && (
                   <div className="lib-more">
                     <button type="button" className="lib-more-btn" onClick={() => setShowAllArticles((s) => !s)}>

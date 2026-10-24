@@ -498,97 +498,225 @@
   }
 }
 
-/* Article chips + numbered list */
+/* Article topic filters: a small raised bar like the exam bar, active topic in yellow */
 .lib-chips {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
-  align-items: center;
-  margin-bottom: 18px;
+  gap: 4px;
+  max-width: 100%;
+  margin-bottom: 22px;
+  padding: 5px;
+  background: linear-gradient(180deg, #ffffff, #f6f8fb);
+  border: 1px solid #e1e7f0;
+  border-radius: 14px;
+  box-shadow:
+    inset 0 1px 0 #ffffff,
+    0 3px 0 #dde3ec,
+    0 12px 24px -14px rgba(6, 26, 47, 0.3);
 }
 
-/* Article filters are quiet text links with an orange underline on the active one */
 .lib-chip {
-  padding: 4px 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
   border: 0;
+  border-radius: 10px;
   background: none;
-  color: #5b6b80;
+  color: var(--navy);
   font: inherit;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .lib-chip:hover {
-  color: var(--navy);
-}
-
-.lib-chip + .lib-chip::before {
-  content: '·';
-  margin: 0 14px;
-  color: #c0c9d6;
+  background: #fff6dd;
 }
 
 .lib-chip span {
-  margin-left: 4px;
-  color: var(--muted);
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: 7px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #eef2f8;
+  font-size: 11.5px;
 }
 
 .lib-chip.active {
-  color: var(--navy);
-  text-decoration: underline;
-  text-decoration-color: var(--gold);
-  text-decoration-thickness: 3px;
-  text-underline-offset: 7px;
+  background: linear-gradient(180deg, #ffc93c, #ffb400);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 3px 0 #d99a00;
 }
 
 .lib-chip.active span {
-  color: #b77900;
+  background: var(--navy);
+  color: #ffb400;
 }
 
-.lib-article-list {
+/* Article cards: colour stripe, tag and icon by topic */
+.lib-article-cards {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 32px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-.lib-article-list li {
+.lib-article-card {
+  --acc: #2f6fe0;
+  --acc-bg: #e7eefc;
+  --acc-ink: #1d4fb8;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid #e3e8f0;
+  border-radius: 18px;
+  box-shadow: 0 10px 26px -20px rgba(6, 26, 47, 0.35);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.lib-article-card.topic-act {
+  --acc: #19a46f;
+  --acc-bg: #e6f6ef;
+  --acc-ink: #12825a;
+}
+
+.lib-article-card.topic-ap {
+  --acc: #ffb400;
+  --acc-bg: #fff3dc;
+  --acc-ink: #b77900;
+}
+
+.lib-article-card.topic-both {
+  --acc: #7c4ddb;
+  --acc-bg: #efe9fb;
+  --acc-ink: #6a3fc2;
+}
+
+.lib-article-card.topic-admissions {
+  --acc: #d94862;
+  --acc-bg: #fde9ec;
+  --acc-ink: #b8324a;
+}
+
+.lib-article-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--acc);
+}
+
+.lib-article-card:is(:hover, :focus-within) {
+  transform: translateY(-4px);
+  border-color: #ffb400;
+  box-shadow:
+    0 0 0 3px rgba(255, 180, 0, 0.18),
+    0 20px 34px -18px rgba(6, 26, 47, 0.45);
+}
+
+.lib-article-top {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 4px;
-  border-bottom: 1px solid var(--line);
+  justify-content: space-between;
 }
 
-.lib-article-list li > div {
-  flex: 1;
-  min-width: 0;
-}
-
-.lib-article-list a {
-  display: block;
-  font-size: 15.5px;
+.lib-article-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--acc-bg);
+  color: var(--acc-ink);
+  font-size: 11.5px;
   font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lib-article-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--acc-bg);
+  color: var(--acc-ink);
+}
+
+.lib-article-card h3 {
+  margin: 14px 0 8px;
+  font-size: 18px;
   line-height: 1.35;
+}
+
+.lib-article-card h3 a {
   color: var(--navy);
 }
 
-.lib-article-list a:hover {
-  color: var(--gold-2);
+/* The title link covers the whole card */
+.lib-article-card h3 a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
 }
 
-.lib-num {
-  min-width: 32px;
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--line);
+.lib-article-card p {
+  display: -webkit-box;
+  margin: 0 0 18px;
+  overflow: hidden;
+  color: #64748b;
+  font-size: 13.5px;
+  line-height: 1.55;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
-.lib-arrow {
-  color: var(--gold-2);
+.lib-article-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  color: #7a889b;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+/* Round arrow in place of a Read button: turns yellow and nudges on hover */
+.lib-article-go {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--navy);
+  color: #ffffff;
+  font-size: 17px;
   font-weight: 800;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.lib-article-card:is(:hover, :focus-within) .lib-article-go {
+  background: #ffb400;
+  color: var(--navy);
+  transform: translateX(4px);
 }
 
 .lib-more {
@@ -708,6 +836,9 @@
 }
 
 @media (max-width: 1200px) {
+  .lib-article-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 1024px) {
@@ -722,15 +853,15 @@
 
 @media (max-width: 768px) {
   .lib-feature-pair,
-  .lib-article-list {
+  .lib-article-cards {
     grid-template-columns: minmax(0, 1fr);
   }
 
 
   .lib-chips {
+    display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding-bottom: 4px;
     scrollbar-width: none;
   }
 

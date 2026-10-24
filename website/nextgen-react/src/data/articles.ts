@@ -2668,6 +2668,21 @@ export const ARTICLE_BY_SLUG: Record<string, Article> = Object.fromEntries(ARTIC
 
 export const articlePath = (slug: string) => `/resources/${slug}`;
 
+/** Rough reading time at 230 words a minute, counting the answer, sections, tables and FAQ. */
+export function readMinutes(a: Article): number {
+  const text = [
+    a.answer,
+    ...a.sections.flatMap((s) => [s.heading, ...(s.paragraphs ?? []), ...(s.list ?? []), ...(s.table?.rows.flat() ?? [])]),
+    ...a.faq.flatMap((f) => [f.q, f.a]),
+  ].join(' ');
+  return Math.max(2, Math.round(text.split(/\s+/).length / 230));
+}
+
+/** "2026-10-11" -> "Oct 11" (UTC, so server and browser agree). */
+export function formatArticleShortDate(iso: string): string {
+  return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+}
+
 /** "2026-10-11" -> "October 11, 2026" (UTC, so server and browser agree). */
 export function formatArticleDate(iso: string): string {
   return new Date(`${iso}T00:00:00Z`).toLocaleDateString('en-US', {
