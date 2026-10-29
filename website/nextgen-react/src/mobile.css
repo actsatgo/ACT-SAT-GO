@@ -1,0 +1,206 @@
+/* ── Phone fixes (Oct 2026 mobile review) ─────────────────────────────
+   Loaded last so these phone-only rules win over the page stylesheets. */
+
+/* Phone number field: a flex child keeps its default input width unless
+   min-width is 0, which pushed it past the form card on small phones. */
+.c-form-group input[type="tel"],
+.ft-form-group input[type="tel"] {
+  min-width: 0;
+}
+
+/* "Swipe to compare" hint above the wide comparison tables. */
+.swipe-hint {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .swipe-hint {
+    display: block;
+    margin: 0 0 8px;
+    text-align: right;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+
+  /* Program & fees table becomes one card per program, so the fee is
+     visible without sideways scrolling. */
+  .tier-table-wrap {
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .tier-table,
+  .tier-table tbody {
+    display: block;
+    min-width: 0;
+    background: none;
+  }
+  .tier-table thead {
+    display: none;
+  }
+  .tier-table tbody tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+    margin-bottom: 16px;
+    padding: 20px 18px 18px;
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--accent);
+    border-radius: 14px;
+    background: white;
+    box-shadow: 0 10px 26px rgba(18, 42, 70, 0.08);
+  }
+  .tier-table tbody tr:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  .tier-table td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+  }
+  .tier-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .tier-table .tt-num {
+    display: none;
+  }
+  .tier-table .tt-program,
+  .tier-table .tt-ideal,
+  .tier-table .tt-highlights,
+  .tier-table .tt-explore {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+  .tier-table .tt-duration {
+    min-width: 0;
+    white-space: normal;
+  }
+  .tier-table .tt-highlights ul {
+    min-width: 0;
+  }
+  .tier-table .tt-explore {
+    text-align: left;
+  }
+  .tier-table .tt-explore-btn {
+    width: 100%;
+    height: 46px;
+    border-radius: 999px;
+  }
+
+  /* Comparison table: keep the feature names in view while swiping. */
+  .prog-compare-table tbody th,
+  .prog-compare-table thead th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+  .prog-compare-table tbody th {
+    background: white;
+  }
+
+  /* Less space between the 5-step section and the programs on phones. */
+  .prog-steps {
+    padding-bottom: 40px;
+  }
+  .prog-tiers {
+    padding-top: 40px;
+  }
+
+  /* Program cards: keep the text clear of the photo in the corner. */
+  .hub-card > p {
+    max-width: 58%;
+  }
+
+  /* Home hero: keep the plan card clear of the WhatsApp button. */
+  #home .card-plan-glass {
+    right: 64px;
+  }
+
+  /* WhatsApp button: a little smaller, and the footer gets room below
+     its last links so the button never sits on top of them. */
+  .whatsapp-fab {
+    width: 48px;
+    height: 48px;
+  }
+  .whatsapp-fab svg {
+    width: 26px;
+    height: 26px;
+  }
+  footer.footer {
+    padding-bottom: calc(80px + env(safe-area-inset-bottom));
+  }
+
+  /* Bigger tap targets: footer links, legal links, article breadcrumbs. */
+  .footer-links {
+    gap: 0;
+  }
+  .footer-links a,
+  .footer-legal a,
+  .article-crumbs a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+  .footer-legal {
+    gap: 4px 16px;
+  }
+
+  /* Readable text: nothing under 12px; form labels at 13px. */
+  .hero-art .orbit-card span,
+  .dream-score-sections em,
+  .dream-score-sections.is-3 em {
+    font-size: 12px;
+    letter-spacing: 0;
+  }
+  .c-form-group label,
+  .ft-form-group label {
+    font-size: 13px;
+  }
+
+  /* Program table cards: the round arrow becomes a labelled button. */
+  .tier-table .tt-explore-btn::after {
+    content: "Book a free consultation";
+    margin-left: 8px;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  /* Resources filter tabs: size each tab to its label so long ones fit. */
+  .lib-exam {
+    flex: 1 1 auto;
+    padding: 0 6px;
+    white-space: nowrap;
+  }
+
+  .ft-login-link {
+    display: inline-block;
+    padding: 10px 4px;
+    margin: -10px 0;
+  }
+
+  /* Free-test trust line wraps cleanly next to the avatars. */
+  .ft-avatars {
+    flex-shrink: 0;
+  }
+  .ft-trust-stats {
+    min-width: 0;
+  }
+}
+
+/* AP hero image badges scale with the picture and become unreadable on
+   small phones; the same points are listed in the hero text. */
+@media (max-width: 480px) {
+  .ap-hero-card {
+    display: none;
+  }
+}

@@ -24,7 +24,9 @@ export function useScrollReveal() {
           }
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+      // threshold 0: tall blocks (like the program tables on a phone) would
+      // otherwise stay invisible until 12% of them is on screen, leaving a gap.
+      { threshold: 0, rootMargin: '0px 0px -8% 0px' },
     );
 
     els.forEach((el) => io.observe(el));
