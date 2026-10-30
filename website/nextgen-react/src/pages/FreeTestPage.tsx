@@ -372,7 +372,7 @@ export function FreeTestPage() {
                   </div>
                   <div className="ft-trust-stats">
                     <div className="ft-stars">★★★★★</div>
-                    <span>Rated {STATS.rating} • 1,200+ Students Tested</span>
+                    <span>Rated {STATS.rating} • {STATS.students} Students Mentored</span>
                   </div>
                 </div>
               </div>
@@ -611,7 +611,7 @@ export function FreeTestPage() {
 
                   <p className="ft-guarantee">
                     🔒 100% Free • No credit card • Already registered?{' '}
-                    <a href={FREE_TEST_LOGIN_URL} style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'underline' }}>Log in</a>
+                    <a className="ft-login-link" href={FREE_TEST_LOGIN_URL} style={{ color: 'rgba(255,255,255,0.85)', textDecoration: 'underline' }}>Log in</a>
                   </p>
                 </form>
               </div>

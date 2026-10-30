@@ -566,16 +566,16 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
                           {t.tag && <span className="tt-tag">{t.tag}</span>}
                         </div>
                       </td>
-                      <td className="tt-duration">{t.weeks}</td>
-                      <td className="tt-ideal">{t.idealFor}</td>
-                      <td className="tt-highlights">
+                      <td className="tt-duration" data-label="Duration">{t.weeks}</td>
+                      <td className="tt-ideal" data-label="Ideal for">{t.idealFor}</td>
+                      <td className="tt-highlights" data-label="Key highlights">
                         <ul>
                           {t.features.map((f) => (
                             <li key={f}>{f}</li>
                           ))}
                         </ul>
                       </td>
-                      <td className="tt-price">
+                      <td className="tt-price" data-label="Price (USD)">
                         <strong>{t.price}</strong>
                         {t.oldPrice && <s>{t.oldPrice}</s>}
                       </td>
@@ -638,6 +638,7 @@ export function ProgramPage({ data }: { data: ProgramPageData }) {
               <div className="section-heading center reveal">
                 <h2>{data.compareHeading}</h2>
               </div>
+              <p className="swipe-hint" aria-hidden="true">Swipe to compare &rarr;</p>
               <div className="compare-wrap reveal">
                 <table className="prog-compare-table">
                   <thead>
