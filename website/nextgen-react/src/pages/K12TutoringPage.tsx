@@ -11,6 +11,8 @@ import k12ElementaryImg from '../assets/img/k12-elementary.webp';
 import k12MiddleImg from '../assets/img/k12-middle.webp';
 import k12HighImg from '../assets/img/k12-high.webp';
 import { StatsBand } from '../components/StatsBand';
+import { FaqSection } from '../components/FaqSection';
+import { K12_FAQ } from '../data/faq';
 
 const CONSULT_HREF = '/consultation';
 
@@ -248,11 +250,12 @@ export function K12TutoringPage() {
           <span className="orb orb-ring" aria-hidden="true" />
           <div className="shell k12-hero-grid">
             <div className="k12-hero-copy">
-              <h1>
+              <h1 className="hero-kicker">Online K-12 Tutoring in Math, English and Science</h1>
+              <div className="hero-title">
                 Personalized Support.<br />
                 Stronger Foundations.<br />
                 <span>Limitless Futures.</span>
-              </h1>
+              </div>
               <p className="hero-text">
                 From building core skills to mastering advanced concepts, we support your child
                 at every step of their academic journey.
@@ -357,6 +360,8 @@ export function K12TutoringPage() {
             ))}
           </div>
         </section>
+
+        <FaqSection items={K12_FAQ} title="K-12 tutoring questions parents ask" />
 
         {/* Bottom CTA */}
         <section className="k12-cta shell" id="consultation">

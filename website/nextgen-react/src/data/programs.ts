@@ -57,6 +57,9 @@ export interface ProgramPageData {
   slug: string;
   exam: string;
   /** Hero headline split into plain/highlighted runs. */
+  /** The page's real <h1>: a plain description of the page, shown small above the slogan. */
+  heroH1: string;
+  /** The big hero slogan (styled heading, not the <h1>). */
   heroTitle: { text: string; gold?: boolean }[];
   heroText: string;
   heroBullets: { title: string; text: string }[];
@@ -96,6 +99,7 @@ const SHARED_STATS: Stat[] = [
 export const ACT_PAGE: ProgramPageData = {
   slug: 'act',
   exam: 'ACT',
+  heroH1: 'Online Tutoring for the Enhanced ACT',
   heroTitle: [
     { text: 'Ace the ' },
     { text: 'ACT.', gold: true },
@@ -276,6 +280,7 @@ export const ACT_PAGE: ProgramPageData = {
 export const SAT_PAGE: ProgramPageData = {
   slug: 'sat',
   exam: 'SAT',
+  heroH1: 'Online Digital SAT Tutoring, 1-on-1',
   heroTitle: [
     { text: 'SAT', gold: true },
     { text: '\nPreparation' },
@@ -437,6 +442,7 @@ export const SAT_PAGE: ProgramPageData = {
 export const AP_PAGE: ProgramPageData = {
   slug: 'ap',
   exam: 'AP',
+  heroH1: 'Online AP Exam Tutoring, 1-on-1',
   heroTitle: [
     { text: 'Master ' },
     { text: 'AP®.', gold: true },
@@ -578,6 +584,28 @@ export const AP_PAGE: ProgramPageData = {
     { prompt: 'I prefer learning in a small, supportive group.', choose: 'AP Small Group Program', accent: '#dc2626' },
   ],
   stats: SHARED_STATS,
+  faq: [
+    {
+      q: 'Which AP subjects do you tutor?',
+      a: 'We tutor 30+ AP subjects, including AP Calculus AB and BC, Biology, Chemistry, Physics, English Language and Literature, US History, Psychology, Economics, Statistics, Computer Science and Environmental Science.',
+    },
+    {
+      q: 'How much does AP tutoring cost?',
+      a: 'Fees are per subject: AP Calculus AB/BC is $699 (12 to 20 weeks), AP Sciences are $649 (12 to 16 weeks), and AP English and AP Humanities are $499 (8 to 12 weeks). Other subjects get a custom plan, and bundle discounts are available when you enroll in more than one subject.',
+    },
+    {
+      q: 'Is AP tutoring 1-on-1?',
+      a: 'Yes. AP tutoring is live and online, 1-on-1 with a tutor for your exact AP course, and includes practice exams and performance tracking.',
+    },
+    {
+      q: 'When should my child start AP exam prep?',
+      a: 'AP exams are held in May. A full program takes 8 to 20 weeks depending on the subject, so most students start in the fall or early in the new year. Students who only need a final review can start closer to the exam.',
+    },
+    {
+      q: 'Can a good AP score earn college credit?',
+      a: 'Yes. Many colleges give credit or placement for a score of 3, 4 or 5, and some only for a 4 or 5. Each college sets its own policy, so check the AP credit policy of the colleges on your list.',
+    },
+  ],
 };
 
 export const PROGRAM_PAGES: Record<string, ProgramPageData> = {

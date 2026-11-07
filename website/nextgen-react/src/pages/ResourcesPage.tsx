@@ -261,10 +261,11 @@ export function ResourcesPage() {
           <div className="shell">
             <div className="resources-hero-grid">
               <div className="resources-hero-copy">
-                <h1>
+                <h1 className="hero-kicker">Free SAT, ACT and AP Study Guides</h1>
+                <div className="hero-title">
                   Knowledge that<br />
                   <span>Empowers Progress</span>
-                </h1>
+                </div>
                 <p className="hero-text">
                   Curated guides, expert tips, and the latest insights to help you learn smarter and achieve more.
                 </p>

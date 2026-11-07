@@ -15,6 +15,8 @@ export interface PageMeta {
   description: string;
   /** Excluded from the sitemap and marked noindex. */
   noindex?: boolean;
+  /** Guide pages: shared as og:type "article" with their last-updated date. */
+  modified?: string;
 }
 
 export const PAGES: PageMeta[] = [
@@ -103,9 +105,9 @@ export const PAGES: PageMeta[] = [
     title: 'Child Safety & Online Sessions | ACT SAT GO',
     description: 'How ACT SAT GO keeps online tutoring sessions safe for students, and how parents stay involved.',
   },
-  ...ARTICLES.map((a) => ({ path: articlePath(a.slug), title: a.metaTitle, description: a.description })),
-  ...TEST_GUIDE_PAGES.map((g) => ({ path: testGuidePagePath(g.slug), title: g.metaTitle, description: g.description })),
-  ...AP_SUBJECTS.map((s) => ({ path: apSubjectPath(s.slug), title: s.metaTitle, description: s.description })),
+  ...ARTICLES.map((a) => ({ path: articlePath(a.slug), title: a.metaTitle, description: a.description, modified: a.updated })),
+  ...TEST_GUIDE_PAGES.map((g) => ({ path: testGuidePagePath(g.slug), title: g.metaTitle, description: g.description, modified: g.updated })),
+  ...AP_SUBJECTS.map((s) => ({ path: apSubjectPath(s.slug), title: s.metaTitle, description: s.description, modified: s.updated })),
   {
     path: '/404',
     title: 'Page not found | ACT SAT GO',
@@ -144,7 +146,8 @@ export function headTags(meta: PageMeta, jsonLd?: Record<string, unknown> | null
     `<title>${esc(meta.title)}</title>`,
     `<meta name="description" content="${esc(meta.description)}" />`,
     meta.noindex ? '<meta name="robots" content="noindex" />' : `<link rel="canonical" href="${url}" />`,
-    `<meta property="og:type" content="website" />`,
+    `<meta property="og:type" content="${meta.modified ? 'article' : 'website'}" />`,
+    ...(meta.modified ? [`<meta property="article:modified_time" content="${meta.modified}" />`] : []),
     `<meta property="og:site_name" content="${SITE.name}" />`,
     `<meta property="og:title" content="${esc(meta.title)}" />`,
     `<meta property="og:description" content="${esc(meta.description)}" />`,

@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { Header } from '../components/Header';
 import { Footer } from '../components/Footer';
+import { FaqSection } from '../components/FaqSection';
+import { FREE_TEST_FAQ } from '../data/faq';
 import { FREE_TEST_LOGIN_URL, PLATFORM_API_BASE, QUERY_API_BASE } from '../config';
 import { WHATSAPP_HREF, CALL_HREF } from '../components/WhatsAppButton';
 import { trackLead, leadSource } from '../lib/analytics';
@@ -618,6 +620,7 @@ export function FreeTestPage() {
             </div>
           </div>
         </section>
+        <FaqSection items={FREE_TEST_FAQ} title="Free practice test questions" />
       </main>
 
       <Footer />

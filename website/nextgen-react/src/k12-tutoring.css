@@ -34,14 +34,14 @@
   z-index: 2;
 }
 
-.k12-hero-copy h1 {
+.k12-hero-copy .hero-title {
   margin: 6px 0 10px;
   font-size: clamp(30px, 3.6vw, 46px);
   line-height: 1.22;
   color: white;
 }
 
-.k12-hero-copy h1 span {
+.k12-hero-copy .hero-title span {
   color: var(--gold);
 }
 
@@ -749,7 +749,7 @@
 }
 
 /* Hero heading: exactly one phrase per line */
-.k12-hero-copy h1 {
+.k12-hero-copy .hero-title {
   white-space: nowrap;
   font-size: clamp(26px, 3.4vw, 46px);
 }
