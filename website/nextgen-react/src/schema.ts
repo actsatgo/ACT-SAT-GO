@@ -1,5 +1,5 @@
 import { SITE } from './site';
-import { HOME_FAQ, type FaqItem } from './data/faq';
+import { HOME_FAQ, K12_FAQ, FREE_TEST_FAQ, type FaqItem } from './data/faq';
 import { SAT_PAGE, ACT_PAGE, AP_PAGE, type ProgramPageData } from './data/programs';
 import { PAGES } from './seo';
 import { ARTICLE_BY_SLUG } from './data/articles';
@@ -30,7 +30,9 @@ const organization: Json = {
   '@type': 'EducationalOrganization',
   '@id': ORG_ID,
   name: SITE.name,
-  alternateName: 'ACT SAT GO Tutoring',
+  alternateName: ['ACT SAT GO Tutoring', 'ACTSATGO', 'ACT SAT Go'],
+  slogan: 'Live 1-on-1 online SAT, ACT and AP tutoring',
+  knowsAbout: ['Digital SAT', 'ACT', 'Advanced Placement (AP) exams', 'PSAT/NMSQT', 'K-12 tutoring', 'College admissions testing'],
   url: url('/'),
   logo: { '@type': 'ImageObject', url: `${SITE.url}/logo.png` },
   image: `${SITE.url}/og-image.jpg`,
@@ -121,6 +123,28 @@ function service(path: string, name: string, serviceType: string, description: s
   };
 }
 
+/** A program as a Course with an online CourseInstance, priced from the same tiers as the page. */
+function course(path: string, name: string, description: string, data: ProgramPageData, about: string): Json {
+  const offers = offersFrom(data, path);
+  return {
+    '@type': 'Course',
+    '@id': `${url(path)}#course`,
+    name,
+    description,
+    provider: { '@id': ORG_ID },
+    url: url(path),
+    inLanguage: 'en-US',
+    about: { '@type': 'Thing', name: about },
+    educationalLevel: 'High school',
+    hasCourseInstance: {
+      '@type': 'CourseInstance',
+      courseMode: 'Online',
+      courseWorkload: 'Live 1-on-1 sessions with homework after every session',
+    },
+    ...(offers.length ? { offers } : {}),
+  };
+}
+
 function faqPageFor(path: string, items: FaqItem[]): Json {
   return {
     '@type': 'FAQPage',
@@ -167,6 +191,7 @@ function graphFor(path: string): Json[] | null {
       return [
         webPage('WebPage', path, titleOf(path), SAT_DESC),
         service(path, 'Digital SAT Tutoring (1-on-1, online)', 'SAT test preparation', SAT_DESC, offersFrom(SAT_PAGE, path)),
+        course(path, 'Digital SAT Preparation (1-on-1, online)', SAT_DESC, SAT_PAGE, 'Digital SAT'),
         breadcrumb(path, 'SAT'),
         ...(SAT_PAGE.faq ? [faqPageFor(path, SAT_PAGE.faq)] : []),
       ];
@@ -174,6 +199,7 @@ function graphFor(path: string): Json[] | null {
       return [
         webPage('WebPage', path, titleOf(path), ACT_DESC),
         service(path, 'ACT Tutoring (1-on-1, online)', 'ACT test preparation', ACT_DESC, offersFrom(ACT_PAGE, path)),
+        course(path, 'Enhanced ACT Preparation (1-on-1, online)', ACT_DESC, ACT_PAGE, 'ACT'),
         breadcrumb(path, 'ACT'),
         ...(ACT_PAGE.faq ? [faqPageFor(path, ACT_PAGE.faq)] : []),
       ];
@@ -181,13 +207,16 @@ function graphFor(path: string): Json[] | null {
       return [
         webPage('WebPage', path, titleOf(path), AP_PAGE_DESC),
         service(path, 'AP Tutoring (1-on-1, online)', 'AP exam preparation', AP_SERVICE_DESC, offersFrom(AP_PAGE, path)),
+        course(path, 'AP Exam Preparation (1-on-1, online)', AP_SERVICE_DESC, AP_PAGE, 'Advanced Placement (AP) exams'),
         breadcrumb(path, 'AP'),
+        ...(AP_PAGE.faq ? [faqPageFor(path, AP_PAGE.faq)] : []),
       ];
     case '/k-12-tutoring':
       return [
         webPage('WebPage', path, titleOf(path), K12_DESC),
         service(path, 'K-12 Tutoring (1-on-1, online)', 'K-12 academic tutoring', K12_DESC),
         breadcrumb(path, 'K-12 Tutoring'),
+        faqPageFor(path, K12_FAQ),
       ];
     case '/free-test':
       return [
@@ -201,6 +230,7 @@ function graphFor(path: string): Json[] | null {
           url: url(path),
         }]),
         breadcrumb(path, 'Free Practice Test'),
+        faqPageFor(path, FREE_TEST_FAQ),
       ];
     case '/consultation':
       return [

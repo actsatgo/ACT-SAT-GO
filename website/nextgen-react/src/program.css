@@ -123,12 +123,12 @@
   align-items: center;
 }
 
-.prog-hero-copy h1 {
+.prog-hero-copy .hero-title {
   white-space: pre-line;
   font-size: clamp(38px, 4.4vw, 60px);
 }
 
-.prog-hero-copy h1 .plain {
+.prog-hero-copy .hero-title .plain {
   color: white;
 }
 
@@ -1051,7 +1051,7 @@
   .prog-hero {
     padding: 36px 0 28px;
   }
-  .prog-hero-copy h1 {
+  .prog-hero-copy .hero-title {
     font-size: clamp(28px, 8vw, 40px);
   }
   .step-card {
@@ -1466,7 +1466,7 @@
   }
 }
 
-.prog-hero-copy h1 sup {
+.prog-hero-copy .hero-title sup {
   font-size: 0.42em;
   vertical-align: super;
   line-height: 0;
